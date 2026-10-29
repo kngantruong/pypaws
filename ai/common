@@ -1,11 +1,3 @@
-Claude
-
-
-
-
-
-
-Common · PY
 """Thành phần dùng chung cho train.py, evaluate.py, build_train_subset.py.
  
 Quy ước tên file ảnh PetFace:
