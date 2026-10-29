@@ -98,7 +98,7 @@ python evaluate.py --root "/content/drive/MyDrive/PETFACE dataset" \
 
 ## Bàn giao cho backend (Quỳnh)
 
-1. Tải checkpoint `dinov2_petface_ft.pt` từ Google Drive: **<dán link Drive vào đây>**
+1. Tải checkpoint `dinov2_petface_ft.pt` từ Google Drive: https://drive.google.com/file/d/1r8i22GunT8C8WrIwomVyu8Iogik4pqqa/view?usp=drive_link
 2. Copy `embedder.py` vào backend, cài `torch`, `torchvision`, `pillow`, `numpy`.
 3. Dùng:
 
