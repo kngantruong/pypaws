@@ -1,11 +1,3 @@
-Claude
-
-
-
-
-
-
-Evaluate · PY
 """So sánh DINOv2 pretrain và bản fine-tune trên các cặp verification.
  
 Xuất: bảng chỉ số (in ra + CSV), AUC theo loài, hình histogram same/diff + đường ROC.
