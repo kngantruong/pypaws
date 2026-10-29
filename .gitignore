@@ -1,10 +1,39 @@
-
+# Environment variables and secrets
 .env
+
+# Python environments
 .venv/
 venv/
 __pycache__/
+*.py[cod]
+
+# Node.js
 node_modules/
+
+# User-uploaded images
 uploads/
+
+# AI model weights and checkpoints
 *.pt
 *.pth
 *.onnx
+*.ckpt
+*.safetensors
+
+# Dataset archives
+*.zip
+*.tar.gz
+*.7z
+
+# PetFace datasets
+petface/
+petface_train/
+
+# Training outputs
+results/
+runs/
+outputs/
+checkpoints/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
