@@ -29,7 +29,7 @@ Hai mô hình dùng cùng pipeline (resize 224, flip TTA). ID của tập train 
 | Chó (502 cặp) | 0.9732 | 0.9865 |
 | Mèo (499 cặp) | 0.9321 | 0.9765 |
 
-**Lưu ý khi diễn giải:**
+**Lưu ý**
 - Chạy một lần, một seed. Chênh lệch nhỏ giữa các epoch cuối là nhiễu; mức tăng +0.029 AUC lớn hơn nhiễu.
 - Ngưỡng và Accuracy được chọn trên chính tập verification nên hơi lạc quan. AUC và EER ít bị ảnh hưởng hơn.
 - Mỗi loài chỉ khoảng 500 cặp, nên số liệu theo loài (đặc biệt TPR@FPR=1%) dao động khá nhiều.
@@ -38,7 +38,6 @@ Hai mô hình dùng cùng pipeline (resize 224, flip TTA). ID của tập train 
 ## Dữ liệu
 
 Tập train lấy mẫu **theo cá thể** từ PetFace đầy đủ, vì metric learning cần nhiều ảnh của cùng một con.
-(File `petface_train_10k_images.zip` bốc ngẫu nhiên 10k ảnh nên 97% cá thể chỉ có 1 ảnh, không dùng được.)
 
 | | Dataset gốc (chó + mèo) | Dùng trong đồ án |
 |---|---|---|
@@ -51,7 +50,7 @@ Tập train lấy mẫu **theo cá thể** từ PetFace đầy đủ, vì metric
 | File | Vai trò |
 |---|---|
 | `common.py` | Mô hình, ArcFace, transform, hàm embed và đánh giá dùng chung |
-| `build_train_subset.py` | Tạo tập train 10.000 ảnh từ `dog.tar.gz`, `cat.tar.gz` (chạy CPU được) |
+| `build_train_subset.py` | Tạo tập train 10.000 ảnh từ `dog.tar.gz`, `cat.tar.gz`|
 | `train.py` | Fine-tune, in baseline pretrain và chỉ số từng epoch, lưu checkpoint + log JSON |
 | `evaluate.py` | So sánh pretrain và fine-tune, xuất bảng, AUC theo loài, histogram và ROC |
 | `embedder.py` | **Dành cho backend:** nạp checkpoint và tạo embedding, tự đủ, không phụ thuộc file khác |
@@ -65,7 +64,7 @@ Checkpoint (`*.pt`) và dữ liệu **không** nằm trong repo (đã chặn b�
 pip install -r requirements.txt
 ```
 
-**Bước 1. Tạo tập train** (CPU, mất vài phút đến vài chục phút do `.tar.gz` chỉ đọc tuần tự):
+**Bước 1. Tạo tập train**
 
 ```bash
 python build_train_subset.py --root "/content/drive/MyDrive/PETFACE dataset" \
@@ -78,7 +77,7 @@ và tạo lại `train_subset.csv` (cột `filename, pid, animal, fp`) thay vì 
 
 **Bước 2. Giải nén ảnh verification** (`petface_veri_1000_images.zip`) vào `/content/petface`.
 
-**Bước 3. Fine-tune** (cần GPU, T4 là đủ):
+**Bước 3. Fine-tune**:
 
 ```bash
 python train.py --root "/content/drive/MyDrive/PETFACE dataset" \
@@ -96,9 +95,6 @@ python evaluate.py --root "/content/drive/MyDrive/PETFACE dataset" \
     --veri-dir /content/petface \
     --ckpt "/content/drive/MyDrive/PETFACE dataset/dinov2_petface_ft.pt" --out-dir /content/results
 ```
-
-Nếu kết quả kém đi: giảm `--unfreeze-last` xuống 2 hoặc `--lr-backbone` xuống 5e-6 (overfit);
-giảm `--batch-size` xuống 32 nếu hết bộ nhớ GPU.
 
 ## Bàn giao cho backend (Quỳnh)
 
@@ -120,13 +116,5 @@ Gợi ý tích hợp (ghép tin LOST/FOUND):
 - Dùng **điểm số để xếp hạng** ứng viên, để người dùng xác nhận. Ngưỡng 0.252 (`is_same`) chỉ mang tính tham khảo.
 - Mô hình học trên ảnh **mặt thú cưng đã crop** (dạng PetFace). Ảnh người dùng chụp cả con vật nên crop mặt trước
   khi embed, nếu không độ chính xác sẽ thấp hơn các số ở trên. Đây là điểm cần kiểm thử với ảnh thật của hệ thống.
-- Chạy được trên CPU nhưng chậm hơn GPU; mỗi ảnh embed hai lần (ảnh gốc và ảnh lật). Truyền `tta=False` nếu cần nhanh hơn
-  (độ chính xác có thể giảm nhẹ, chưa đo).
-- Lần chạy đầu `torch.hub` tải code DINOv2 từ GitHub và cache lại, server cần ra được internet lúc đó.
+- Lần chạy đầu `torch.hub` tải code DINOv2 từ GitHub và cache lại.
 
-## Hạn chế và hướng mở rộng
-
-- Chỉ dùng ~1,7% dữ liệu train của PetFace; tăng `--ids-per-species` (ví dụ 4.000) có thể cải thiện thêm.
-- Chưa có khoảng tin cậy (bootstrap) và chưa phân tích các cặp bị đoán sai.
-- Chưa thử backbone lớn hơn (`dinov2_vitb14`) hay mở nhiều block hơn.
-- Chưa kiểm thử trên ảnh thực tế của hệ thống PetMatch AI.
