@@ -2,6 +2,14 @@
 
 Fine-tune **DINOv2 ViT-S/14** bằng **ArcFace** để so khớp khuôn mặt thú cưng: hai ảnh có cùng một con hay không.
 Đầu ra của mô hình là vector 512 chiều (L2-normalize), so sánh bằng cosine similarity.
+## Training Dataset Preview
+
+Ảnh minh họa dữ liệu chó mèo dùng trong quá trình phát triển
+và đánh giá mô hình nhận diện cá thể.
+
+![Training Dataset Preview](preview/train_preview.jpg)
+
+Lưu ý: Bộ dữ liệu huấn luyện đầy đủ không được lưu trong repository.
 
 ## Kết quả
 
