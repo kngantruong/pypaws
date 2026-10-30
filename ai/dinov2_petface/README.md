@@ -62,7 +62,7 @@ Tập train lấy mẫu **theo cá thể** từ PetFace đầy đủ, vì metric
 |---|---|---|
 | Ảnh train | 573.381 (168.348 chó, 405.033 mèo) | **10.000** (5.000 chó + 5.000 mèo) |
 | Cá thể train | 160.347 | **2.500** (1.250 chó + 1.250 mèo), 4 ảnh/cá thể |
-| Cặp verification | 103.532 | **1.001** |
+| Cặp verification | 103.532 | **1.001**(502 cặp cùng ID + 499 cặp khác ID) |
 
 ## Cấu trúc thư mục
 
