@@ -23,7 +23,7 @@ import zipfile
 import pandas as pd
 from PIL import Image
  
-from common import flat, pid_of
+from ai.common import flat, pid_of
  
  
 def parse_args():
