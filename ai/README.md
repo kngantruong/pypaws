@@ -17,35 +17,6 @@ Frontend ──POST /api/ai/describe-pet (multipart, trường "image")──▶
 Ô văn bản cho người dùng sửa  ──(đăng tin)──▶ API đăng tin hiện có ──▶ SQL Server (NVARCHAR(MAX))
 ```
 
-Endpoint **chỉ phân tích, không lưu ảnh, không ghi database**. Việc lưu do API đăng tin hiện có đảm nhiệm.
-
-## 1. Cấu trúc thư mục
-
-```
-ai/qwen/                          # copy vào repo, cạnh ai/dinov2_petface
-├── README.md                     # tài liệu này
-├── pyproject.toml                # để cài như một gói Python: pip install -e ai/qwen
-├── requirements.txt
-├── .env.example                  # mẫu biến môi trường (KHÔNG commit file .env)
-├── .gitignore
-├── pypaws_qwen/
-│   ├── prompt.py                 # PROMPT tiếng Việt (giữ nguyên từ notebook Colab)
-│   ├── normalize.py              # normalize_output() (giữ nguyên từ notebook Colab)
-│   ├── constants.py              # FIELDS, BODY_PARTS, NOT_FOUND, NO_PET
-│   ├── images.py                 # kiểm tra định dạng, bỏ EXIF, thu nhỏ ảnh
-│   ├── client.py                 # gọi Qwen API, ánh xạ lỗi
-│   ├── config.py                 # đọc biến môi trường
-│   └── errors.py                 # các lỗi nghiệp vụ + mã HTTP + câu thông báo an toàn
-├── scripts/test_describe.py      # thử nhanh từ dòng lệnh, không cần chạy backend
-└── tests/                        # 24 test, không tốn quota (dùng API giả)
-
-backend/                          # CHỈ THÊM 2 file, không sửa file cũ ngoài 2 dòng trong main.py
-├── app/routers/ai_pet_description.py    # endpoint /api/ai/describe-pet và /api/ai/health
-└── tests/test_ai_pet_description.py     # 8 test cho endpoint
-```
-
-> Giả định backend có cấu trúc `backend/app/routers/`. Nếu khác, đặt `ai_pet_description.py` vào thư mục router tương ứng và
-> sửa dòng import trong `main.py`; file này chỉ phụ thuộc gói `pypaws_qwen`, không phụ thuộc code khác của backend.
 
 ## 2. Cấu hình API Qwen (làm một lần)
 
