@@ -456,8 +456,6 @@ export default function PetReportPage({
     }));
 
     setWards([]);
-    setMapPosition(DEFAULT_MAP_POSITION);
-
     setLocationSearchError('');
 
     clearErrors([
@@ -468,8 +466,47 @@ export default function PetReportPage({
       'longitude',
     ]);
 
-    if (!provinceCode) {
+    if (!provinceCode || !selectedProvince) {
+      setFormData((previous) => ({
+        ...previous,
+        location_text: '',
+      }));
+      setMapPosition(DEFAULT_MAP_POSITION);
+      setIsSearchingLocation(false);
+      locationRequestRef.current += 1;
       return;
+    }
+
+    // Đưa bản đồ đến khu vực tỉnh/thành ngay khi người dùng chọn.
+    // Tọa độ cấp tỉnh là vị trí mặc định; chọn phường/xã sẽ định vị chính xác hơn.
+    const locationRequestId = ++locationRequestRef.current;
+    setIsSearchingLocation(true);
+
+    setFormData((previous) => ({
+      ...previous,
+      location_text: selectedProvince.name,
+    }));
+
+    try {
+      const coordinates = await searchCoordinates(
+        `${selectedProvince.name}, Việt Nam`
+      );
+
+      if (locationRequestId === locationRequestRef.current && coordinates) {
+        const { latitude, longitude } = coordinates;
+        setMapPosition([latitude, longitude]);
+        setFormData((previous) => ({
+          ...previous,
+          latitude: latitude.toFixed(6),
+          longitude: longitude.toFixed(6),
+        }));
+      }
+    } catch (error) {
+      console.warn('Chưa xác định được tâm tỉnh/thành:', error);
+    } finally {
+      if (locationRequestId === locationRequestRef.current) {
+        setIsSearchingLocation(false);
+      }
     }
 
     try {
