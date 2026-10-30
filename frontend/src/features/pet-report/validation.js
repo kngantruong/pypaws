@@ -82,11 +82,6 @@ export function validatePetReport(formData, images) {
     errors.address_detail = 'Vui lòng nhập địa chỉ cụ thể hoặc mốc dễ nhận biết.';
   }
 
-  // Chỉ chấp nhận tọa độ sau khi người dùng xác nhận ghim trên bản đồ.
-  if (formData.map_location_confirmed && (isBlank(formData.latitude) || isBlank(formData.longitude))) {
-    errors.latitude = 'Vui lòng xác nhận vị trí trên bản đồ.';
-  }
-
   // Coordinates are optional, but if the user fills one in, both must be valid.
   const hasLatitude = !isBlank(formData.latitude);
   const hasLongitude = !isBlank(formData.longitude);
