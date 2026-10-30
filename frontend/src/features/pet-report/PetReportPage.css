@@ -181,12 +181,44 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* Ba trường thời gian, tỉnh/thành và phường/xã nằm cùng một hàng. */
+.pet-report-page .pet-report-grid--three {
+  align-items: start;
+}
+
+.pet-report-page .pet-report-grid--three > .pet-report-field {
+  min-width: 0;
+}
+
+.pet-report-page .pet-report-grid--three input.pet-report-input,
+.pet-report-page .pet-report-grid--three select.pet-report-input {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  min-height: 44px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.pet-report-page .pet-report-grid--three input[type='datetime-local'].pet-report-input {
+  padding-right: 8px;
+}
+
+.pet-report-page .pet-report-grid--three .pet-report-label {
+  min-height: 20px;
+  line-height: 1.35;
+}
+
+
 .pet-report-page .pet-report-grid--two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* Bản đồ chiếm toàn bộ chiều ngang bên dưới thời gian và địa chỉ. */
-.pet-report-page .pet-report-grid--two > .pet-report-map-field {
+.pet-report-page .pet-report-grid--two > .pet-report-map-field,
+.pet-report-page .pet-report-grid--three > .pet-report-map-field {
   grid-column: 1 / -1;
 }
 
