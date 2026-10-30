@@ -11,3 +11,4 @@ pydantic
 requests
 pytest
 pytest-mock
+python-multipart
