@@ -128,20 +128,6 @@ Kết quả:
 **Frontend xử lý:**
 - Nếu `is_pet = true`: hiển thị `description` trong ô văn bản để người dùng chỉnh sửa.
 - Nếu `is_pet = false`: hiển thị `message`.
-- Nếu API lỗi: thông báo lỗi và vẫn cho phép người dùng tự nhập mô tả.
-
-### Các mã lỗi chính
-
-| HTTP | Ý nghĩa |
-|---|---|
-| 400 | Ảnh rỗng hoặc không hợp lệ |
-| 413 | Ảnh quá dung lượng |
-| 415 | Định dạng ảnh không hỗ trợ |
-| 422 | AI từ chối ảnh hoặc thiếu trường ảnh |
-| 429 | Vượt giới hạn gọi API |
-| 502 | Lỗi dịch vụ AI |
-| 503 | Chưa cấu hình API key hoặc hết hạn mức |
-| 504 | Quá thời gian chờ |
 
 ## 6. Lưu ý tích hợp
 
