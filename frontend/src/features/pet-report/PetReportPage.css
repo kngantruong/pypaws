@@ -185,6 +185,40 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* Bản đồ chiếm toàn bộ chiều ngang bên dưới thời gian và địa chỉ. */
+.pet-report-page .pet-report-grid--two > .pet-report-map-field {
+  grid-column: 1 / -1;
+}
+
+/* Đồng bộ kích thước ô ngày/giờ và các danh sách địa chỉ. */
+.pet-report-page input[type='datetime-local'].pet-report-input {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color-scheme: light;
+}
+
+.pet-report-page select.pet-report-input {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 32px 8px 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.pet-report-page select.pet-report-input:disabled {
+  background: #f5f5f5;
+  color: #8a817a;
+  cursor: not-allowed;
+}
+
 /* Smaller, cleaner controls like the reference form */
 .pet-report-page .pet-report-input {
   width: 100%;
@@ -598,6 +632,40 @@
   gap: 12px;
   width: 100%;
   min-width: 0;
+}
+
+.pet-report-page .pet-report-map-search {
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--pr-border);
+  border-radius: 8px;
+  background: var(--pr-primary-soft);
+  color: var(--pr-text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pet-report-page .pet-report-map-search:hover:not(:disabled) {
+  border-color: var(--pr-primary);
+  background: #fbe5d6;
+}
+
+.pet-report-page .pet-report-map-search:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.pet-report-page .pet-report-map-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pet-report-page .pet-report-map-heading .pet-report-hint {
+  margin: 0;
 }
 
 
