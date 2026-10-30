@@ -31,7 +31,8 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 760px;
+  width: 100%;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px 18px;
   border: 1px solid var(--pr-border);
@@ -168,6 +169,53 @@
   border: 0;
 }
 
+/* ---------- Compact form grid ---------- */
+.pet-report-page .pet-report-grid {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.pet-report-page .pet-report-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pet-report-page .pet-report-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Smaller, cleaner controls like the reference form */
+.pet-report-page .pet-report-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--pr-text);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.pet-report-page .pet-report-grid .pet-report-field {
+  gap: 6px;
+}
+
+.pet-report-page .pet-report-grid .pet-report-label {
+  margin-bottom: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .pet-report-page .pet-report-grid--three,
+  .pet-report-page .pet-report-grid--two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .pet-report-page .pet-report-label {
   padding: 0;
   margin-bottom: 2px;
@@ -210,13 +258,15 @@
 /* ---------- Inputs ---------- */
 .pet-report-page .pet-report-input {
   width: 100%;
-  min-height: 46px;
-  padding: 10px 14px;
-  border: 1.5px solid var(--pr-border);
-  border-radius: 12px;
-  background: var(--pr-surface);
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: #fff;
   color: var(--pr-text);
   font: inherit;
+  font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
@@ -460,18 +510,14 @@
 }
 
 .pet-report-page .pet-report-review__list {
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  border: 1px solid var(--pr-border);
-  border-radius: 14px;
-  overflow: hidden;
+  width: 100%;
 }
 
 .pet-report-page .pet-report-review__row {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 2px;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 20px;
   padding: 12px 16px;
 }
 
@@ -479,20 +525,17 @@
   border-top: 1px solid var(--pr-border);
 }
 
-@media (min-width: 560px) {
-  .pet-report-page .pet-report-review__row {
-    grid-template-columns: 140px 1fr;
-    gap: 16px;
-  }
-}
-
 .pet-report-page .pet-report-review__row dt {
+  margin: 0;
   font-weight: 700;
   color: var(--pr-muted);
+  text-align: left;
 }
 
 .pet-report-page .pet-report-review__row dd {
   margin: 0;
+  min-width: 0;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
@@ -500,10 +543,11 @@
   white-space: pre-line;
 }
 
-.pet-report-page .pet-report-section-title {
-  margin: 0 0 10px;
-  font-size: 1rem;
-  font-weight: 700;
+@media (max-width: 480px) {
+  .pet-report-page .pet-report-review__row {
+    grid-template-columns: 1fr;
+    row-gap: 6px;
+  }
 }
 
 .pet-report-page .pet-report-review__images {
@@ -545,4 +589,132 @@
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+/* Bản đồ chọn địa điểm */
+.pet-report-page .pet-report-map-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+
+.pet-report-page .pet-report-map {
+  display: block !important;
+  width: 100% !important;
+  height: 360px !important;
+  min-height: 360px;
+  position: relative;
+  z-index: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.pet-report-page .pet-report-map .leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+
+
+.pet-report-page .pet-report-image-description {
+  margin: 6px 0 10px;
+  color: #64748b;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.pet-report-page .pet-report-image-description strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #334155;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.pet-report-page .pet-report-image-description ul {
+  margin: 0 0 6px;
+  padding-left: 18px;
+  text-align: left;
+}
+
+.pet-report-page .pet-report-image-description li {
+  margin-bottom: 2px;
+}
+
+.pet-report-page .pet-report-image-description p {
+  margin: 0;
+  font-size: 0.75rem;
+  text-align: left;
+}
+
+/* Bố cục ngang cho các trường thông tin thú cưng */
+.pet-report-page .pet-report-field--horizontal {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 20px;
+  row-gap: 6px;
+  align-items: start;
+  margin-bottom: 20px;
+}
+
+/* Nhãn nằm ở cột bên trái */
+.pet-report-page .pet-report-field--horizontal > .pet-report-label {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  padding-top: 10px;
+}
+
+/* Ô nhập nằm ở cột bên phải */
+.pet-report-page .pet-report-field--horizontal > .pet-report-input {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Thông báo lỗi nằm ngay dưới ô nhập */
+.pet-report-page .pet-report-field--horizontal > .pet-report-input ~ * {
+  min-width: 0;
+}
+
+/* Gợi ý của trường Mô tả nằm bên phải, trên ô nhập */
+.pet-report-page .pet-report-field--horizontal > .pet-report-hint {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0 0 6px;
+}
+
+/* Đẩy ô Mô tả xuống dưới dòng gợi ý */
+.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-input {
+  grid-row: 2;
+}
+
+/* Hiển thị bộ đếm ký tự và lỗi dưới ô Mô tả */
+.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-counter,
+.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-input ~ * {
+  grid-column: 2;
+}
+
+/* Màn hình nhỏ: nhãn ở trên, ô nhập ở dưới */
+@media (max-width: 640px) {
+  .pet-report-page .pet-report-field--horizontal {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 6px;
+  }
+
+  .pet-report-page .pet-report-field--horizontal > .pet-report-label,
+  .pet-report-page .pet-report-field--horizontal > .pet-report-input,
+  .pet-report-page .pet-report-field--horizontal > .pet-report-hint,
+  .pet-report-page .pet-report-field--horizontal > .pet-report-counter {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }

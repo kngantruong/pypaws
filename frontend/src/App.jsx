@@ -1,8 +1,15 @@
+import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
+import ProfilePage from './features/profile/ProfilePage.jsx'
+import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
+import LoginPage from './features/auth/pages/LoginPage.jsx'
+import RegisterPage from './features/auth/pages/RegisterPage.jsx'
+import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage.jsx'
 import { useState } from 'react'
 import './App.css'
 import logo from './assets/logo/pypaws_logo.png'
 import mascot from './assets/logo/pypaws_mascot.png'
 import PetReportPage from './features/pet-report/PetReportPage.jsx'
+
 
 // Dữ liệu minh họa theo bảng SQL: posts
 // Khi có API backend, thay dữ liệu mẫu bằng dữ liệu trả về từ SQL Server.
@@ -38,26 +45,50 @@ const reports = [
       'Kiểm tra các thông tin nhận dạng và cung cấp thông tin nếu bạn nhận ra bé.',
   },
 ]
-
-// Dữ liệu minh họa theo bảng SQL: adopt_pets
-const adoptionPets = [
+const matchingResults = [
   {
-    pet_id: 1,
-    pet_name: 'Một người bạn mèo',
-    species: 'CAT',
-    breed: null,
-    city: 'TP. Hồ Chí Minh',
-    status: 'AVAILABLE',
+    post_id: 101,
+    pet_name: 'Milo',
+    species: 'DOG',
+    age: '8 tháng',
+    location_text: 'TP. Hồ Chí Minh',
+    created_at: '2026-10-28T09:00:00',
+    description: 'Chó lông vàng, thân thiện, được tìm thấy gần khu dân cư.',
+    image_url: null,
   },
   {
-    pet_id: 2,
-    pet_name: 'Một người bạn chó',
+    post_id: 102,
+    pet_name: 'Bông',
     species: 'DOG',
-    breed: null,
-    city: 'Bình Dương',
-    status: 'AVAILABLE',
+    age: '1 tuổi',
+    location_text: 'Bình Dương',
+    created_at: '2026-10-27T14:30:00',
+    description: 'Bé chó lông trắng, có đeo vòng cổ màu đỏ.',
+    image_url: null,
+  },
+  {
+    post_id: 103,
+    pet_name: 'Miu',
+    species: 'CAT',
+    age: '6 tháng',
+    location_text: 'TP. Hồ Chí Minh',
+    created_at: '2026-10-26T10:00:00',
+    description: 'Mèo tam thể, khá dạn người và sạch sẽ.',
+    image_url: null,
+  },
+  {
+    post_id: 104,
+    pet_name: 'Đốm',
+    species: 'DOG',
+    age: '2 tuổi',
+    location_text: 'Đồng Nai',
+    created_at: '2026-10-25T08:00:00',
+    description: 'Chó có bộ lông đốm nâu trắng, tính cách hiền.',
+    image_url: null,
   },
 ]
+
+// Dữ liệu minh họa theo bảng SQL: adopt_pets
 
 const speciesLabel = {
   DOG: 'Chó',
@@ -65,35 +96,240 @@ const speciesLabel = {
 }
 
 const postTypeLabel = {
-  LOST: 'ĐANG TÌM',
-  FOUND: 'ĐÃ TÌM THẤY',
+  LOST: 'LOST',
+  FOUND: 'FOUND',
 }
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState('home')
-  if (currentPage === 'report') {
-    return <PetReportPage onBack={() => setCurrentPage('home')} />
+  const [initialPostType, setInitialPostType] = useState('LOST')
+  const [reportNavSelection, setReportNavSelection] = useState('')
+  const [authPage, setAuthPage] = useState('login')
+  const handleCreateReport = () => {
+  setInitialPostType('LOST')
+  setCurrentPage('report')
   }
+  const notifications = [
+      {
+        id: 1,
+        type: 'MATCH',
+        title: 'Tìm thấy kết quả phù hợp',
+        message: 'Có một tin đăng mới có đặc điểm tương đồng với thú cưng bạn đang tìm.',
+        is_read: false,
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 2,
+        type: 'SYSTEM',
+        title: 'Chào mừng đến với PyPaws',
+        message: 'Cảm ơn bạn đã tham gia cộng đồng hỗ trợ tìm kiếm thú cưng.',
+        is_read: true,
+        created_at: new Date().toISOString(),
+      },
+    ]
+  const handleReportNavigation = (e) => {
+  const value = e.target.value
+
+
+  if (value === 'ALL') {
+    setCurrentPage('home')
+
+    document.getElementById('reports')?.scrollIntoView({
+      behavior: 'smooth',
+    })
+  }
+
+  if (value === 'LOST') {
+    setInitialPostType('LOST')
+    setCurrentPage('report')
+  }
+
+  if (value === 'FOUND') {
+    setInitialPostType('FOUND')
+    setCurrentPage('report')
+  }
+
+  // Đưa select về trạng thái mặc định "Báo cáo"
+  setReportNavSelection('')
+}
 
   return (
     <div className="app" id="home">
+      {currentPage !== 'auth' && (
       <header className="navbar">
         <a className="brand" href="#home" aria-label="PyPaws - Trang chủ">
           <img className="brand-logo" src={logo} alt="PyPaws" />
         </a>
 
+
         <nav className="nav-links" aria-label="Điều hướng chính">
-          <a href="#home">Trang chủ</a>
-          <a href="#reports">Tìm thú cưng</a>
-          <a href="#adoption">Nhận nuôi</a>
-          <a href="#about">Về PyPaws</a>
+          <a
+            href="#home"
+            onClick={(e) => {
+              e.preventDefault()
+              setCurrentPage('home')
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+              })
+            }}
+          >
+            Trang chủ
+          </a>
+
+          <div className="nav-report-dropdown">
+            <button
+              type="button"
+              className="nav-report-trigger"
+              aria-label="Mở danh sách báo cáo"
+            >
+              Báo cáo
+              <span className="nav-report-arrow" aria-hidden="true"></span>
+            </button>
+
+            <div className="nav-report-menu">
+              <button
+                type="button"
+                onClick={() => setCurrentPage('all-reports')}
+              >
+                Tất cả báo cáo
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInitialPostType('LOST')
+                  setCurrentPage('report')
+                }}
+              >
+                Đăng báo cáo thất lạc
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setInitialPostType('FOUND')
+                  setCurrentPage('report')
+                }}
+              >
+                Đăng báo cáo tìm thấy
+              </button>
+            </div>
+          </div>
+
+
+          <a
+            href="#about"
+            onClick={(e) => {
+              e.preventDefault()
+              setCurrentPage('home')
+              setTimeout(() => {
+                document.getElementById('about')?.scrollIntoView({
+                  behavior: 'smooth',
+                })
+              }, 0)
+            }}
+          >
+            Về PyPaws
+          </a>
         </nav>
 
-        <a className="nav-cta" href="#report-options">
-          Bắt đầu <span aria-hidden="true">↗</span>
-        </a>
-      </header>
 
+        {!user ? (
+          <button
+            type="button"
+            className="nav-cta"
+            onClick={() => {
+              setAuthPage('login')
+              setCurrentPage('auth')
+            }}
+          >
+            Đăng nhập <span aria-hidden="true">↗</span>
+          </button>
+        ) : (
+          <div className="nav-report-dropdown">
+              <button
+                type="button"
+                className="nav-report-trigger"
+                aria-label="Mở danh sách tài khoản"
+              >
+                {user.full_name}
+                <span className="nav-report-arrow" aria-hidden="true"></span>
+              </button>
+
+              <div className="nav-report-menu">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage('profile')}
+                >
+                  Profile
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUser(null)
+                    setCurrentPage('home')
+                  }}
+                >
+                  Đăng xuất
+                </button>
+              </div>
+            </div>
+            )}
+        </header>
+      )}
+     {currentPage === 'all-reports' ? (
+        <AllReportsPage
+            reports={reports}
+            onCreateReport={handleCreateReport}
+            onBackHome={() => setCurrentPage('home')}
+          />
+    ) : currentPage === 'auth' ? (
+        authPage === 'register' ? (
+        <RegisterPage
+          onNavigate={setAuthPage}
+          onBackHome={() => setCurrentPage('home')}
+        />
+      ) : authPage === 'forgot' ? (
+        <ForgotPasswordPage
+          onNavigate={setAuthPage}
+          onBackHome={() => setCurrentPage('home')}
+        />
+      ) : (
+    <LoginPage
+      onNavigate={setAuthPage}
+      onBackHome={() => setCurrentPage('home')}
+      onLoginSuccess={(userData) => {
+        setUser(userData)
+        setCurrentPage('home')
+      }}
+    />
+  )
+    ) : currentPage === 'matching-results' ? (
+      <MatchingResultsPage
+        lostReport={reports[0]}
+        matches={matchingResults}
+        onBackHome={() => setCurrentPage('home')}
+        onViewDetail={(match) => {
+          console.log('Xem chi tiết thú cưng:', match)
+        }}
+        onContact={(match) => {
+          console.log('Liên hệ người đăng:', match)
+        }}
+      />
+
+    ) : currentPage === 'profile' ? (
+      <ProfilePage
+        user={user}
+        reports={[]}
+        notifications={notifications}
+      />
+    ) : currentPage === 'report' ? (
+      <PetReportPage initialPostType={initialPostType} />
+    ) : (
       <main>
         {/* HERO */}
         <section className="hero">
@@ -123,10 +359,6 @@ function App() {
                     >
                      Báo mất / thấy thú cưng <span>→</span>
                 </button>
-
-                <a className="secondary-btn" href="#adoption">
-                    Khám phá nhận nuôi
-                </a>
             </div>
 
             <div className="hero-trust">
@@ -176,9 +408,10 @@ function App() {
                className="tool-card tool-lost"
                href="#reports"
                onClick={(e) => {
-                   e.preventDefault()
-                    setCurrentPage('report')
-                }}
+                e.preventDefault()
+                setInitialPostType('LOST')
+                setCurrentPage('report')
+          }}
             >
               <span className="tool-icon">⌕</span>
               <span className="tool-kicker">CHƯA TÌM THẤY BÉ?</span>
@@ -197,8 +430,9 @@ function App() {
                 href="#reports"
                 onClick={(e) => {
                     e.preventDefault()
+                    setInitialPostType('FOUND')
                     setCurrentPage('report')
-                }}
+            }}
             >
             <span className="tool-icon">⌖</span>
             <span className="tool-kicker">BẠN VỪA GẶP MỘT BÉ?</span>
@@ -212,18 +446,7 @@ function App() {
             </span>
             </a>
 
-            <a className="tool-card tool-adopt" href="#adoption">
-              <span className="tool-icon">♡</span>
-              <span className="tool-kicker">MỞ LÒNG ĐÓN BẠN MỚI</span>
-              <h3>Nhận nuôi thú cưng</h3>
-              <p>
-                Khám phá những người bạn đang chờ được yêu thương và tìm hiểu
-                về hành trình nhận nuôi.
-              </p>
-              <span className="tool-link">
-                Khám phá các bé <span>→</span>
-              </span>
-            </a>
+
           </div>
         </section>
 
@@ -239,9 +462,13 @@ function App() {
                 </p>
               </div>
 
-              <a className="outline-link" href="#report-options">
-                Xem cách báo tin <span>→</span>
-              </a>
+              <button
+              type="button"
+              className="outline-link"
+              onClick={() => setCurrentPage('all-reports')}
+            >
+              Xem tất cả <span>→</span>
+            </button>
             </div>
 
             <div className="report-grid">
@@ -291,129 +518,10 @@ function App() {
               ))}
             </div>
 
-            <p className="demo-note">
-              Lưu ý: Đây là dữ liệu minh họa theo cấu trúc bảng posts, không
-              phải báo cáo thật từ SQL Server.
-            </p>
+
           </div>
         </section>
 
-        {/* GIỚI THIỆU AI */}
-        <section className="ai-section">
-          <div className="section-wrap ai-layout">
-            <div className="ai-visual">
-              <div className="ai-circle">
-                <span className="ai-spark spark-one">✳</span>
-                <img src={mascot} alt="Py hỗ trợ tìm kiếm thú cưng" />
-                <span className="ai-spark spark-two">✦</span>
-              </div>
-
-              <div className="ai-label">
-                <span>✦</span> AI hỗ trợ đối chiếu
-              </div>
-            </div>
-
-            <div className="ai-content">
-              <span className="eyebrow">
-                CÔNG NGHỆ VỚI SỰ QUAN TÂM
-              </span>
-
-              <h2>
-                Tìm kiếm thông minh hơn.
-                <br />
-                <span>Hy vọng gần hơn.</span>
-              </h2>
-
-              <p>
-                Hệ thống có thể sử dụng đặc điểm và hình ảnh thú cưng để hỗ
-                trợ đối chiếu các báo cáo, từ đó gợi ý những trường hợp đáng
-                chú ý để người dùng xác minh.
-              </p>
-
-              <div className="ai-benefits">
-                <div className="ai-benefit">
-                  <span>01</span>
-                  <div>
-                    <strong>Chia sẻ thông tin</strong>
-                    <p>
-                      Lưu báo cáo và đường dẫn ảnh theo cấu trúc dữ liệu
-                      của dự án.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="ai-benefit">
-                  <span>02</span>
-                  <div>
-                    <strong>Hỗ trợ đối chiếu</strong>
-                    <p>
-                      AI có thể tạo embedding ảnh và hỗ trợ xếp hạng
-                      các trường hợp tương đồng.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="ai-benefit">
-                  <span>03</span>
-                  <div>
-                    <strong>Xác minh cùng cộng đồng</strong>
-                    <p>
-                      Người dùng kiểm tra thông tin trước khi liên hệ
-                      hoặc kết luận.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <a className="primary-btn" href="#report-options">
-                Bắt đầu hành trình <span>→</span>
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* NHẬN NUÔI */}
-        <section className="adoption-section section-wrap" id="adoption">
-          <div className="section-heading">
-            <span className="eyebrow">MỘT MÁI ẤM ĐANG CHỜ</span>
-            <h2>Người bạn tiếp theo của bạn</h2>
-            <p>
-              Mỗi lần nhận nuôi có trách nhiệm là thêm một cơ hội cho một bé.
-            </p>
-          </div>
-
-          <div className="adoption-grid">
-            {adoptionPets.map((pet) => (
-              <article className="adoption-card" key={pet.pet_id}>
-                <div className="adoption-placeholder">
-                  <img src={mascot} alt="Linh vật PyPaws" />
-                </div>
-
-                <div className="adoption-body">
-                  <span className="adoption-label">ĐANG TÌM MÁI ẤM</span>
-
-                  <h3>{pet.pet_name || 'Thú cưng chưa có tên'}</h3>
-
-                  <p>
-                    {speciesLabel[pet.species] || 'Chưa xác định'}
-                    {pet.breed ? ` · ${pet.breed}` : ''}
-                  </p>
-
-                  <p>{pet.city || 'Chưa cập nhật khu vực'}</p>
-
-                  <a className="text-link" href="#about">
-                    Tìm hiểu thêm <span>→</span>
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <p className="demo-note">
-            Dữ liệu nhận nuôi đang được minh họa theo bảng adopt_pets.
-            Thông tin thực tế cần được lấy từ backend.
-          </p>
-        </section>
 
         {/* KÊU GỌI HÀNH ĐỘNG */}
         <section className="closing-cta" id="about">
@@ -425,8 +533,7 @@ function App() {
             <h2>Cùng Py đưa những người bạn nhỏ về nhà.</h2>
 
             <p>
-              Chia sẻ thông tin, giúp đỡ cộng đồng và mở lòng với những bé
-              đang cần một gia đình.
+              Vì chúng tôi tin rằng tất cả vật nuôi đều có cơ hội về nhà.
             </p>
 
             <a className="closing-btn" href="#report-options">
@@ -441,7 +548,8 @@ function App() {
           />
         </section>
       </main>
-
+      )}
+      {currentPage !== 'auth' && (
       <footer className="footer">
         <div className="footer-main">
           <a className="footer-brand" href="#home">
@@ -456,7 +564,6 @@ function App() {
           <div className="footer-links">
             <a href="#home">Trang chủ</a>
             <a href="#reports">Tìm thú cưng</a>
-            <a href="#adoption">Nhận nuôi</a>
           </div>
         </div>
 
@@ -464,7 +571,8 @@ function App() {
           <span>© 2026 PyPaws</span>
           <span>Vì những người bạn nhỏ.</span>
         </div>
-      </footer>
+        </footer>
+        )}
     </div>
   )
 }

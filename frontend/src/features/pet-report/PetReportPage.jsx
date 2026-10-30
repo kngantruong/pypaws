@@ -1,23 +1,50 @@
 import { useEffect, useRef, useState } from 'react';
-import ImageUploader, { FilePreviewImage } from './components/ImageUploader.jsx';
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
+
+import 'leaflet/dist/leaflet.css';
+
+import { getProvinces, getWards } from './data/vietnamAddress.js';
+
+import ImageUploader, {
+  FilePreviewImage,
+} from './components/ImageUploader.jsx';
+
 import {
   DESCRIPTION_MAX_LENGTH,
   POST_TYPE_OPTIONS,
   SPECIES_OPTIONS,
   createInitialFormData,
 } from './types.js';
-import { hasErrors, validatePetReport } from './validation.js';
+
+import {
+  hasErrors,
+  validatePetReport,
+} from './validation.js';
+
 import './PetReportPage.css';
 
-// Order used to find the first invalid field, and the element to focus for each field.
+
+// ======================================================
+// 1. CONSTANTS
+// ======================================================
+
 const FIELD_FOCUS_IDS = {
-  post_type: 'pet-report-post_type-LOST',
-  species: 'pet-report-species-DOG',
+  post_type: 'pet-report-post_type',
+  species: 'pet-report-species',
   description: 'pet-report-description',
   event_time: 'pet-report-event_time',
-  location_text: 'pet-report-location_text',
-  latitude: 'pet-report-latitude',
-  longitude: 'pet-report-longitude',
+  location_text: 'pet-report-map-search',
+  province: 'pet-report-province',
+  ward: 'pet-report-ward',
+  latitude: 'pet-report-map-search',
+  longitude: 'pet-report-map-search',
   images: 'pet-report-images',
   breed: 'pet-report-breed',
   coat_color: 'pet-report-coat_color',
@@ -30,6 +57,8 @@ const FIELD_LABELS = {
   description: 'Mô tả',
   event_time: 'Thời gian',
   location_text: 'Địa điểm',
+  province: 'Tỉnh/thành phố',
+  ward: 'Phường/xã',
   latitude: 'Vĩ độ',
   longitude: 'Kinh độ',
   images: 'Ảnh thú cưng',
@@ -38,21 +67,49 @@ const FIELD_LABELS = {
   appearance_notes: 'Đặc điểm ngoại hình',
 };
 
-// Formats a Date as "YYYY-MM-DDTHH:mm" in local time, the format datetime-local expects.
+const DEFAULT_MAP_POSITION = [10.7769, 106.7009];
+
+
+// ======================================================
+// 2. HELPER FUNCTIONS
+// ======================================================
+
+// Chuyển Date sang định dạng datetime-local.
 function toDateTimeLocalValue(date) {
   const pad = (number) => String(number).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-` +
+    `${pad(date.getDate())}T${pad(date.getHours())}:` +
+    `${pad(date.getMinutes())}`
+  );
 }
 
+
+// Hiển thị thời gian theo định dạng Việt Nam.
 function formatEventTime(value) {
-  return new Date(value).toLocaleString('vi-VN', { dateStyle: 'full', timeStyle: 'short' });
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Không xác định';
+  }
+
+  return date.toLocaleString('vi-VN', {
+    dateStyle: 'full',
+    timeStyle: 'short',
+  });
 }
 
+
+// Lấy label từ danh sách options.
 function getOptionLabel(options, value) {
-  return options.find((option) => option.value === value)?.label ?? value;
+  return (
+    options.find((option) => option.value === value)?.label ?? value
+  );
 }
 
-/** Chuẩn hóa dữ liệu form trước khi chuyển cho backend. */
+
+// Chuẩn hóa dữ liệu trước khi gửi backend.
 function buildPetReportPayload(formData) {
   const hasCoordinates =
     formData.latitude !== null &&
@@ -60,55 +117,82 @@ function buildPetReportPayload(formData) {
     formData.longitude !== null &&
     formData.longitude !== '';
 
+  const eventDate = new Date(formData.event_time);
+
+  if (Number.isNaN(eventDate.getTime())) {
+    throw new Error('INVALID_EVENT_TIME');
+  }
+
   return {
     post_type: formData.post_type,
     species: formData.species,
-    breed: formData.breed.trim() || null,
-    coat_color: formData.coat_color.trim() || null,
-    appearance_notes: formData.appearance_notes.trim() || null,
+    gender: formData.gender || null,
+
+    breed: formData.breed?.trim() || null,
+    coat_color: formData.coat_color?.trim() || null,
+    appearance_notes: formData.appearance_notes?.trim() || null,
+
     description: formData.description.trim(),
-    event_time: new Date(formData.event_time).toISOString(),
+
+    event_time: eventDate.toISOString(),
+
     location_text: formData.location_text.trim(),
-    latitude: hasCoordinates ? Number(formData.latitude) : null,
-    longitude: hasCoordinates ? Number(formData.longitude) : null,
+
+    latitude: hasCoordinates
+      ? Number(formData.latitude)
+      : null,
+
+    longitude: hasCoordinates
+      ? Number(formData.longitude)
+      : null,
   };
 }
 
-/**
- * Placeholder for the real API call.
- *
- * TODO(backend): connect this to the team's API. The backend team decides the endpoint
- * and how images are uploaded. One possible approach is a single multipart request:
- *
- *   const body = new FormData();
- *   Object.entries(payload).forEach(([key, value]) => {
- *     if (value !== null) body.append(key, String(value));
- *   });
- *   images.forEach((file) => body.append('images', file));
- *   body.append('cover_index', String(coverIndex));
- *   const response = await fetch(API_URL, { method: 'POST', body });
- *   if (!response.ok) throw new Error('Request failed');
- *   return response.json();
- *
- * Until then, this function intentionally does NOT pretend the report was saved.
- */
+
+// ======================================================
+// 3. API PLACEHOLDER
+// ======================================================
+
+// TODO: Kết nối API backend khi nhóm hoàn thành endpoint.
+//
+// Hiện tại hàm này chỉ thông báo chưa kết nối API,
+// không giả lập việc đăng tin thành công.
+
 async function submitPetReport(payload, images, coverIndex) {
-  console.info('[PYPAWS] Report ready for the API (not sent):', { payload, images, coverIndex });
+  console.info('[PYPAWS] Report ready for API:', {
+    payload,
+    images,
+    coverIndex,
+  });
+
   throw new Error('NOT_CONNECTED');
 }
 
+
+// ======================================================
+// 4. REUSABLE COMPONENTS
+// ======================================================
+
 function FieldError({ id, message }) {
   if (!message) return null;
+
   return (
-    <p id={id} className="pet-report-field__error">
+    <p
+      id={id}
+      className="pet-report-field__error"
+    >
       {message}
     </p>
   );
 }
 
+
 function PawIcon() {
   return (
-    <span className="pet-report-paw" aria-hidden="true">
+    <span
+      className="pet-report-paw"
+      aria-hidden="true"
+    >
       <span className="pet-report-paw__toe" />
       <span className="pet-report-paw__toe" />
       <span className="pet-report-paw__toe" />
@@ -118,245 +202,892 @@ function PawIcon() {
   );
 }
 
-export default function PetReportPage({ onBack }) {
-  const [formData, setFormData] = useState(createInitialFormData);
-  const [images, setImages] = useState([]); // File[] kept separate from formData
+
+// Điều chỉnh kích thước bản đồ khi giao diện thay đổi.
+function MapResizeHandler() {
+  const map = useMap();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [map]);
+
+  return null;
+}
+
+
+// Cập nhật vị trí trung tâm bản đồ khi tọa độ thay đổi.
+function MapViewUpdater({ position }) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.setView(position, map.getZoom(), {
+      animate: true,
+    });
+  }, [map, position]);
+
+  return null;
+}
+
+
+// Ghim bản đồ có thể kéo thả và chọn bằng cách click.
+function MapMarker({ position, onPositionChange }) {
+  const markerRef = useRef(null);
+
+  useMapEvents({
+    click(event) {
+      onPositionChange(event.latlng);
+    },
+  });
+
+  return (
+    <Marker
+      position={position}
+      draggable={true}
+      ref={markerRef}
+      eventHandlers={{
+        dragend() {
+          const marker = markerRef.current;
+
+          if (marker) {
+            onPositionChange(marker.getLatLng());
+          }
+        },
+      }}
+    />
+  );
+}
+
+
+// ======================================================
+// 5. MAIN COMPONENT
+// ======================================================
+
+export default function PetReportPage({
+  onBack,
+  initialPostType = 'LOST',
+}) {
+
+  // --------------------------------------------------
+  // 5.1. STATE
+  // --------------------------------------------------
+
+  const [formData, setFormData] = useState(() => ({
+    ...createInitialFormData(),
+    post_type: initialPostType,
+  }));
+
+  const [images, setImages] = useState([]);
   const [coverIndex, setCoverIndex] = useState(0);
+
   const [errors, setErrors] = useState({});
-  const [step, setStep] = useState('edit'); // 'edit' | 'review'
-  const [submitStatus, setSubmitStatus] = useState('idle'); // 'idle' | 'submitting' | 'not-connected'
-  const [geoStatus, setGeoStatus] = useState({ state: 'idle', message: '' });
+
+  const [step, setStep] = useState('edit');
+
+  const [submitStatus, setSubmitStatus] = useState('idle');
+
+  const [mapPosition, setMapPosition] = useState(
+    DEFAULT_MAP_POSITION
+  );
+
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
+
+  const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
+  const [isLoadingWards, setIsLoadingWards] = useState(false);
+
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [locationSearchError, setLocationSearchError] = useState('');
+
+  // --------------------------------------------------
+  // 5.2. REFS
+  // --------------------------------------------------
 
   const formHeadingRef = useRef(null);
   const reviewHeadingRef = useRef(null);
+
   const isFirstRender = useRef(true);
 
-  // Move keyboard/screen reader focus to the new section when switching steps.
+  const provinceRequestRef = useRef(0);
+  const wardRequestRef = useRef(0);
+  const locationRequestRef = useRef(0);
+
+  // --------------------------------------------------
+  // 5.3. SYNC POST TYPE
+  // --------------------------------------------------
+
+  useEffect(() => {
+    setFormData((previous) => ({
+      ...previous,
+      post_type: initialPostType,
+    }));
+  }, [initialPostType]);
+
+
+  // --------------------------------------------------
+  // 5.4. LOAD PROVINCES
+  // --------------------------------------------------
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProvinces() {
+      try {
+        setIsLoadingProvinces(true);
+
+        const data = await getProvinces();
+
+        if (isMounted) {
+          setProvinces(data);
+        }
+      } catch (error) {
+        console.error('Lỗi tải tỉnh/thành phố:', error);
+
+        if (isMounted) {
+          setLocationSearchError(
+            'Không thể tải danh sách tỉnh/thành phố. Bạn hãy thử tải lại trang.'
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingProvinces(false);
+        }
+      }
+    }
+
+    loadProvinces();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+
+  // --------------------------------------------------
+  // 5.5. FOCUS WHEN SWITCHING STEPS
+  // --------------------------------------------------
+
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
-    const heading = step === 'review' ? reviewHeadingRef.current : formHeadingRef.current;
+
+    const heading =
+      step === 'review'
+        ? reviewHeadingRef.current
+        : formHeadingRef.current;
+
     heading?.focus();
   }, [step]);
 
+
+  // --------------------------------------------------
+  // 5.6. FORM UTILITIES
+  // --------------------------------------------------
+
   function clearErrors(fieldNames) {
     setErrors((previous) => {
-      if (!fieldNames.some((name) => previous[name])) return previous;
+      if (!fieldNames.some((name) => previous[name])) {
+        return previous;
+      }
+
       const next = { ...previous };
-      fieldNames.forEach((name) => delete next[name]);
+
+      fieldNames.forEach((name) => {
+        delete next[name];
+      });
+
       return next;
     });
   }
 
+
   function updateField(name, value) {
-    setFormData((previous) => ({ ...previous, [name]: value }));
-    // Latitude and longitude are validated together, so clear both.
-    clearErrors(name === 'latitude' || name === 'longitude' ? ['latitude', 'longitude'] : [name]);
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    if (name === 'latitude' || name === 'longitude') {
+      clearErrors(['latitude', 'longitude']);
+    } else {
+      clearErrors([name]);
+    }
   }
+
 
   function handleInputChange(event) {
-    updateField(event.target.name, event.target.value);
+    const { name, value } = event.target;
+
+    updateField(name, value);
   }
 
-  function handleCoordinateChange(event) {
-    const { name, value } = event.target;
-    updateField(name, value === '' ? null : value);
+
+  // --------------------------------------------------
+  // 5.7. PROVINCE CHANGE
+  // --------------------------------------------------
+
+  async function handleProvinceChange(event) {
+    const provinceCode = event.target.value;
+
+    const requestId = ++provinceRequestRef.current;
+
+    // Hủy hiệu lực các request phường/xã trước đó.
+    wardRequestRef.current += 1;
+
+    const selectedProvince = provinces.find(
+      (province) => String(province.code) === provinceCode
+    );
+
+    setFormData((previous) => ({
+      ...previous,
+
+      province: selectedProvince?.name || '',
+      ward: '',
+
+      location_text: '',
+
+      latitude: null,
+      longitude: null,
+    }));
+
+    setWards([]);
+    setMapPosition(DEFAULT_MAP_POSITION);
+
+    setLocationSearchError('');
+
+    clearErrors([
+      'province',
+      'ward',
+      'location_text',
+      'latitude',
+      'longitude',
+    ]);
+
+    if (!provinceCode) {
+      return;
+    }
+
+    try {
+      setIsLoadingWards(true);
+
+      const data = await getWards(provinceCode);
+
+      if (requestId !== provinceRequestRef.current) {
+        return;
+      }
+
+      setWards(data);
+    } catch (error) {
+      console.error('Lỗi tải phường/xã:', error);
+
+      if (requestId === provinceRequestRef.current) {
+        setLocationSearchError(
+          'Không thể tải danh sách phường/xã. Bạn hãy thử chọn lại tỉnh/thành phố.'
+        );
+      }
+    } finally {
+      if (requestId === provinceRequestRef.current) {
+        setIsLoadingWards(false);
+      }
+    }
   }
+
+
+  // --------------------------------------------------
+  // 5.8. SEARCH COORDINATES
+  // --------------------------------------------------
+
+  async function searchCoordinates(address) {
+    const params = new URLSearchParams({
+      q: address,
+      limit: '5',
+      lang: 'en',
+    });
+
+    const response = await fetch(
+      `https://photon.komoot.io/api/?${params.toString()}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Không thể kết nối dịch vụ tìm kiếm địa chỉ.');
+    }
+
+    const data = await response.json();
+
+    const results = (data.features || []).filter(
+      (item) =>
+        item.properties?.countrycode?.toUpperCase() === 'VN' &&
+        Array.isArray(item.geometry?.coordinates) &&
+        item.geometry.coordinates.length >= 2
+    );
+
+    if (!results.length) {
+      return null;
+    }
+
+    const [longitude, latitude] = results[0].geometry.coordinates;
+
+    return {
+      latitude,
+      longitude,
+    };
+  }
+
+
+  // --------------------------------------------------
+  // 5.9. WARD CHANGE
+  // --------------------------------------------------
+
+  async function handleWardChange(event) {
+    const wardCode = event.target.value;
+
+    const selectedWard = wards.find(
+      (ward) => String(ward.code) === wardCode
+    );
+
+    const requestId = ++locationRequestRef.current;
+
+    if (!selectedWard) {
+      setFormData((previous) => ({
+        ...previous,
+
+        ward: '',
+        location_text: '',
+
+        latitude: null,
+        longitude: null,
+      }));
+
+      setLocationSearchError('');
+
+      return;
+    }
+
+    const selectedProvince = formData.province;
+
+    const locationText =
+      `${selectedWard.name}, ${selectedProvince}`;
+
+    setFormData((previous) => ({
+      ...previous,
+
+      ward: selectedWard.name,
+      location_text: locationText,
+
+      latitude: null,
+      longitude: null,
+    }));
+
+    setLocationSearchError('');
+
+    clearErrors([
+      'ward',
+      'location_text',
+      'latitude',
+      'longitude',
+    ]);
+
+    try {
+      setIsSearchingLocation(true);
+
+      const coordinates = await searchCoordinates(locationText);
+
+      if (requestId !== locationRequestRef.current) {
+        return;
+      }
+
+      if (!coordinates) {
+        setLocationSearchError(
+          'Đã chọn địa chỉ nhưng chưa tìm được tọa độ. Bạn có thể chọn vị trí trực tiếp trên bản đồ.'
+        );
+
+        return;
+      }
+
+      const { latitude, longitude } = coordinates;
+
+      setMapPosition([latitude, longitude]);
+
+      setFormData((previous) => ({
+        ...previous,
+
+        latitude: latitude.toFixed(6),
+        longitude: longitude.toFixed(6),
+      }));
+
+      clearErrors(['latitude', 'longitude']);
+
+    } catch (error) {
+      console.error('Lỗi tìm tọa độ:', error);
+
+      if (requestId === locationRequestRef.current) {
+        setLocationSearchError(
+          'Không thể xác định tọa độ. Bạn có thể chọn vị trí trực tiếp trên bản đồ.'
+        );
+      }
+
+    } finally {
+      if (requestId === locationRequestRef.current) {
+        setIsSearchingLocation(false);
+      }
+    }
+  }
+
+
+  // --------------------------------------------------
+  // 5.10. MAP POSITION CHANGE
+  // --------------------------------------------------
+
+  function handleMapPositionChange(position) {
+    const latitude = position.lat.toFixed(6);
+    const longitude = position.lng.toFixed(6);
+
+    // Hủy hiệu lực kết quả tìm kiếm địa chỉ đang chờ.
+    locationRequestRef.current += 1;
+
+    setIsSearchingLocation(false);
+
+    setMapPosition([
+      position.lat,
+      position.lng,
+    ]);
+
+    setFormData((previous) => ({
+      ...previous,
+
+      latitude,
+      longitude,
+    }));
+
+    clearErrors(['latitude', 'longitude']);
+
+    setLocationSearchError('');
+  }
+
+
+  // --------------------------------------------------
+  // 5.11. MANUAL LOCATION SEARCH
+  // --------------------------------------------------
+
+  async function handleSearchLocation() {
+    const address = formData.location_text.trim();
+
+    if (!address) {
+      setLocationSearchError(
+        'Bạn hãy chọn tỉnh/thành phố và phường/xã trước khi tìm vị trí.'
+      );
+
+      return;
+    }
+
+    const requestId = ++locationRequestRef.current;
+
+    setIsSearchingLocation(true);
+    setLocationSearchError('');
+
+    try {
+      const coordinates = await searchCoordinates(address);
+
+      if (requestId !== locationRequestRef.current) {
+        return;
+      }
+
+      if (!coordinates) {
+        setLocationSearchError(
+          'Không tìm thấy địa chỉ. Bạn hãy thử chọn vị trí trực tiếp trên bản đồ.'
+        );
+
+        return;
+      }
+
+      const { latitude, longitude } = coordinates;
+
+      setMapPosition([
+        latitude,
+        longitude,
+      ]);
+
+      setFormData((previous) => ({
+        ...previous,
+
+        latitude: latitude.toFixed(6),
+        longitude: longitude.toFixed(6),
+      }));
+
+      clearErrors(['latitude', 'longitude']);
+
+    } catch (error) {
+      console.error('Lỗi tìm vị trí:', error);
+
+      if (requestId === locationRequestRef.current) {
+        setLocationSearchError(
+          error.message || 'Có lỗi khi tìm vị trí. Bạn hãy thử lại sau.'
+        );
+      }
+
+    } finally {
+      if (requestId === locationRequestRef.current) {
+        setIsSearchingLocation(false);
+      }
+    }
+  }
+
+
+  // --------------------------------------------------
+  // 5.12. IMAGE HANDLING
+  // --------------------------------------------------
 
   function handleImagesChange(nextFiles, nextCoverIndex) {
     setImages(nextFiles);
-    setCoverIndex(nextCoverIndex);
+
+    setCoverIndex(
+      nextFiles.length > 0 ? nextCoverIndex : 0
+    );
+
     clearErrors(['images']);
   }
 
-  function handleUseCurrentLocation() {
-    if (!('geolocation' in navigator)) {
-      setGeoStatus({ state: 'error', message: 'Trình duyệt của bạn không hỗ trợ lấy vị trí.' });
-      return;
-    }
-    setGeoStatus({ state: 'loading', message: 'Đang lấy vị trí hiện tại...' });
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormData((previous) => ({
-          ...previous,
-          latitude: position.coords.latitude.toFixed(6),
-          longitude: position.coords.longitude.toFixed(6),
-        }));
-        clearErrors(['latitude', 'longitude']);
-        setGeoStatus({ state: 'success', message: 'Đã điền vị trí hiện tại của bạn.' });
-      },
-      () => {
-        setGeoStatus({
-          state: 'error',
-          message: 'Không lấy được vị trí. Bạn có thể nhập tọa độ thủ công hoặc để trống.',
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
-  }
+
+  // --------------------------------------------------
+  // 5.13. FORM SUBMISSION
+  // --------------------------------------------------
 
   function handleSubmit(event) {
     event.preventDefault();
-    const nextErrors = validatePetReport(formData, images);
+
+    const nextErrors = validatePetReport(
+      formData,
+      images
+    );
+
     setErrors(nextErrors);
 
     if (hasErrors(nextErrors)) {
-      // Focus the first invalid field so keyboard users land right on the problem.
-      const firstInvalidField = Object.keys(FIELD_FOCUS_IDS).find((name) => nextErrors[name]);
-      document.getElementById(FIELD_FOCUS_IDS[firstInvalidField])?.focus();
+      const firstInvalidField = Object.keys(FIELD_FOCUS_IDS)
+        .find((name) => nextErrors[name]);
+
+      if (firstInvalidField) {
+        document
+          .getElementById(FIELD_FOCUS_IDS[firstInvalidField])
+          ?.focus();
+      }
+
       return;
     }
 
     setSubmitStatus('idle');
+
     setStep('review');
   }
 
+
+  // --------------------------------------------------
+  // 5.14. CONFIRM SUBMISSION
+  // --------------------------------------------------
+
   async function handleConfirmSubmit() {
     setSubmitStatus('submitting');
+
     try {
-      await submitPetReport(buildPetReportPayload(formData), images, coverIndex);
-      // When the real API is connected, handle success here (e.g. show the published post).
+      await submitPetReport(
+        buildPetReportPayload(formData),
+        images,
+        coverIndex
+      );
+
+      // TODO: Xử lý khi backend trả về thành công.
       setSubmitStatus('idle');
-    } catch {
+
+    } catch (error) {
+      console.error('Lỗi gửi tin:', error);
+
       setSubmitStatus('not-connected');
     }
   }
 
+
+  // --------------------------------------------------
+  // 5.15. DERIVED VALUES
+  // --------------------------------------------------
+
   const errorEntries = Object.entries(errors);
+
   const descriptionLength = formData.description.length;
+
   const maxEventTime = toDateTimeLocalValue(new Date());
 
-  // Helper to build aria props for a field with an optional error and hint.
   function describedBy(name, hintId) {
-    return [hintId, errors[name] ? `pet-report-${name}-error` : null].filter(Boolean).join(' ') || undefined;
+    return [
+      hintId,
+      errors[name] ? `pet-report-${name}-error` : null,
+    ]
+      .filter(Boolean)
+      .join(' ') || undefined;
   }
+
+
+  // ======================================================
+  // 6. REVIEW SCREEN
+  // ======================================================
 
   if (step === 'review') {
     const payload = buildPetReportPayload(formData);
-    // Show the cover image first in the preview.
+
     const orderedImages = images
-      .map((file, index) => ({ file, index }))
-      .sort((a, b) => (a.index === coverIndex ? -1 : b.index === coverIndex ? 1 : a.index - b.index));
+      .map((file, index) => ({
+        file,
+        index,
+      }))
+      .sort((a, b) => {
+        if (a.index === coverIndex) return -1;
+        if (b.index === coverIndex) return 1;
+
+        return a.index - b.index;
+      });
 
     return (
       <main className="pet-report-page">
-        <section className="pet-report-card" aria-labelledby="pet-report-review-title">
+
+        <section
+          className="pet-report-card"
+          aria-labelledby="pet-report-review-title"
+        >
+
+          {/* Header */}
+
           <header className="pet-report-header">
             <PawIcon />
+
             <div>
-              <h1 id="pet-report-review-title" ref={reviewHeadingRef} tabIndex={-1} className="pet-report-title">
+              <h1
+                id="pet-report-review-title"
+                ref={reviewHeadingRef}
+                tabIndex={-1}
+                className="pet-report-title"
+              >
                 Xem lại tin đăng
               </h1>
-              <p className="pet-report-intro">Kiểm tra lại thông tin trước khi gửi.</p>
+
+              <p className="pet-report-intro">
+                Kiểm tra lại thông tin trước khi gửi.
+              </p>
             </div>
           </header>
 
-          <div className="pet-report-notice" role="note">
-            <strong>Lưu ý:</strong> Tin của bạn <strong>chưa được lưu hoặc đăng</strong>. Đây chỉ là bản xem trước
-            trên máy của bạn.
+
+          {/* Notice */}
+
+          <div
+            className="pet-report-notice"
+            role="note"
+          >
+            <strong>Lưu ý:</strong> Tin của bạn{' '}
+            <strong>chưa được lưu hoặc đăng</strong>.
+            Đây chỉ là bản xem trước trên máy của bạn.
           </div>
 
+
+          {/* Review content */}
+
           <div className="pet-report-review">
+
             <div className="pet-report-review__tags">
-              <span className={`pet-report-tag pet-report-tag--${payload.post_type.toLowerCase()}`}>
-                {getOptionLabel(POST_TYPE_OPTIONS, payload.post_type)}
+
+              <span
+                className={`pet-report-tag pet-report-tag--${payload.post_type.toLowerCase()}`}
+              >
+                {getOptionLabel(
+                  POST_TYPE_OPTIONS,
+                  payload.post_type
+                )}
               </span>
-              <span className="pet-report-tag">{getOptionLabel(SPECIES_OPTIONS, payload.species)}</span>
+
+              <span className="pet-report-tag">
+                {getOptionLabel(
+                  SPECIES_OPTIONS,
+                  payload.species
+                )}
+              </span>
+
             </div>
 
 
-<dl className="pet-report-review__list">
-  <div className="pet-report-review__row">
-    <dt>Giống</dt>
-    <dd>{payload.breed || 'Chưa xác định'}</dd>
-  </div>
+            {/* Information */}
 
-  <div className="pet-report-review__row">
-    <dt>Màu lông</dt>
-    <dd>{payload.coat_color || 'Chưa xác định'}</dd>
-  </div>
+            <dl className="pet-report-review__list">
 
-  <div className="pet-report-review__row">
-    <dt>Đặc điểm ngoại hình</dt>
-    <dd>{payload.appearance_notes || 'Chưa cung cấp'}</dd>
-  </div>
+              <div className="pet-report-review__row">
+                <dt>Giới tính</dt>
+                <dd>
+                  {payload.gender === 'MALE'
+                    ? 'Đực'
+                    : payload.gender === 'FEMALE'
+                      ? 'Cái'
+                      : 'Chưa xác định'}
+                </dd>
+              </div>
 
-  <div className="pet-report-review__row">
-    <dt>Mô tả</dt>
-    <dd className="pet-report-review__description">
-      {payload.description}
-    </dd>
-  </div>
+              <div className="pet-report-review__row">
+                <dt>Giống</dt>
+                <dd>
+                  {payload.breed || 'Chưa xác định'}
+                </dd>
+              </div>
 
-  <div className="pet-report-review__row">
-    <dt>Thời gian</dt>
-    <dd>{formatEventTime(formData.event_time)}</dd>
-  </div>
+              <div className="pet-report-review__row">
+                <dt>Màu lông</dt>
+                <dd>
+                  {payload.coat_color || 'Chưa xác định'}
+                </dd>
+              </div>
 
-  <div className="pet-report-review__row">
-    <dt>Địa điểm</dt>
-    <dd>{payload.location_text}</dd>
-  </div>
+              <div className="pet-report-review__row">
+                <dt>Đặc điểm ngoại hình</dt>
+                <dd>
+                  {payload.appearance_notes || 'Chưa cung cấp'}
+                </dd>
+              </div>
 
-  <div className="pet-report-review__row">
-    <dt>Tọa độ</dt>
-    <dd>
-      {payload.latitude !== null
-        ? `${payload.latitude}, ${payload.longitude}`
-        : 'Không cung cấp'}
-    </dd>
-  </div>
-</dl>
+              <div className="pet-report-review__row">
+                <dt>Mô tả</dt>
+                <dd className="pet-report-review__description">
+                  {payload.description}
+                </dd>
+              </div>
 
+              <div className="pet-report-review__row">
+                <dt>Thời gian</dt>
+                <dd>
+                  {formatEventTime(formData.event_time)}
+                </dd>
+              </div>
+
+              <div className="pet-report-review__row">
+                <dt>Địa điểm</dt>
+                <dd>
+                  {payload.location_text}
+                </dd>
+              </div>
+
+              <div className="pet-report-review__row">
+                <dt>Tọa độ</dt>
+                <dd>
+                  {payload.latitude !== null
+                    ? `${payload.latitude}, ${payload.longitude}`
+                    : 'Không cung cấp'}
+                </dd>
+              </div>
+
+            </dl>
+
+
+            {/* Images */}
 
             <div>
-              <h2 className="pet-report-section-title">Ảnh ({images.length})</h2>
+              <h2 className="pet-report-section-title">
+                Ảnh ({images.length})
+              </h2>
+
               <ul className="pet-report-review__images">
+
                 {orderedImages.map(({ file, index }) => (
                   <li
                     key={`${file.name}-${file.size}-${file.lastModified}`}
-                    className={`pet-report-review__image${index === coverIndex ? ' pet-report-review__image--cover' : ''}`}
+                    className={
+                      `pet-report-review__image${
+                        index === coverIndex
+                          ? ' pet-report-review__image--cover'
+                          : ''
+                      }`
+                    }
                   >
-                    <FilePreviewImage file={file} alt={`Ảnh thú cưng: ${file.name}`} />
-                    {index === coverIndex && <span className="pet-report-review__badge">Ảnh bìa</span>}
+
+                    <FilePreviewImage
+                      file={file}
+                      alt={`Ảnh thú cưng: ${file.name}`}
+                    />
+
+                    {index === coverIndex && (
+                      <span className="pet-report-review__badge">
+                        Ảnh bìa
+                      </span>
+                    )}
+
                   </li>
                 ))}
+
               </ul>
             </div>
+
           </div>
+
+
+          {/* Submit status */}
 
           <div aria-live="polite">
+
             {submitStatus === 'not-connected' && (
               <div className="pet-report-notice pet-report-notice--warning">
-                Chức năng gửi tin chưa được kết nối với máy chủ, nên tin <strong>chưa được gửi</strong>. Dữ liệu của
-                bạn vẫn được giữ nguyên trên trang này.
+                Chức năng gửi tin chưa được kết nối với máy chủ,
+                nên tin <strong>chưa được gửi</strong>.
+                Dữ liệu của bạn vẫn được giữ nguyên trên trang này.
               </div>
             )}
+
           </div>
 
+
+          {/* Actions */}
+
           <div className="pet-report-actions">
-            <button type="button" className="pet-report-button pet-report-button--secondary" onClick={() => setStep('edit')}>
+
+            <button
+              type="button"
+              className="pet-report-button pet-report-button--secondary"
+              onClick={() => setStep('edit')}
+            >
               Quay lại chỉnh sửa
             </button>
+
             <button
               type="button"
               className="pet-report-button pet-report-button--primary"
               onClick={handleConfirmSubmit}
               disabled={submitStatus === 'submitting'}
             >
-              {submitStatus === 'submitting' ? 'Đang gửi...' : 'Gửi tin đăng'}
+              {submitStatus === 'submitting'
+                ? 'Đang gửi...'
+                : 'Gửi tin đăng'}
             </button>
+
           </div>
+
         </section>
+
       </main>
     );
   }
 
+
+  // ======================================================
+  // 7. EDIT SCREEN
+  // ======================================================
+
   return (
     <main className="pet-report-page">
-      <section className="pet-report-card" aria-labelledby="pet-report-title">
+
+      <section
+        className="pet-report-card"
+        aria-labelledby="pet-report-title"
+      >
+
+        {/* Back button */}
+
         {onBack && (
           <button
             type="button"
@@ -367,180 +1098,353 @@ export default function PetReportPage({ onBack }) {
           </button>
         )}
 
+
+        {/* Header */}
+
         <header className="pet-report-header">
+
           <PawIcon />
+
           <div>
-            <h1 id="pet-report-title" ref={formHeadingRef} tabIndex={-1} className="pet-report-title">
+            <h1
+              id="pet-report-title"
+              ref={formHeadingRef}
+              tabIndex={-1}
+              className="pet-report-title"
+            >
               Đăng tin tìm thú cưng
             </h1>
+
             <p className="pet-report-intro">
-              Hãy cung cấp thông tin và hình ảnh của thú cưng. Càng chi tiết, cộng đồng PYPAWS càng dễ nhận ra bé và
-              giúp bé sớm về nhà.
+              Hãy cung cấp thông tin và hình ảnh của thú cưng.
+              Càng chi tiết, cộng đồng PYPAWS càng dễ nhận ra bé
+              và giúp bé sớm về nhà.
             </p>
           </div>
+
         </header>
 
+
+        {/* Error summary */}
+
         {errorEntries.length > 0 && (
-          <div className="pet-report-error-summary" role="alert">
-            <h2 className="pet-report-error-summary__title">Vui lòng kiểm tra lại {errorEntries.length} mục:</h2>
+          <div
+            className="pet-report-error-summary"
+            role="alert"
+          >
+
+            <h2 className="pet-report-error-summary__title">
+              Vui lòng kiểm tra lại {errorEntries.length} mục:
+            </h2>
+
             <ul>
+
               {errorEntries.map(([name, message]) => (
                 <li key={name}>
+
                   <a
-                    href={`#${FIELD_FOCUS_IDS[name]}`}
+                    href={`#${FIELD_FOCUS_IDS[name] || 'pet-report-title'}`}
                     onClick={(event) => {
                       event.preventDefault();
-                      document.getElementById(FIELD_FOCUS_IDS[name])?.focus();
+
+                      document
+                        .getElementById(FIELD_FOCUS_IDS[name])
+                        ?.focus();
                     }}
                   >
-                    {FIELD_LABELS[name]}: {message}
+                    {FIELD_LABELS[name] || name}: {message}
                   </a>
+
                 </li>
               ))}
+
             </ul>
+
           </div>
         )}
 
-        <form className="pet-report-form" onSubmit={handleSubmit} noValidate>
-          {/* Report type */}
-          <fieldset className="pet-report-field">
-            <legend className="pet-report-label">
-              Loại tin <span className="pet-report-required">(bắt buộc)</span>
-            </legend>
-            <div className="pet-report-choice-grid">
-              {POST_TYPE_OPTIONS.map((option) => (
-                <div key={option.value} className="pet-report-choice">
-                  <input
-                    type="radio"
-                    id={`pet-report-post_type-${option.value}`}
-                    name="post_type"
+
+        {/* =================================================
+            FORM
+        ================================================= */}
+
+        <form
+          className="pet-report-form"
+          onSubmit={handleSubmit}
+          noValidate
+        >
+
+          {/* BASIC INFORMATION */}
+
+          <div className="pet-report-grid pet-report-grid--three">
+
+            {/* Post type */}
+
+            <div className="pet-report-field">
+
+              <label
+                htmlFor="pet-report-post_type"
+                className="pet-report-label"
+              >
+                Loại báo cáo{' '}
+                <span className="pet-report-required">*</span>
+              </label>
+
+              <select
+                id="pet-report-post_type"
+                name="post_type"
+                className="pet-report-input"
+                value={formData.post_type}
+                onChange={handleInputChange}
+                aria-describedby={describedBy('post_type')}
+                aria-invalid={errors.post_type ? 'true' : undefined}
+              >
+
+                <option value="">
+                  Chọn loại báo cáo
+                </option>
+
+                {POST_TYPE_OPTIONS.map((option) => (
+                  <option
+                    key={option.value}
                     value={option.value}
-                    checked={formData.post_type === option.value}
-                    onChange={handleInputChange}
-                    aria-describedby={describedBy('post_type')}
-                    aria-invalid={errors.post_type ? 'true' : undefined}
-                  />
-                  <label htmlFor={`pet-report-post_type-${option.value}`} className="pet-report-choice__label">
-                    <span className="pet-report-choice__title">{option.label}</span>
-                    <span className="pet-report-choice__hint">{option.hint}</span>
-                  </label>
-                </div>
-              ))}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+
+              </select>
+
+              <FieldError
+                id="pet-report-post_type-error"
+                message={errors.post_type}
+              />
+
             </div>
-            <FieldError id="pet-report-post_type-error" message={errors.post_type} />
+
+
+            {/* Species */}
+
+            <div className="pet-report-field">
+
+              <label
+                htmlFor="pet-report-species"
+                className="pet-report-label"
+              >
+                Chó/Mèo{' '}
+                <span className="pet-report-required">*</span>
+              </label>
+
+              <select
+                id="pet-report-species"
+                name="species"
+                className="pet-report-input"
+                value={formData.species}
+                onChange={handleInputChange}
+                aria-describedby={describedBy('species')}
+                aria-invalid={errors.species ? 'true' : undefined}
+              >
+
+                <option value="">
+                  Chọn loại thú cưng
+                </option>
+
+                {SPECIES_OPTIONS.map((option) => (
+                  <option
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+
+              </select>
+
+              <FieldError
+                id="pet-report-species-error"
+                message={errors.species}
+              />
+
+            </div>
+
+
+            {/* Gender */}
+
+            <div className="pet-report-field">
+
+              <label
+                htmlFor="pet-report-gender"
+                className="pet-report-label"
+              >
+                Giới tính
+              </label>
+
+              <select
+                id="pet-report-gender"
+                name="gender"
+                className="pet-report-input"
+                value={formData.gender ?? ''}
+                onChange={handleInputChange}
+              >
+
+                <option value="">
+                  Chọn giới tính
+                </option>
+
+                <option value="MALE">
+                  Đực
+                </option>
+
+                <option value="FEMALE">
+                  Cái
+                </option>
+
+                <option value="UNKNOWN">
+                  Chưa xác định
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          {/* IMAGES */}
+
+          <fieldset className="pet-report-field">
+
+            <legend className="pet-report-label">
+              Ảnh thú cưng
+            </legend>
+
+            <ImageUploader
+              id="pet-report-images"
+              files={images}
+              coverIndex={coverIndex}
+              onChange={handleImagesChange}
+              error={errors.images}
+            />
+
           </fieldset>
 
-          {/* Species */}
-          <fieldset className="pet-report-field">
-            <legend className="pet-report-label">
-              Loài <span className="pet-report-required">(bắt buộc)</span>
-            </legend>
-            <div className="pet-report-choice-grid pet-report-choice-grid--compact">
-              {SPECIES_OPTIONS.map((option) => (
-                <div key={option.value} className="pet-report-choice">
-                  <input
-                    type="radio"
-                    id={`pet-report-species-${option.value}`}
-                    name="species"
-                    value={option.value}
-                    checked={formData.species === option.value}
-                    onChange={handleInputChange}
-                    aria-describedby={describedBy('species')}
-                    aria-invalid={errors.species ? 'true' : undefined}
-                  />
-                  <label htmlFor={`pet-report-species-${option.value}`} className="pet-report-choice__label">
-                    <span className="pet-report-choice__title">{option.label}</span>
-                  </label>
-                </div>
-              ))}
-            </div>
-            <FieldError id="pet-report-species-error" message={errors.species} />
-          </fieldset>
 
-           {/* Breed */}
-            <div className="pet-report-field">
-                <label htmlFor="pet-report-breed" className="pet-report-label">
-                    Giống <span className="pet-report-optional">(không bắt buộc)</span>
-                </label>
+          {/* BREED */}
 
-                <input
-                    id="pet-report-breed"
-                    name="breed"
-                    type="text"
-                    className="pet-report-input"
-                    maxLength={100}
-                    placeholder="Ví dụ: Poodle, Corgi..."
-                    value={formData.breed}
-                    onChange={handleInputChange}
-                    aria-describedby={describedBy('breed')}
-                    aria-invalid={errors.breed ? 'true' : undefined}
-                />
+          <div className="pet-report-field pet-report-field--horizontal">
 
-                <FieldError id="pet-report-breed-error" message={errors.breed} />
-            </div>
-
-            {/* Coat color */}
-            <div className="pet-report-field">
-                <label htmlFor="pet-report-coat_color" className="pet-report-label">
-                    Màu lông <span className="pet-report-optional">(không bắt buộc)</span>
-                </label>
-
-                <input
-                    id="pet-report-coat_color"
-                    name="coat_color"
-                    type="text"
-                    className="pet-report-input"
-                    maxLength={50}
-                    placeholder="Ví dụ: Trắng, vàng nâu, đen trắng..."
-                    value={formData.coat_color}
-                    onChange={handleInputChange}
-                    aria-describedby={describedBy('coat_color')}
-                    aria-invalid={errors.coat_color ? 'true' : undefined}
-                />
-
-                <FieldError
-                    id="pet-report-coat_color-error"
-                    message={errors.coat_color}
-                />
-            </div>
-
-            {/* Appearance notes */}
-            <div className="pet-report-field">
-                <label
-                    htmlFor="pet-report-appearance_notes"
-                    className="pet-report-label"
-                >
-                    Đặc điểm ngoại hình
-                    <span className="pet-report-optional"> (không bắt buộc)</span>
-                </label>
-
-                <textarea
-                    id="pet-report-appearance_notes"
-                    name="appearance_notes"
-                    className="pet-report-input pet-report-textarea"
-                    rows={3}
-                    maxLength={300}
-                    placeholder="Ví dụ: tai cụp, đuôi ngắn, có đốm nâu ở chân..."
-                    value={formData.appearance_notes}
-                    onChange={handleInputChange}
-                    aria-describedby={describedBy('appearance_notes')}
-                    aria-invalid={errors.appearance_notes ? 'true' : undefined}
-                />
-
-                <FieldError
-                    id="pet-report-appearance_notes-error"
-                    message={errors.appearance_notes}
-                />
-            </div>
-
-          {/* Description */}
-          <div className="pet-report-field">
-            <label htmlFor="pet-report-description" className="pet-report-label">
-              Mô tả <span className="pet-report-required">(bắt buộc)</span>
+            <label
+              htmlFor="pet-report-breed"
+              className="pet-report-label"
+            >
+              Giống
             </label>
-            <p id="pet-report-description-hint" className="pet-report-hint">
-              Ví dụ: màu lông, giống, kích thước, vòng cổ, đặc điểm nhận dạng, tính cách...
+
+            <input
+              id="pet-report-breed"
+              name="breed"
+              type="text"
+              className="pet-report-input"
+              maxLength={100}
+              placeholder="Ví dụ: Poodle, Corgi..."
+              value={formData.breed}
+              onChange={handleInputChange}
+              aria-describedby={describedBy('breed')}
+              aria-invalid={errors.breed ? 'true' : undefined}
+            />
+
+            <FieldError
+              id="pet-report-breed-error"
+              message={errors.breed}
+            />
+
+          </div>
+
+
+          {/* COAT COLOR */}
+
+          <div className="pet-report-field pet-report-field--horizontal">
+
+            <label
+              htmlFor="pet-report-coat_color"
+              className="pet-report-label"
+            >
+              Màu lông
+            </label>
+
+            <input
+              id="pet-report-coat_color"
+              name="coat_color"
+              type="text"
+              className="pet-report-input"
+              maxLength={50}
+              placeholder="Ví dụ: Trắng, vàng nâu, đen trắng..."
+              value={formData.coat_color}
+              onChange={handleInputChange}
+              aria-describedby={describedBy('coat_color')}
+              aria-invalid={errors.coat_color ? 'true' : undefined}
+            />
+
+            <FieldError
+              id="pet-report-coat_color-error"
+              message={errors.coat_color}
+            />
+
+          </div>
+
+
+          {/* APPEARANCE NOTES */}
+
+          <div className="pet-report-field pet-report-field--horizontal">
+
+            <label
+              htmlFor="pet-report-appearance_notes"
+              className="pet-report-label"
+            >
+              Đặc điểm ngoại hình
+            </label>
+
+            <textarea
+              id="pet-report-appearance_notes"
+              name="appearance_notes"
+              className="pet-report-input pet-report-textarea"
+              rows={3}
+              maxLength={300}
+              placeholder="Ví dụ: tai cụp, đuôi ngắn, có đốm nâu ở chân..."
+              value={formData.appearance_notes}
+              onChange={handleInputChange}
+              aria-describedby={describedBy('appearance_notes')}
+              aria-invalid={errors.appearance_notes ? 'true' : undefined}
+            />
+
+            <FieldError
+              id="pet-report-appearance_notes-error"
+              message={errors.appearance_notes}
+            />
+
+          </div>
+
+
+          {/* DESCRIPTION */}
+
+          <div className="pet-report-field pet-report-field--horizontal">
+
+            <label
+              htmlFor="pet-report-description"
+              className="pet-report-label"
+            >
+              Mô tả{' '}
+              <span className="pet-report-required">*</span>
+            </label>
+
+            <p
+              id="pet-report-description-hint"
+              className="pet-report-hint"
+            >
+              Ví dụ: màu lông, giống, kích thước, vòng cổ,
+              đặc điểm nhận dạng, tính cách...
             </p>
+
             <textarea
               id="pet-report-description"
               name="description"
@@ -549,149 +1453,281 @@ export default function PetReportPage({ onBack }) {
               maxLength={DESCRIPTION_MAX_LENGTH}
               value={formData.description}
               onChange={handleInputChange}
-              aria-describedby={describedBy('description', 'pet-report-description-hint pet-report-description-count')}
+              aria-describedby={describedBy(
+                'description',
+                'pet-report-description-hint pet-report-description-count'
+              )}
               aria-invalid={errors.description ? 'true' : undefined}
             />
-            <p id="pet-report-description-count" className="pet-report-counter">
+
+            <p
+              id="pet-report-description-count"
+              className="pet-report-counter"
+            >
               {descriptionLength}/{DESCRIPTION_MAX_LENGTH} ký tự
             </p>
-            <FieldError id="pet-report-description-error" message={errors.description} />
-          </div>
 
-          {/* Event time */}
-          <div className="pet-report-field">
-            <label htmlFor="pet-report-event_time" className="pet-report-label">
-              {formData.post_type === 'FOUND' ? 'Thời gian tìm thấy' : 'Thời gian bị lạc'}{' '}
-              <span className="pet-report-required">(bắt buộc)</span>
-            </label>
-            <input
-              id="pet-report-event_time"
-              name="event_time"
-              type="datetime-local"
-              className="pet-report-input"
-              max={maxEventTime}
-              value={formData.event_time}
-              onChange={handleInputChange}
-              aria-describedby={describedBy('event_time')}
-              aria-invalid={errors.event_time ? 'true' : undefined}
+            <FieldError
+              id="pet-report-description-error"
+              message={errors.description}
             />
-            <FieldError id="pet-report-event_time-error" message={errors.event_time} />
+
           </div>
 
-          {/* Location */}
-          <div className="pet-report-field">
-            <label htmlFor="pet-report-location_text" className="pet-report-label">
-              {formData.post_type === 'FOUND' ? 'Địa điểm tìm thấy' : 'Địa điểm bị lạc'}{' '}
-              <span className="pet-report-required">(bắt buộc)</span>
-            </label>
-            <p id="pet-report-location_text-hint" className="pet-report-hint">
-              Ví dụ: Công viên Tao Đàn, gần cổng đường Trương Định, Quận 1, TP.HCM
-            </p>
-            <input
-              id="pet-report-location_text"
-              name="location_text"
-              type="text"
-              className="pet-report-input"
-              autoComplete="street-address"
-              value={formData.location_text}
-              onChange={handleInputChange}
-              aria-describedby={describedBy('location_text', 'pet-report-location_text-hint')}
-              aria-invalid={errors.location_text ? 'true' : undefined}
-            />
-            <FieldError id="pet-report-location_text-error" message={errors.location_text} />
-          </div>
 
-          {/* Optional coordinates */}
-          <fieldset className="pet-report-field pet-report-coordinates">
-            <legend className="pet-report-label">
-              Tọa độ <span className="pet-report-optional">(không bắt buộc)</span>
-            </legend>
-            <p id="pet-report-coordinates-hint" className="pet-report-hint">
-              Giúp hệ thống tìm các tin gần nhau chính xác hơn.
-            </p>
-            <div className="pet-report-coordinates__grid">
-              <div className="pet-report-coordinates__item">
-                <label htmlFor="pet-report-latitude" className="pet-report-sublabel">
-                  Vĩ độ
-                </label>
-                <input
-                  id="pet-report-latitude"
-                  name="latitude"
-                  type="number"
-                  inputMode="decimal"
-                  step="any"
-                  min={-90}
-                  max={90}
-                  placeholder="10.776889"
-                  className="pet-report-input"
-                  value={formData.latitude ?? ''}
-                  onChange={handleCoordinateChange}
-                  aria-describedby={describedBy('latitude', 'pet-report-coordinates-hint')}
-                  aria-invalid={errors.latitude ? 'true' : undefined}
-                />
-                <FieldError id="pet-report-latitude-error" message={errors.latitude} />
-              </div>
-              <div className="pet-report-coordinates__item">
-                <label htmlFor="pet-report-longitude" className="pet-report-sublabel">
-                  Kinh độ
-                </label>
-                <input
-                  id="pet-report-longitude"
-                  name="longitude"
-                  type="number"
-                  inputMode="decimal"
-                  step="any"
-                  min={-180}
-                  max={180}
-                  placeholder="106.700806"
-                  className="pet-report-input"
-                  value={formData.longitude ?? ''}
-                  onChange={handleCoordinateChange}
-                  aria-describedby={describedBy('longitude', 'pet-report-coordinates-hint')}
-                  aria-invalid={errors.longitude ? 'true' : undefined}
-                />
-                <FieldError id="pet-report-longitude-error" message={errors.longitude} />
-              </div>
+          {/* EVENT TIME */}
+
+          <div className="pet-report-grid pet-report-grid--two">
+
+            <div className="pet-report-field">
+
+              <label
+                htmlFor="pet-report-event_time"
+                className="pet-report-label"
+              >
+                {formData.post_type === 'FOUND'
+                  ? 'Thời gian tìm thấy'
+                  : 'Thời gian bị lạc'}
+
+                {' '}
+                <span className="pet-report-required">*</span>
+              </label>
+
+              <input
+                id="pet-report-event_time"
+                name="event_time"
+                type="datetime-local"
+                className="pet-report-input"
+                max={maxEventTime}
+                value={formData.event_time}
+                onChange={handleInputChange}
+                aria-describedby={describedBy('event_time')}
+                aria-invalid={errors.event_time ? 'true' : undefined}
+              />
+
+              <FieldError
+                id="pet-report-event_time-error"
+                message={errors.event_time}
+              />
+
             </div>
-            <div className="pet-report-geo">
+
+
+            {/* LOCATION */}
+
+            <div className="pet-report-field">
+
+              <label
+                htmlFor="pet-report-province"
+                className="pet-report-label"
+              >
+                {formData.post_type === 'FOUND'
+                  ? 'Địa điểm tìm thấy'
+                  : 'Địa điểm bị lạc'}
+
+                {' '}
+                <span className="pet-report-required">*</span>
+              </label>
+
+
+              {/* Province */}
+
+              <select
+                id="pet-report-province"
+                name="province"
+                className="pet-report-input"
+                value={
+                  provinces.find(
+                    (province) =>
+                      province.name === formData.province
+                  )?.code || ''
+                }
+                onChange={handleProvinceChange}
+                disabled={isLoadingProvinces}
+                aria-invalid={errors.province ? 'true' : undefined}
+              >
+
+                <option value="">
+                  {isLoadingProvinces
+                    ? 'Đang tải tỉnh/thành phố...'
+                    : 'Chọn tỉnh/thành phố'}
+                </option>
+
+                {provinces.map((province) => (
+                  <option
+                    key={province.code}
+                    value={province.code}
+                  >
+                    {province.name}
+                  </option>
+                ))}
+
+              </select>
+
+              <FieldError
+                id="pet-report-province-error"
+                message={errors.province}
+              />
+
+
+              {/* Ward */}
+
+              <label
+                htmlFor="pet-report-ward"
+                className="pet-report-label"
+              >
+                Phường / Xã{' '}
+                <span className="pet-report-required">*</span>
+              </label>
+
+              <select
+                id="pet-report-ward"
+                name="ward"
+                className="pet-report-input"
+                value={
+                  wards.find(
+                    (ward) => ward.name === formData.ward
+                  )?.code || ''
+                }
+                onChange={handleWardChange}
+                disabled={!formData.province || isLoadingWards}
+                aria-invalid={errors.ward ? 'true' : undefined}
+              >
+
+                <option value="">
+                  {!formData.province
+                    ? 'Vui lòng chọn tỉnh/thành phố trước'
+                    : isLoadingWards
+                      ? 'Đang tải phường/xã...'
+                      : 'Chọn phường/xã'}
+                </option>
+
+                {wards.map((ward) => (
+                  <option
+                    key={ward.code}
+                    value={ward.code}
+                  >
+                    {ward.name}
+                  </option>
+                ))}
+
+              </select>
+
+              <FieldError
+                id="pet-report-ward-error"
+                message={errors.ward}
+              />
+
+            </div>
+
+
+            {/* MAP */}
+
+            <div className="pet-report-field pet-report-map-field">
+
+              <div className="pet-report-map-heading">
+
+                <span className="pet-report-label">
+                  Chọn vị trí trên bản đồ
+                </span>
+
+                <p className="pet-report-hint">
+                  Chọn tỉnh/thành phố và phường/xã để xác định vị trí,
+                  hoặc kéo ghim trên bản đồ để điều chỉnh.
+                </p>
+
+              </div>
+
+
+              {/* Search location button */}
+
               <button
+                id="pet-report-map-search"
                 type="button"
-                className="pet-report-button pet-report-button--secondary pet-report-button--small"
-                onClick={handleUseCurrentLocation}
-                disabled={geoStatus.state === 'loading'}
+                className="pet-report-map-search"
+                onClick={handleSearchLocation}
+                disabled={isSearchingLocation}
               >
-                Dùng vị trí hiện tại
+                {isSearchingLocation
+                  ? 'Đang tìm vị trí...'
+                  : 'Tìm vị trí'}
               </button>
-              <p
-                className={`pet-report-geo__message${geoStatus.state === 'error' ? ' pet-report-geo__message--error' : ''}`}
-                aria-live="polite"
-              >
-                {geoStatus.message}
-              </p>
-            </div>
-          </fieldset>
 
-          {/* Images */}
-          <fieldset className="pet-report-field">
-            <legend className="pet-report-label">
-              Ảnh thú cưng <span className="pet-report-required">(bắt buộc)</span>
-            </legend>
-            <ImageUploader
-              id="pet-report-images"
-              files={images}
-              coverIndex={coverIndex}
-              onChange={handleImagesChange}
-              error={errors.images}
-            />
-          </fieldset>
+
+              {/* Location error */}
+
+              {locationSearchError && (
+                <p
+                  className="pet-report-map-error"
+                  role="alert"
+                >
+                  {locationSearchError}
+                </p>
+              )}
+
+
+              {/* Leaflet map */}
+
+              <MapContainer
+                center={mapPosition}
+                zoom={13}
+                className="pet-report-map"
+                scrollWheelZoom={true}
+                style={{
+                  height: '360px',
+                  width: '100%',
+                }}
+              >
+
+                <MapResizeHandler />
+
+                <MapViewUpdater
+                  position={mapPosition}
+                />
+
+                <TileLayer
+                  attribution="Tiles &copy; Esri"
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+                />
+
+                <MapMarker
+                  position={mapPosition}
+                  onPositionChange={handleMapPositionChange}
+                />
+
+              </MapContainer>
+
+
+              {/* Coordinates */}
+
+              <p className="pet-report-hint">
+                {formData.latitude && formData.longitude
+                  ? `Tọa độ: ${formData.latitude}, ${formData.longitude}`
+                  : 'Chưa chọn tọa độ trên bản đồ.'}
+              </p>
+
+            </div>
+
+          </div>
+
+
+          {/* FORM ACTION */}
 
           <div className="pet-report-actions">
-            <button type="submit" className="pet-report-button pet-report-button--primary">
+
+            <button
+              type="submit"
+              className="pet-report-button pet-report-button--primary"
+            >
               Xem lại tin đăng
             </button>
+
           </div>
+
         </form>
+
       </section>
+
     </main>
   );
 }

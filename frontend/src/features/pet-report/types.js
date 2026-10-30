@@ -52,11 +52,16 @@ export const INITIAL_FORM_DATA = Object.freeze({
   appearance_notes: '',
   description: '',
   event_time: '',
+
+  // Địa chỉ
+  province: '',
+  ward: '',
   location_text: '',
+
+  // Tọa độ bản đồ
   latitude: null,
   longitude: null,
 });
-
 
 /** Returns a fresh, editable copy of the initial form data. */
 export function createInitialFormData() {
