@@ -1,4 +1,5 @@
-# AI 1 – Mô tả ngoại hình chó/mèo
+# AI 
+– Mô tả ngoại hình chó/mèo
 
 Sử dụng **Gemini 2.5 Flash qua OpenRouter API** để phân tích ảnh chó/mèo và tạo mô tả ngoại hình bằng tiếng Việt.
 
