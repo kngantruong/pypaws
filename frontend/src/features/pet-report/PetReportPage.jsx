@@ -295,6 +295,10 @@ export default function PetReportPage({
 
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
+  const [provinceInput, setProvinceInput] = useState('');
+  const [wardInput, setWardInput] = useState('');
+  const [isProvinceListOpen, setIsProvinceListOpen] = useState(false);
+  const [isWardListOpen, setIsWardListOpen] = useState(false);
 
   const [isLoadingProvinces, setIsLoadingProvinces] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
@@ -429,56 +433,25 @@ export default function PetReportPage({
 
   // Cho phép tìm nhanh tỉnh/thành bằng cách gõ tên hoặc chọn từ gợi ý.
   function handleProvinceTextChange(event) {
-    const value = event.target.value;
-    const matchedProvince = provinces.find(
-      (province) => province.name.toLocaleLowerCase('vi') === value.trim().toLocaleLowerCase('vi')
-    );
-
-    if (matchedProvince) {
-      handleProvinceChange({ target: { value: String(matchedProvince.code) } });
-      return;
-    }
-
-    // Khi đang gõ tên tỉnh, chưa tải xã cho đến khi chọn đúng một gợi ý.
-    provinceRequestRef.current += 1;
-    wardRequestRef.current += 1;
-    locationRequestRef.current += 1;
-    setWards([]);
-    setFormData((previous) => ({
-      ...previous,
-      province: value,
-      ward: '',
-      location_text: '',
-      latitude: null,
-      longitude: null,
-    }));
-    setMapPosition(DEFAULT_MAP_POSITION);
-    setIsLoadingWards(false);
-    setIsSearchingLocation(false);
-    setLocationSearchError('');
+    setProvinceInput(event.target.value);
+    setIsProvinceListOpen(true);
   }
 
   function handleWardTextChange(event) {
-    const value = event.target.value;
-    const matchedWard = wards.find(
-      (ward) => ward.name.toLocaleLowerCase('vi') === value.trim().toLocaleLowerCase('vi')
-    );
+    setWardInput(event.target.value);
+    setIsWardListOpen(true);
+  }
 
-    if (matchedWard) {
-      handleWardChange({ target: { value: String(matchedWard.code) } });
-      return;
-    }
+  function chooseProvince(province) {
+    setProvinceInput(province.name);
+    setIsProvinceListOpen(false);
+    handleProvinceChange({ target: { value: String(province.code) } });
+  }
 
-    locationRequestRef.current += 1;
-    setFormData((previous) => ({
-      ...previous,
-      ward: value,
-      location_text: '',
-      latitude: null,
-      longitude: null,
-    }));
-    setIsSearchingLocation(false);
-    setLocationSearchError('');
+  function chooseWard(ward) {
+    setWardInput(ward.name);
+    setIsWardListOpen(false);
+    handleWardChange({ target: { value: String(ward.code) } });
   }
 
   // --------------------------------------------------
@@ -509,6 +482,9 @@ export default function PetReportPage({
       longitude: null,
     }));
 
+    setProvinceInput(selectedProvince?.name || '');
+    setWardInput('');
+    setIsWardListOpen(false);
     setWards([]);
     setLocationSearchError('');
 
@@ -661,6 +637,7 @@ export default function PetReportPage({
 
     const selectedProvince = formData.province;
 
+    setWardInput(selectedWard.name);
     const locationText =
       `${selectedWard.name}, ${selectedProvince}`;
 
@@ -1604,62 +1581,128 @@ export default function PetReportPage({
             </div>
 
 
-            {/* PROVINCE */}
-            <div className="pet-report-field">
+            {/* PROVINCE: searchable dropdown showing all 34 current provinces */}
+            <div className="pet-report-field pet-report-combobox">
               <label htmlFor="pet-report-province" className="pet-report-label">
                 {formData.post_type === 'FOUND' ? 'Tỉnh/thành phố tìm thấy' : 'Tỉnh/thành phố bị lạc'}
                 {' '}<span className="pet-report-required">*</span>
               </label>
 
-              <select
+              <input
                 id="pet-report-province"
                 name="province"
+                type="text"
                 className="pet-report-input"
-                value={provinces.find((province) => province.name === formData.province)?.code || ''}
-                onChange={handleProvinceChange}
-                disabled={isLoadingProvinces}
+                placeholder={isLoadingProvinces ? 'Đang tải danh sách...' : 'Bấm để xem hoặc gõ tên tỉnh/thành phố'}
+                value={provinceInput}
+                autoComplete="off"
+                onFocus={() => setIsProvinceListOpen(true)}
+                onChange={handleProvinceTextChange}
+                onBlur={() => setTimeout(() => setIsProvinceListOpen(false), 140)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const match = provinces.find((item) =>
+                      item.name.toLocaleLowerCase('vi').includes(provinceInput.trim().toLocaleLowerCase('vi'))
+                    );
+                    if (match) chooseProvince(match);
+                  }
+                  if (event.key === 'Escape') setIsProvinceListOpen(false);
+                }}
+                aria-expanded={isProvinceListOpen}
+                aria-controls="pet-report-province-options"
+                role="combobox"
+                aria-autocomplete="list"
                 aria-invalid={errors.province ? 'true' : undefined}
-              >
-                <option value="">
-                  {isLoadingProvinces ? 'Đang tải tỉnh/thành phố...' : 'Chọn tỉnh/thành phố'}
-                </option>
-                {provinces.map((province) => (
-                  <option key={province.code} value={province.code}>
-                    {province.name}
-                  </option>
-                ))}
-              </select>
+                disabled={isLoadingProvinces}
+              />
+              {isProvinceListOpen && !isLoadingProvinces && (
+                <div id="pet-report-province-options" className="pet-report-combobox__options" role="listbox">
+                  {provinces
+                    .filter((item) => item.name.toLocaleLowerCase('vi').includes(provinceInput.trim().toLocaleLowerCase('vi')))
+                    .map((province) => (
+                      <button
+                        type="button"
+                        key={province.code}
+                        className="pet-report-combobox__option"
+                        role="option"
+                        aria-selected={formData.province === province.name}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => chooseProvince(province)}
+                      >
+                        {province.name}
+                      </button>
+                    ))}
+                  {provinces.length === 0 && (
+                    <p className="pet-report-combobox__empty">Chưa tải được danh sách tỉnh/thành phố.</p>
+                  )}
+                </div>
+              )}
               <FieldError id="pet-report-province-error" message={errors.province} />
             </div>
 
-            {/* WARD */}
-            <div className="pet-report-field">
+            {/* WARD: filtered list for the selected province */}
+            <div className="pet-report-field pet-report-combobox">
               <label htmlFor="pet-report-ward" className="pet-report-label">
                 Phường / Xã <span className="pet-report-required">*</span>
               </label>
 
-              <select
+              <input
                 id="pet-report-ward"
                 name="ward"
+                type="text"
                 className="pet-report-input"
-                value={wards.find((ward) => ward.name === formData.ward)?.code || ''}
-                onChange={handleWardChange}
-                disabled={!formData.province || isLoadingWards}
-                aria-invalid={errors.ward ? 'true' : undefined}
-              >
-                <option value="">
-                  {!formData.province
-                    ? 'Vui lòng chọn tỉnh/thành phố trước'
+                placeholder={
+                  !formData.province
+                    ? 'Chọn tỉnh/thành phố trước'
                     : isLoadingWards
-                      ? 'Đang tải phường/xã...'
-                      : 'Chọn phường/xã'}
-                </option>
-                {wards.map((ward) => (
-                  <option key={ward.code} value={ward.code}>
-                    {ward.name}
-                  </option>
-                ))}
-              </select>
+                      ? 'Đang tải danh sách phường/xã...'
+                      : 'Bấm để xem hoặc gõ tên phường/xã'
+                }
+                value={wardInput}
+                autoComplete="off"
+                onFocus={() => setIsWardListOpen(true)}
+                onChange={handleWardTextChange}
+                onBlur={() => setTimeout(() => setIsWardListOpen(false), 140)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    const match = wards.find((item) =>
+                      item.name.toLocaleLowerCase('vi').includes(wardInput.trim().toLocaleLowerCase('vi'))
+                    );
+                    if (match) chooseWard(match);
+                  }
+                  if (event.key === 'Escape') setIsWardListOpen(false);
+                }}
+                aria-expanded={isWardListOpen}
+                aria-controls="pet-report-ward-options"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-invalid={errors.ward ? 'true' : undefined}
+                disabled={!formData.province || isLoadingWards}
+              />
+              {isWardListOpen && formData.province && !isLoadingWards && (
+                <div id="pet-report-ward-options" className="pet-report-combobox__options" role="listbox">
+                  {wards
+                    .filter((item) => item.name.toLocaleLowerCase('vi').includes(wardInput.trim().toLocaleLowerCase('vi')))
+                    .map((ward) => (
+                      <button
+                        type="button"
+                        key={ward.code}
+                        className="pet-report-combobox__option"
+                        role="option"
+                        aria-selected={formData.ward === ward.name}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => chooseWard(ward)}
+                      >
+                        {ward.name}
+                      </button>
+                    ))}
+                  {wards.length === 0 && (
+                    <p className="pet-report-combobox__empty">Không có dữ liệu phường/xã cho tỉnh này.</p>
+                  )}
+                </div>
+              )}
               <FieldError id="pet-report-ward-error" message={errors.ward} />
             </div>
 
