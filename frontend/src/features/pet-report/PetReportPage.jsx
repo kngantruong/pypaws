@@ -427,6 +427,60 @@ export default function PetReportPage({
   }
 
 
+  // Cho phép tìm nhanh tỉnh/thành bằng cách gõ tên hoặc chọn từ gợi ý.
+  function handleProvinceTextChange(event) {
+    const value = event.target.value;
+    const matchedProvince = provinces.find(
+      (province) => province.name.toLocaleLowerCase('vi') === value.trim().toLocaleLowerCase('vi')
+    );
+
+    if (matchedProvince) {
+      handleProvinceChange({ target: { value: String(matchedProvince.code) } });
+      return;
+    }
+
+    // Khi đang gõ tên tỉnh, chưa tải xã cho đến khi chọn đúng một gợi ý.
+    provinceRequestRef.current += 1;
+    wardRequestRef.current += 1;
+    locationRequestRef.current += 1;
+    setWards([]);
+    setFormData((previous) => ({
+      ...previous,
+      province: value,
+      ward: '',
+      location_text: '',
+      latitude: null,
+      longitude: null,
+    }));
+    setMapPosition(DEFAULT_MAP_POSITION);
+    setIsLoadingWards(false);
+    setIsSearchingLocation(false);
+    setLocationSearchError('');
+  }
+
+  function handleWardTextChange(event) {
+    const value = event.target.value;
+    const matchedWard = wards.find(
+      (ward) => ward.name.toLocaleLowerCase('vi') === value.trim().toLocaleLowerCase('vi')
+    );
+
+    if (matchedWard) {
+      handleWardChange({ target: { value: String(matchedWard.code) } });
+      return;
+    }
+
+    locationRequestRef.current += 1;
+    setFormData((previous) => ({
+      ...previous,
+      ward: value,
+      location_text: '',
+      latitude: null,
+      longitude: null,
+    }));
+    setIsSearchingLocation(false);
+    setLocationSearchError('');
+  }
+
   // --------------------------------------------------
   // 5.7. PROVINCE CHANGE
   // --------------------------------------------------
@@ -1514,7 +1568,7 @@ export default function PetReportPage({
 
           {/* EVENT TIME */}
 
-          <div className="pet-report-grid pet-report-grid--two">
+          <div className="pet-report-grid pet-report-grid--three">
 
             <div className="pet-report-field">
 
@@ -1550,111 +1604,70 @@ export default function PetReportPage({
             </div>
 
 
-            {/* LOCATION */}
-
+            {/* PROVINCE */}
             <div className="pet-report-field">
-
-              <label
-                htmlFor="pet-report-province"
-                className="pet-report-label"
-              >
-                {formData.post_type === 'FOUND'
-                  ? 'Địa điểm tìm thấy'
-                  : 'Địa điểm bị lạc'}
-
-                {' '}
-                <span className="pet-report-required">*</span>
+              <label htmlFor="pet-report-province" className="pet-report-label">
+                {formData.post_type === 'FOUND' ? 'Tỉnh/thành phố tìm thấy' : 'Tỉnh/thành phố bị lạc'}
+                {' '}<span className="pet-report-required">*</span>
               </label>
 
-
-              {/* Province */}
-
-              <select
+              <input
                 id="pet-report-province"
                 name="province"
+                type="text"
                 className="pet-report-input"
-                value={
-                  provinces.find(
-                    (province) =>
-                      province.name === formData.province
-                  )?.code || ''
-                }
-                onChange={handleProvinceChange}
+                list="pet-report-province-options"
+                autoComplete="off"
+                placeholder={isLoadingProvinces ? 'Đang tải tỉnh/thành phố...' : 'Chọn hoặc nhập tên tỉnh/thành phố'}
+                value={formData.province}
+                onChange={handleProvinceTextChange}
                 disabled={isLoadingProvinces}
                 aria-invalid={errors.province ? 'true' : undefined}
-              >
-
-                <option value="">
-                  {isLoadingProvinces
-                    ? 'Đang tải tỉnh/thành phố...'
-                    : 'Chọn tỉnh/thành phố'}
-                </option>
-
-                {provinces.map((province) => (
-                  <option
-                    key={province.code}
-                    value={province.code}
-                  >
-                    {province.name}
-                  </option>
-                ))}
-
-              </select>
-
-              <FieldError
-                id="pet-report-province-error"
-                message={errors.province}
               />
+              <datalist id="pet-report-province-options">
+                {provinces.map((province) => (
+                  <option key={province.code} value={province.name} />
+                ))}
+              </datalist>
+              {locationSearchError && provinces.length === 0 && (
+                <p className="pet-report-field__error" role="alert">
+                  Không tải được danh sách. Bạn vẫn có thể nhập tên tỉnh/thành phố.
+                </p>
+              )}
+              <FieldError id="pet-report-province-error" message={errors.province} />
+            </div>
 
-
-              {/* Ward */}
-
-              <label
-                htmlFor="pet-report-ward"
-                className="pet-report-label"
-              >
-                Phường / Xã{' '}
-                <span className="pet-report-required">*</span>
+            {/* WARD */}
+            <div className="pet-report-field">
+              <label htmlFor="pet-report-ward" className="pet-report-label">
+                Phường / Xã <span className="pet-report-required">*</span>
               </label>
 
-              <select
+              <input
                 id="pet-report-ward"
                 name="ward"
+                type="text"
                 className="pet-report-input"
-                value={
-                  wards.find(
-                    (ward) => ward.name === formData.ward
-                  )?.code || ''
-                }
-                onChange={handleWardChange}
-                disabled={!formData.province || isLoadingWards}
-                aria-invalid={errors.ward ? 'true' : undefined}
-              >
-
-                <option value="">
-                  {!formData.province
-                    ? 'Vui lòng chọn tỉnh/thành phố trước'
+                list="pet-report-ward-options"
+                autoComplete="off"
+                placeholder={
+                  !formData.province
+                    ? 'Chọn tỉnh/thành phố trước'
                     : isLoadingWards
                       ? 'Đang tải phường/xã...'
-                      : 'Chọn phường/xã'}
-                </option>
-
-                {wards.map((ward) => (
-                  <option
-                    key={ward.code}
-                    value={ward.code}
-                  >
-                    {ward.name}
-                  </option>
-                ))}
-
-              </select>
-
-              <FieldError
-                id="pet-report-ward-error"
-                message={errors.ward}
+                      : 'Chọn hoặc nhập tên phường/xã'
+                }
+                value={formData.ward}
+                onChange={handleWardTextChange}
+                disabled={!formData.province || isLoadingWards || wards.length === 0}
+                aria-invalid={errors.ward ? 'true' : undefined}
               />
-
+              <datalist id="pet-report-ward-options">
+                {wards.map((ward) => (
+                  <option key={ward.code} value={ward.name} />
+                ))}
+              </datalist>
+              <FieldError id="pet-report-ward-error" message={errors.ward} />
             </div>
 
 
