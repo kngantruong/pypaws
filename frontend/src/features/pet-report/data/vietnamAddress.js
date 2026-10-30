@@ -1,5 +1,6 @@
 const API_BASE_URL = 'https://production.cas.so/address-kit';
-const EFFECTIVE_DATE = '2025-07-01';
+// 'latest' luôn lấy danh mục hành chính đang có hiệu lực.
+const EFFECTIVE_DATE = 'latest';
 
 // Lấy danh sách 34 tỉnh/thành phố
 export async function getProvinces() {
