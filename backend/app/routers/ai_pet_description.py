@@ -1,90 +1,89 @@
-"""Kiểm thử endpoint bằng Qwen giả. Chạy từ thư mục backend: pytest tests/"""
-import os
-import sys
-from io import BytesIO
-from types import SimpleNamespace
-
-import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from PIL import Image
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-import pypaws_qwen.client as client_mod                      # noqa: E402
-from app.routers import ai_pet_description                   # noqa: E402
-
-GOOD = ("Màu lông, hoa văn: Vàng nâu\nĐộ dài lông: Ngắn\nĐặc điểm tai, mắt, mõm, đuôi:\n- Tai: Cụp\n"
-        "- Mắt: Nâu\n- Mõm: Thon\n- Đuôi: Cong\nDấu hiệu nhận dạng đặc biệt: Đeo vòng cổ đỏ")
-
-
-def jpeg():
-    buf = BytesIO(); Image.new("RGB", (300, 200), (120, 90, 40)).save(buf, "JPEG"); return buf.getvalue()
-
-
-@pytest.fixture
-def api(monkeypatch):
-    monkeypatch.setenv("DASHSCOPE_API_KEY", "sk-test")
-    app = FastAPI(); app.include_router(ai_pet_description.router)
-    return TestClient(app)
-
-
-def use_qwen(monkeypatch, content):
-    msg = SimpleNamespace(content=content)
-    resp = SimpleNamespace(choices=[SimpleNamespace(message=msg)],
-                           usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1))
-    fc = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **k: resp)))
-    monkeypatch.setattr(client_mod, "_get_client", lambda *a, **k: fc)
-
-
-def post(api, data, name="cho.jpg", ctype="image/jpeg"):
-    return api.post("/api/ai/describe-pet", files={"image": (name, data, ctype)})
-
-
-def test_thanh_cong(api, monkeypatch):
-    use_qwen(monkeypatch, GOOD)
-    r = post(api, jpeg())
-    assert r.status_code == 200
-    j = r.json()
-    assert j["success"] is True and j["is_pet"] is True
-    assert j["description"].startswith("Màu lông, hoa văn: Vàng nâu") and "\n" in j["description"]
-
-
-def test_khong_co_thu_cung(api, monkeypatch):
-    use_qwen(monkeypatch, "Không nhận diện được chó/mèo trong ảnh.")
-    j = post(api, jpeg()).json()
-    assert j["is_pet"] is False and j["description"] == "" and j["message"]
-
-
-def test_file_khong_phai_anh(api):
-    r = post(api, b"day la file text", "a.jpg", "image/jpeg")   # khai gian Content-Type vẫn bị chặn
-    assert r.status_code == 400 and r.json()["detail"]["code"] == "invalid_image"
-
-
-def test_dinh_dang_gif(api):
-    buf = BytesIO(); Image.new("RGB", (300, 200)).save(buf, "GIF")
-    r = post(api, buf.getvalue(), "a.gif", "image/gif")
-    assert r.status_code == 415
-
-
-def test_anh_qua_nang(api, monkeypatch):
-    monkeypatch.setenv("QWEN_MAX_IMAGE_MB", "1")
-    r = post(api, b"0" * (2 * 1024 * 1024))
-    assert r.status_code == 413
-
-
-def test_thieu_khoa_api(api, monkeypatch):
-    monkeypatch.delenv("DASHSCOPE_API_KEY")
-    r = post(api, jpeg())
-    assert r.status_code == 503 and r.json()["detail"]["code"] == "ai_not_configured"
-    assert "DASHSCOPE" not in r.text                      # không lộ tên biến cấu hình ra ngoài
-
-
-def test_thieu_truong_image(api):
-    assert api.post("/api/ai/describe-pet").status_code == 422
-
-
-def test_health(api, monkeypatch):
-    assert api.get("/api/ai/health").json()["configured"] is True
-    monkeypatch.delenv("DASHSCOPE_API_KEY")
-    assert api.get("/api/ai/health").json() == {"configured": False, "model": None}
+"""Endpoint AI 1: nhận ảnh chó/mèo, gọi Qwen-VL, trả về mô tả ngoại hình để người dùng chỉnh sửa.
+ 
+Endpoint này KHÔNG lưu ảnh và KHÔNG ghi database. Việc lưu mô tả vào SQL Server do API "đăng tin" hiện có đảm nhiệm,
+sau khi người dùng đã xem và chỉnh sửa văn bản.
+ 
+Gắn vào ứng dụng FastAPI hiện tại (app/main.py):
+    from app.routers import ai_pet_description
+    app.include_router(ai_pet_description.router)
+Nếu backend đã có xác thực, thêm dependency để tránh bị lạm dụng quota AI:
+    app.include_router(ai_pet_description.router, dependencies=[Depends(get_current_user)])
+"""
+import logging
+from typing import Optional
+ 
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
+from pydantic import BaseModel
+ 
+from pypaws_qwen import PyPawsQwenError, describe_pet_image, is_configured, load_settings
+ 
+logger = logging.getLogger("pypaws.ai")
+ 
+router = APIRouter(prefix="/api/ai", tags=["AI - Mô tả ngoại hình thú cưng"])
+ 
+ 
+class DescribePetResponse(BaseModel):
+    success: bool = True
+    is_pet: bool                       # False: ảnh không có chó/mèo
+    description: str                   # văn bản nhiều dòng, đưa vào ô chỉnh sửa; rỗng khi is_pet = False
+    message: Optional[str] = None      # thông báo hiển thị cho người dùng khi is_pet = False
+    model: str
+    elapsed_ms: int
+ 
+ 
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+ 
+ 
+class ErrorResponse(BaseModel):
+    detail: ErrorDetail
+ 
+ 
+class HealthResponse(BaseModel):
+    configured: bool
+    model: Optional[str] = None
+ 
+ 
+@router.get("/health", response_model=HealthResponse, summary="Kiểm tra đã cấu hình khóa API chưa (không gọi Qwen)")
+async def ai_health():
+    if not is_configured():
+        return HealthResponse(configured=False)
+    return HealthResponse(configured=True, model=load_settings().model)
+ 
+ 
+@router.post(
+    "/describe-pet",
+    response_model=DescribePetResponse,
+    summary="Mô tả ngoại hình chó/mèo từ ảnh",
+    responses={
+        400: {"model": ErrorResponse, "description": "Ảnh rỗng hoặc hỏng"},
+        413: {"model": ErrorResponse, "description": "Ảnh quá nặng hoặc quá nhiều điểm ảnh"},
+        415: {"model": ErrorResponse, "description": "Không phải JPEG/PNG/WEBP"},
+        422: {"model": ErrorResponse, "description": "Ảnh bị hệ thống AI từ chối"},
+        429: {"model": ErrorResponse, "description": "AI quá tải hoặc vượt giới hạn tốc độ"},
+        502: {"model": ErrorResponse, "description": "Lỗi từ phía dịch vụ AI"},
+        503: {"model": ErrorResponse, "description": "Chưa cấu hình khóa API hoặc hết hạn mức"},
+        504: {"model": ErrorResponse, "description": "Dịch vụ AI quá thời gian chờ"},
+    },
+)
+async def describe_pet(
+    image: UploadFile = File(..., description="Ảnh chó/mèo (JPEG, PNG hoặc WEBP), tối đa 10 MB"),
+):
+    try:
+        limit = load_settings().max_image_bytes
+        data = await image.read(limit + 1)          # đọc dư 1 byte để biết ảnh có vượt giới hạn không
+        # describe_pet_image là hàm chặn (gọi mạng), chạy trong threadpool để không treo event loop
+        result = await run_in_threadpool(describe_pet_image, data)
+    except PyPawsQwenError as e:
+        logger.warning("describe-pet thất bại: code=%s detail=%s", e.code, e.detail)
+        raise HTTPException(status_code=e.status_code,
+                            detail={"code": e.code, "message": e.public_message})
+    finally:
+        await image.close()
+ 
+    return DescribePetResponse(
+        is_pet=result.is_pet, description=result.description, message=result.message,
+        model=result.model, elapsed_ms=result.elapsed_ms,
+    )
