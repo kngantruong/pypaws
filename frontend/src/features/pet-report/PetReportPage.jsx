@@ -1611,29 +1611,24 @@ export default function PetReportPage({
                 {' '}<span className="pet-report-required">*</span>
               </label>
 
-              <input
+              <select
                 id="pet-report-province"
                 name="province"
-                type="text"
                 className="pet-report-input"
-                list="pet-report-province-options"
-                autoComplete="off"
-                placeholder={isLoadingProvinces ? 'Đang tải tỉnh/thành phố...' : 'Chọn hoặc nhập tên tỉnh/thành phố'}
-                value={formData.province}
-                onChange={handleProvinceTextChange}
+                value={provinces.find((province) => province.name === formData.province)?.code || ''}
+                onChange={handleProvinceChange}
                 disabled={isLoadingProvinces}
                 aria-invalid={errors.province ? 'true' : undefined}
-              />
-              <datalist id="pet-report-province-options">
+              >
+                <option value="">
+                  {isLoadingProvinces ? 'Đang tải tỉnh/thành phố...' : 'Chọn tỉnh/thành phố'}
+                </option>
                 {provinces.map((province) => (
-                  <option key={province.code} value={province.name} />
+                  <option key={province.code} value={province.code}>
+                    {province.name}
+                  </option>
                 ))}
-              </datalist>
-              {locationSearchError && provinces.length === 0 && (
-                <p className="pet-report-field__error" role="alert">
-                  Không tải được danh sách. Bạn vẫn có thể nhập tên tỉnh/thành phố.
-                </p>
-              )}
+              </select>
               <FieldError id="pet-report-province-error" message={errors.province} />
             </div>
 
@@ -1643,30 +1638,28 @@ export default function PetReportPage({
                 Phường / Xã <span className="pet-report-required">*</span>
               </label>
 
-              <input
+              <select
                 id="pet-report-ward"
                 name="ward"
-                type="text"
                 className="pet-report-input"
-                list="pet-report-ward-options"
-                autoComplete="off"
-                placeholder={
-                  !formData.province
-                    ? 'Chọn tỉnh/thành phố trước'
+                value={wards.find((ward) => ward.name === formData.ward)?.code || ''}
+                onChange={handleWardChange}
+                disabled={!formData.province || isLoadingWards}
+                aria-invalid={errors.ward ? 'true' : undefined}
+              >
+                <option value="">
+                  {!formData.province
+                    ? 'Vui lòng chọn tỉnh/thành phố trước'
                     : isLoadingWards
                       ? 'Đang tải phường/xã...'
-                      : 'Chọn hoặc nhập tên phường/xã'
-                }
-                value={formData.ward}
-                onChange={handleWardTextChange}
-                disabled={!formData.province || isLoadingWards || wards.length === 0}
-                aria-invalid={errors.ward ? 'true' : undefined}
-              />
-              <datalist id="pet-report-ward-options">
+                      : 'Chọn phường/xã'}
+                </option>
                 {wards.map((ward) => (
-                  <option key={ward.code} value={ward.name} />
+                  <option key={ward.code} value={ward.code}>
+                    {ward.name}
+                  </option>
                 ))}
-              </datalist>
+              </select>
               <FieldError id="pet-report-ward-error" message={errors.ward} />
             </div>
 
