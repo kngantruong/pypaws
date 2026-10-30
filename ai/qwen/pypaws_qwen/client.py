@@ -1,15 +1,3 @@
-Claude
-
-
-
-
-
-
-
-
-
-
-Client · PY
 """Gọi mô hình đọc ảnh qua API tương thích OpenAI để mô tả ngoại hình thú cưng.
  
 Mặc định dùng OpenRouter (https://openrouter.ai/api/v1). Đổi nhà cung cấp chỉ cần đổi QWEN_BASE_URL, QWEN_API_KEY, QWEN_MODEL,
