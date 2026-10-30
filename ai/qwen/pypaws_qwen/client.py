@@ -102,8 +102,41 @@ def describe_pet_image(image_bytes: bytes, settings: Optional[Settings] = None) 
         logger.warning("API mô hình lỗi: %s: %s", type(e).__name__, getattr(e, "detail", e))
         raise
     elapsed_ms = int((time.perf_counter() - started) * 1000)
- 
-    raw = (resp.choices[0].message.content or "") if resp.choices else ""
+
+    if not resp.choices:
+        raise QwenUpstreamError("API không trả về choices")
+
+    choice = resp.choices[0]
+    message = choice.message
+
+    raw = message.content or ""
+
+    if isinstance(raw, list):
+        raw = "\n".join(
+            item.text for item in raw
+            if getattr(item, "text", None)
+        )
+
+    if not str(raw).strip():
+        finish_reason = getattr(choice, "finish_reason", None)
+
+        message_info = (
+            message.model_dump(exclude_none=True)
+            if hasattr(message, "model_dump")
+            else repr(message)
+        )
+
+        logger.warning(
+            "Empty response: model=%s, finish_reason=%s, message=%s, usage=%s",
+            getattr(resp, "model", None),
+            finish_reason,
+            message_info,
+            getattr(resp, "usage", None),
+        )
+
+        raise QwenUpstreamError(
+            f"Model trả nội dung rỗng (finish_reason={finish_reason})"
+        )
     if not raw.strip():
         # normalize_output coi chuỗi rỗng là "không có thú cưng", nên phải chặn trước để không báo sai
         logger.warning("API trả về nội dung rỗng (model=%s)", s.model)
