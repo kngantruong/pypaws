@@ -269,6 +269,60 @@
   gap: 6px;
 }
 
+/* Searchable dropdown for province and ward fields. */
+.pet-report-page .pet-report-combobox {
+  position: relative;
+  z-index: 5;
+}
+
+.pet-report-page .pet-report-combobox:focus-within {
+  z-index: 20;
+}
+
+.pet-report-page .pet-report-combobox__options {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 280px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--pr-border);
+  border-radius: 0 0 8px 8px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(59, 42, 32, 0.16);
+}
+
+.pet-report-page .pet-report-combobox__option {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 1px solid #f0e8e1;
+  background: #ffffff;
+  color: var(--pr-text);
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pet-report-page .pet-report-combobox__option:hover,
+.pet-report-page .pet-report-combobox__option[aria-selected='true'] {
+  background: var(--pr-primary-soft);
+  color: var(--pr-primary-hover);
+}
+
+.pet-report-page .pet-report-combobox__empty {
+  margin: 0;
+  padding: 12px;
+  color: var(--pr-muted);
+  font-size: 0.8125rem;
+}
+
+
 .pet-report-page .pet-report-grid .pet-report-label {
   margin-bottom: 0;
   font-size: 0.8125rem;
