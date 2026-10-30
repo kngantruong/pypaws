@@ -20,7 +20,7 @@ import torch
 from PIL import Image
 from torch.utils.data import DataLoader, Dataset
  
-from common import (ArcFace, EMB_DIM, Net, pair_similarities, train_transform,
+from ai.common import (ArcFace, EMB_DIM, Net, pair_similarities, train_transform,
                     verification_metrics, load_verification)
  
  
