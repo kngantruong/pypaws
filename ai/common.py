@@ -138,4 +138,3 @@ def verification_metrics(sim, y):
                 same=float(sim[y == 1].mean()), diff=float(sim[y == 0].mean()),
                 fpr=fpr, tpr=tpr)
  
-Claude a terminé sa réponse.
