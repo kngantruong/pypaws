@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pypaws-qwen"
+version = "0.1.0"
+description = "PyPaws AI 1: mô tả ngoại hình chó/mèo từ ảnh bằng Qwen-VL (Alibaba Cloud Model Studio)"
+requires-python = ">=3.9"
+dependencies = [
+    "openai>=1.40",
+    "pillow>=10.0",
+    "python-dotenv>=1.0",
+]
+
+[tool.setuptools]
+packages = ["pypaws_qwen"]
