@@ -10,7 +10,7 @@ from pypaws_qwen.images import prepare_image
 
 @pytest.fixture
 def settings(monkeypatch):
-    monkeypatch.setenv("DASHSCOPE_API_KEY", "sk-test")
+    monkeypatch.setenv("QWEN_API_KEY", "sk-test"); monkeypatch.setenv("QWEN_MODEL", "mo-hinh-thu")
     return load_settings()
 
 
