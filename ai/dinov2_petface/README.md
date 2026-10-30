@@ -21,6 +21,15 @@ Lưu ý: Bộ dữ liệu huấn luyện đầy đủ không được lưu trong
 Kết quả đánh giá mô hình DINOv2 Pretrain và Fine-tune trên 1.001 cặp ảnh verification.
 
 ![Verification Performance](preview/veri_performance.png)
+### Fine-tune Results
+Kết quả huấn luyện và đánh giá mô hình DINOv2 Fine-tune trên tập PetFace.
+
+![Fine-tune Results](preview/kq_finetune.png)
+
+### Verification Test
+Minh họa kết quả kiểm thử khả năng nhận diện hai ảnh cùng hoặc khác cá thể thực tế.
+
+![Verification Test](preview/veri_test.png)
 ## Kết quả
 
 Đánh giá trên **1.001 cặp verification** (502 cặp cùng cá thể, 499 cặp khác cá thể; 502 cặp chó, 499 cặp mèo).
