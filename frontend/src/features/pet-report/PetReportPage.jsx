@@ -469,7 +469,6 @@ export default function PetReportPage({
 
   async function handleProvinceChange(event) {
     const provinceCode = event.target.value;
-
     const requestId = ++provinceRequestRef.current;
 
     // Hủy hiệu lực các request phường/xã trước đó.
@@ -481,12 +480,9 @@ export default function PetReportPage({
 
     setFormData((previous) => ({
       ...previous,
-
       province: selectedProvince?.name || '',
       ward: '',
-
       location_text: '',
-
       latitude: null,
       longitude: null,
     }));
@@ -512,19 +508,41 @@ export default function PetReportPage({
       }));
       setMapPosition(DEFAULT_MAP_POSITION);
       setIsSearchingLocation(false);
+      setIsLoadingWards(false);
       locationRequestRef.current += 1;
       return;
     }
-
-    // Đưa bản đồ đến khu vực tỉnh/thành ngay khi người dùng chọn.
-    // Tọa độ cấp tỉnh là vị trí mặc định; chọn phường/xã sẽ định vị chính xác hơn.
-    const locationRequestId = ++locationRequestRef.current;
-    setIsSearchingLocation(true);
 
     setFormData((previous) => ({
       ...previous,
       location_text: selectedProvince.name,
     }));
+
+    // Tải xã/phường ngay từ dữ liệu cục bộ; không chờ dịch vụ bản đồ.
+    setIsLoadingWards(true);
+    try {
+      const data = await getWards(provinceCode);
+
+      if (requestId === provinceRequestRef.current) {
+        setWards(data);
+      }
+    } catch (error) {
+      console.error('Lỗi tải phường/xã:', error);
+
+      if (requestId === provinceRequestRef.current) {
+        setLocationSearchError(
+          'Không thể tải danh sách phường/xã. Bạn hãy thử chọn lại tỉnh/thành phố.'
+        );
+      }
+    } finally {
+      if (requestId === provinceRequestRef.current) {
+        setIsLoadingWards(false);
+      }
+    }
+
+    // Tìm tọa độ bản đồ độc lập với việc tải danh sách xã/phường.
+    const locationRequestId = ++locationRequestRef.current;
+    setIsSearchingLocation(true);
 
     try {
       const coordinates = await searchCoordinates(
@@ -547,32 +565,7 @@ export default function PetReportPage({
         setIsSearchingLocation(false);
       }
     }
-
-    try {
-      setIsLoadingWards(true);
-
-      const data = await getWards(provinceCode);
-
-      if (requestId !== provinceRequestRef.current) {
-        return;
-      }
-
-      setWards(data);
-    } catch (error) {
-      console.error('Lỗi tải phường/xã:', error);
-
-      if (requestId === provinceRequestRef.current) {
-        setLocationSearchError(
-          'Không thể tải danh sách phường/xã. Bạn hãy thử chọn lại tỉnh/thành phố.'
-        );
-      }
-    } finally {
-      if (requestId === provinceRequestRef.current) {
-        setIsLoadingWards(false);
-      }
-    }
   }
-
 
   // --------------------------------------------------
   // 5.8. SEARCH COORDINATES
