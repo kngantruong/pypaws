@@ -478,6 +478,7 @@ export default function PetReportPage({
       province: selectedProvince?.name || '',
       ward: '',
       location_text: '',
+      address_detail: '',
       latitude: null,
       longitude: null,
     }));
@@ -487,6 +488,7 @@ export default function PetReportPage({
     setIsWardListOpen(false);
     setWards([]);
     setLocationSearchError('');
+    setMapLocationConfirmed(false);
 
     clearErrors([
       'province',
@@ -507,11 +509,6 @@ export default function PetReportPage({
       locationRequestRef.current += 1;
       return;
     }
-
-    setFormData((previous) => ({
-      ...previous,
-      location_text: selectedProvince.name,
-    }));
 
     // Tải xã/phường ngay từ dữ liệu cục bộ; không chờ dịch vụ bản đồ.
     setIsLoadingWards(true);
@@ -535,8 +532,6 @@ export default function PetReportPage({
       }
     }
 
-    // Chọn tỉnh/thành phố chỉ xác định khu vực, không tự gán tọa độ.
-    setMapLocationConfirmed(false);
   }
 
   // --------------------------------------------------
