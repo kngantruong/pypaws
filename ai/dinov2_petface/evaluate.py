@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
  
-from common import Net, load_finetuned, load_verification, pair_similarities, verification_metrics
+from ai.common import Net, load_finetuned, load_verification, pair_similarities, verification_metrics
  
  
 def parse_args():
