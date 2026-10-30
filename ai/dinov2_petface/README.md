@@ -16,7 +16,11 @@ Lưu ý: Bộ dữ liệu huấn luyện đầy đủ không được lưu trong
 
 ![Verification Dataset Preview](preview/veri_preview.png)
 
-Lưu ý: Đây là 8 cặp ảnh minh họa (4 cặp chó và 4 cặp mèo), không đại diện cho toàn bộ tập verification.
+## Verification Performance
+
+Kết quả đánh giá mô hình DINOv2 Pretrain và Fine-tune trên 1.001 cặp ảnh verification.
+
+![Verification Performance](preview/veri_performance.png)
 ## Kết quả
 
 Đánh giá trên **1.001 cặp verification** (502 cặp cùng cá thể, 499 cặp khác cá thể; 502 cặp chó, 499 cặp mèo).
