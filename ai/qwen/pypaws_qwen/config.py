@@ -6,17 +6,17 @@ from dataclasses import dataclass, field
  
 from .errors import QwenConfigError
  
-try:  # python-dotenv là tuỳ chọn: có thì tự đọc file .env (chỉ dùng khi chạy local)
+try:
     from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:  # pragma: no cover
+    from pathlib import Path
+
+    ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+    load_dotenv(dotenv_path=ENV_PATH)
+except ImportError:
     pass
  
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
-# Không có mô hình mặc định: danh sách mô hình free trên OpenRouter đổi liên tục. Bắt buộc đặt QWEN_MODEL
-# (chạy scripts/list_free_vision_models.py để chọn).
- 
- 
+
 def _int(name: str, default: int) -> int:
     raw = os.getenv(name, "").strip()
     if not raw:
@@ -43,8 +43,7 @@ def _bool(name: str, default: bool) -> bool:
         return default
     return raw in ("1", "true", "yes", "on")
  
- 
-# Tên biến chứa khóa API, ưu tiên từ trên xuống. Dùng được cho OpenRouter, Alibaba hoặc dịch vụ tương thích OpenAI khác.
+
 KEY_ENV_NAMES = ("QWEN_API_KEY", "OPENROUTER_API_KEY", "DASHSCOPE_API_KEY")
  
  
