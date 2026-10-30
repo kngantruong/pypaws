@@ -67,6 +67,15 @@ const FIELD_LABELS = {
   appearance_notes: 'Đặc điểm ngoại hình',
 };
 
+function normalizeAddressSearch(value = '') {
+  return value
+    .toLocaleLowerCase('vi')
+    .normalize('NFD')
+    .replace(/[\\u0300-\\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .trim();
+}
+
 const DEFAULT_MAP_POSITION = [10.7769, 106.7009];
 
 
@@ -1596,14 +1605,14 @@ export default function PetReportPage({
                 placeholder={isLoadingProvinces ? 'Đang tải danh sách...' : 'Bấm để xem hoặc gõ tên tỉnh/thành phố'}
                 value={provinceInput}
                 autoComplete="off"
-                onFocus={() => setIsProvinceListOpen(true)}
+                onFocus={() => { setProvinceInput(''); setIsProvinceListOpen(true); }}
                 onChange={handleProvinceTextChange}
-                onBlur={() => setTimeout(() => setIsProvinceListOpen(false), 140)}
+                onBlur={() => setTimeout(() => { setIsProvinceListOpen(false); setProvinceInput(formData.province); }, 140)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
                     const match = provinces.find((item) =>
-                      item.name.toLocaleLowerCase('vi').includes(provinceInput.trim().toLocaleLowerCase('vi'))
+                      normalizeAddressSearch(item.name).includes(normalizeAddressSearch(provinceInput))
                     );
                     if (match) chooseProvince(match);
                   }
@@ -1619,7 +1628,7 @@ export default function PetReportPage({
               {isProvinceListOpen && !isLoadingProvinces && (
                 <div id="pet-report-province-options" className="pet-report-combobox__options" role="listbox">
                   {provinces
-                    .filter((item) => item.name.toLocaleLowerCase('vi').includes(provinceInput.trim().toLocaleLowerCase('vi')))
+                    .filter((item) => normalizeAddressSearch(item.name).includes(normalizeAddressSearch(provinceInput)))
                     .map((province) => (
                       <button
                         type="button"
@@ -1661,14 +1670,14 @@ export default function PetReportPage({
                 }
                 value={wardInput}
                 autoComplete="off"
-                onFocus={() => setIsWardListOpen(true)}
+                onFocus={() => { setWardInput(''); setIsWardListOpen(true); }}
                 onChange={handleWardTextChange}
-                onBlur={() => setTimeout(() => setIsWardListOpen(false), 140)}
+                onBlur={() => setTimeout(() => { setIsWardListOpen(false); setWardInput(formData.ward); }, 140)}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
                     const match = wards.find((item) =>
-                      item.name.toLocaleLowerCase('vi').includes(wardInput.trim().toLocaleLowerCase('vi'))
+                      normalizeAddressSearch(item.name).includes(normalizeAddressSearch(wardInput))
                     );
                     if (match) chooseWard(match);
                   }
@@ -1684,7 +1693,7 @@ export default function PetReportPage({
               {isWardListOpen && formData.province && !isLoadingWards && (
                 <div id="pet-report-ward-options" className="pet-report-combobox__options" role="listbox">
                   {wards
-                    .filter((item) => item.name.toLocaleLowerCase('vi').includes(wardInput.trim().toLocaleLowerCase('vi')))
+                    .filter((item) => normalizeAddressSearch(item.name).includes(normalizeAddressSearch(wardInput)))
                     .map((ward) => (
                       <button
                         type="button"
