@@ -40,15 +40,13 @@ const FIELD_FOCUS_IDS = {
   species: 'pet-report-species',
   description: 'pet-report-description',
   event_time: 'pet-report-event_time',
-  location_text: 'pet-report-map-search',
+  location_text: 'pet-report-address_detail',
   province: 'pet-report-province',
   ward: 'pet-report-ward',
   latitude: 'pet-report-map-search',
   longitude: 'pet-report-map-search',
   images: 'pet-report-images',
-  breed: 'pet-report-breed',
-  coat_color: 'pet-report-coat_color',
-  appearance_notes: 'pet-report-appearance_notes',
+  address_detail: 'pet-report-address_detail',
 };
 
 const FIELD_LABELS = {
@@ -62,9 +60,7 @@ const FIELD_LABELS = {
   latitude: 'Vĩ độ',
   longitude: 'Kinh độ',
   images: 'Ảnh thú cưng',
-  breed: 'Giống',
-  coat_color: 'Màu lông',
-  appearance_notes: 'Đặc điểm ngoại hình',
+  address_detail: 'Địa chỉ cụ thể',
 };
 
 function normalizeAddressSearch(value = '') {
@@ -137,15 +133,15 @@ function buildPetReportPayload(formData) {
     species: formData.species,
     gender: formData.gender || null,
 
-    breed: formData.breed?.trim() || null,
-    coat_color: formData.coat_color?.trim() || null,
-    appearance_notes: formData.appearance_notes?.trim() || null,
+    address_detail: formData.address_detail.trim(),
+    province: formData.province || null,
+    ward: formData.ward || null,
 
     description: formData.description.trim(),
 
     event_time: eventDate.toISOString(),
 
-    location_text: formData.location_text.trim(),
+    location_text: [formData.address_detail, formData.ward, formData.province].filter(Boolean).join(', '),
 
     latitude: hasCoordinates
       ? Number(formData.latitude)
@@ -298,9 +294,8 @@ export default function PetReportPage({
 
   const [submitStatus, setSubmitStatus] = useState('idle');
 
-  const [mapPosition, setMapPosition] = useState(
-    DEFAULT_MAP_POSITION
-  );
+  const [mapPosition, setMapPosition] = useState(DEFAULT_MAP_POSITION);
+  const [mapLocationConfirmed, setMapLocationConfirmed] = useState(false);
 
   const [provinces, setProvinces] = useState([]);
   const [wards, setWards] = useState([]);
@@ -540,31 +535,8 @@ export default function PetReportPage({
       }
     }
 
-    // Tìm tọa độ bản đồ độc lập với việc tải danh sách xã/phường.
-    const locationRequestId = ++locationRequestRef.current;
-    setIsSearchingLocation(true);
-
-    try {
-      const coordinates = await searchCoordinates(
-        `${selectedProvince.name}, Việt Nam`
-      );
-
-      if (locationRequestId === locationRequestRef.current && coordinates) {
-        const { latitude, longitude } = coordinates;
-        setMapPosition([latitude, longitude]);
-        setFormData((previous) => ({
-          ...previous,
-          latitude: latitude.toFixed(6),
-          longitude: longitude.toFixed(6),
-        }));
-      }
-    } catch (error) {
-      console.warn('Chưa xác định được tâm tỉnh/thành:', error);
-    } finally {
-      if (locationRequestId === locationRequestRef.current) {
-        setIsSearchingLocation(false);
-      }
-    }
+    // Chọn tỉnh/thành phố chỉ xác định khu vực, không tự gán tọa độ.
+    setMapLocationConfirmed(false);
   }
 
   // --------------------------------------------------
@@ -612,102 +584,20 @@ export default function PetReportPage({
   // 5.9. WARD CHANGE
   // --------------------------------------------------
 
-  async function handleWardChange(event) {
+  function handleWardChange(event) {
     const wardCode = event.target.value;
-
-    const selectedWard = wards.find(
-      (ward) => String(ward.code) === wardCode
-    );
-
-    const requestId = ++locationRequestRef.current;
-
-    if (!selectedWard) {
-      setFormData((previous) => ({
-        ...previous,
-
-        ward: '',
-        location_text: '',
-
-        latitude: null,
-        longitude: null,
-      }));
-
-      setLocationSearchError('');
-
-      return;
-    }
-
-    const selectedProvince = formData.province;
-
-    setWardInput(selectedWard.name);
-    const locationText =
-      `${selectedWard.name}, ${selectedProvince}`;
-
+    const selectedWard = wards.find((ward) => String(ward.code) === wardCode);
     setFormData((previous) => ({
       ...previous,
-
-      ward: selectedWard.name,
-      location_text: locationText,
-
+      ward: selectedWard?.name || '',
       latitude: null,
       longitude: null,
     }));
-
+    setWardInput(selectedWard?.name || '');
+    setMapLocationConfirmed(false);
     setLocationSearchError('');
-
-    clearErrors([
-      'ward',
-      'location_text',
-      'latitude',
-      'longitude',
-    ]);
-
-    try {
-      setIsSearchingLocation(true);
-
-      const coordinates = await searchCoordinates(locationText);
-
-      if (requestId !== locationRequestRef.current) {
-        return;
-      }
-
-      if (!coordinates) {
-        setLocationSearchError(
-          'Đã chọn địa chỉ nhưng chưa tìm được tọa độ. Bạn có thể chọn vị trí trực tiếp trên bản đồ.'
-        );
-
-        return;
-      }
-
-      const { latitude, longitude } = coordinates;
-
-      setMapPosition([latitude, longitude]);
-
-      setFormData((previous) => ({
-        ...previous,
-
-        latitude: latitude.toFixed(6),
-        longitude: longitude.toFixed(6),
-      }));
-
-      clearErrors(['latitude', 'longitude']);
-
-    } catch (error) {
-      console.error('Lỗi tìm tọa độ:', error);
-
-      if (requestId === locationRequestRef.current) {
-        setLocationSearchError(
-          'Không thể xác định tọa độ. Bạn có thể chọn vị trí trực tiếp trên bản đồ.'
-        );
-      }
-
-    } finally {
-      if (requestId === locationRequestRef.current) {
-        setIsSearchingLocation(false);
-      }
-    }
+    clearErrors(['ward', 'latitude', 'longitude']);
   }
-
 
   // --------------------------------------------------
   // 5.10. MAP POSITION CHANGE
@@ -722,10 +612,8 @@ export default function PetReportPage({
 
     setIsSearchingLocation(false);
 
-    setMapPosition([
-      position.lat,
-      position.lng,
-    ]);
+    setMapPosition([position.lat, position.lng]);
+    setMapLocationConfirmed(true);
 
     setFormData((previous) => ({
       ...previous,
@@ -745,68 +633,32 @@ export default function PetReportPage({
   // --------------------------------------------------
 
   async function handleSearchLocation() {
-    const address = formData.location_text.trim();
-
-    if (!address) {
-      setLocationSearchError(
-        'Bạn hãy chọn tỉnh/thành phố và phường/xã trước khi tìm vị trí.'
-      );
-
+    const address = [formData.address_detail, formData.ward, formData.province, 'Việt Nam']
+      .filter(Boolean).join(', ');
+    if (!formData.address_detail.trim()) {
+      setLocationSearchError('Vui lòng nhập địa chỉ cụ thể trước khi tìm vị trí.');
       return;
     }
-
     const requestId = ++locationRequestRef.current;
-
     setIsSearchingLocation(true);
     setLocationSearchError('');
-
+    setMapLocationConfirmed(false);
+    setFormData((previous) => ({ ...previous, latitude: null, longitude: null }));
     try {
       const coordinates = await searchCoordinates(address);
-
-      if (requestId !== locationRequestRef.current) {
-        return;
-      }
-
+      if (requestId !== locationRequestRef.current) return;
       if (!coordinates) {
-        setLocationSearchError(
-          'Không tìm thấy địa chỉ. Bạn hãy thử chọn vị trí trực tiếp trên bản đồ.'
-        );
-
+        setLocationSearchError('Không tìm thấy địa chỉ. Bạn có thể di chuyển bản đồ đến đúng nơi.');
         return;
       }
-
-      const { latitude, longitude } = coordinates;
-
-      setMapPosition([
-        latitude,
-        longitude,
-      ]);
-
-      setFormData((previous) => ({
-        ...previous,
-
-        latitude: latitude.toFixed(6),
-        longitude: longitude.toFixed(6),
-      }));
-
-      clearErrors(['latitude', 'longitude']);
-
+      setMapPosition([coordinates.latitude, coordinates.longitude]);
+      setLocationSearchError('Đây là vị trí gần đúng. Hãy chạm vào đúng vị trí hoặc kéo ghim để xác nhận.');
     } catch (error) {
-      console.error('Lỗi tìm vị trí:', error);
-
-      if (requestId === locationRequestRef.current) {
-        setLocationSearchError(
-          error.message || 'Có lỗi khi tìm vị trí. Bạn hãy thử lại sau.'
-        );
-      }
-
+      if (requestId === locationRequestRef.current) setLocationSearchError(error.message || 'Không thể tìm địa chỉ lúc này.');
     } finally {
-      if (requestId === locationRequestRef.current) {
-        setIsSearchingLocation(false);
-      }
+      if (requestId === locationRequestRef.current) setIsSearchingLocation(false);
     }
   }
-
 
   // --------------------------------------------------
   // 5.12. IMAGE HANDLING
@@ -1003,27 +855,6 @@ export default function PetReportPage({
               </div>
 
               <div className="pet-report-review__row">
-                <dt>Giống</dt>
-                <dd>
-                  {payload.breed || 'Chưa xác định'}
-                </dd>
-              </div>
-
-              <div className="pet-report-review__row">
-                <dt>Màu lông</dt>
-                <dd>
-                  {payload.coat_color || 'Chưa xác định'}
-                </dd>
-              </div>
-
-              <div className="pet-report-review__row">
-                <dt>Đặc điểm ngoại hình</dt>
-                <dd>
-                  {payload.appearance_notes || 'Chưa cung cấp'}
-                </dd>
-              </div>
-
-              <div className="pet-report-review__row">
                 <dt>Mô tả</dt>
                 <dd className="pet-report-review__description">
                   {payload.description}
@@ -1038,19 +869,13 @@ export default function PetReportPage({
               </div>
 
               <div className="pet-report-review__row">
-                <dt>Địa điểm</dt>
-                <dd>
-                  {payload.location_text}
-                </dd>
+                <dt>Địa chỉ cụ thể</dt>
+                <dd>{payload.location_text}</dd>
               </div>
 
               <div className="pet-report-review__row">
-                <dt>Tọa độ</dt>
-                <dd>
-                  {payload.latitude !== null
-                    ? `${payload.latitude}, ${payload.longitude}`
-                    : 'Không cung cấp'}
-                </dd>
+                <dt>Vị trí bản đồ</dt>
+                <dd>{payload.latitude !== null ? `${payload.latitude}, ${payload.longitude}` : 'Chưa xác nhận ghim'}</dd>
               </div>
 
             </dl>
@@ -1399,151 +1224,31 @@ export default function PetReportPage({
           </fieldset>
 
 
-          {/* BREED */}
-
-          <div className="pet-report-field pet-report-field--horizontal">
-
-            <label
-              htmlFor="pet-report-breed"
-              className="pet-report-label"
-            >
-              Giống
+          {/* DESCRIPTION: photos come first so the AI suggestion can be edited here. */}
+          <div className="pet-report-field pet-report-field--horizontal pet-report-description-field">
+            <label htmlFor="pet-report-description" className="pet-report-label">
+              Mô tả <span className="pet-report-required">*</span>
             </label>
-
-            <input
-              id="pet-report-breed"
-              name="breed"
-              type="text"
-              className="pet-report-input"
-              maxLength={100}
-              placeholder="Ví dụ: Poodle, Corgi..."
-              value={formData.breed}
-              onChange={handleInputChange}
-              aria-describedby={describedBy('breed')}
-              aria-invalid={errors.breed ? 'true' : undefined}
-            />
-
-            <FieldError
-              id="pet-report-breed-error"
-              message={errors.breed}
-            />
-
+            <div className="pet-report-description-editor">
+              <p id="pet-report-description-hint" className="pet-report-hint">
+                Nội dung AI đề xuất từ ảnh sẽ hiển thị tại đây. Bạn có thể chỉnh sửa, bổ sung hoặc viết lại để mô tả đúng bé nhất.
+              </p>
+              <textarea
+                id="pet-report-description"
+                name="description"
+                className="pet-report-input pet-report-textarea"
+                rows={5}
+                maxLength={DESCRIPTION_MAX_LENGTH}
+                placeholder="Mô tả giống, màu lông, kích thước, vòng cổ và đặc điểm nhận dạng của bé..."
+                value={formData.description}
+                onChange={handleInputChange}
+                aria-describedby={describedBy('description', 'pet-report-description-hint pet-report-description-count')}
+                aria-invalid={errors.description ? 'true' : undefined}
+              />
+              <p id="pet-report-description-count" className="pet-report-counter">{descriptionLength}/{DESCRIPTION_MAX_LENGTH} ký tự</p>
+              <FieldError id="pet-report-description-error" message={errors.description} />
+            </div>
           </div>
-
-
-          {/* COAT COLOR */}
-
-          <div className="pet-report-field pet-report-field--horizontal">
-
-            <label
-              htmlFor="pet-report-coat_color"
-              className="pet-report-label"
-            >
-              Màu lông
-            </label>
-
-            <input
-              id="pet-report-coat_color"
-              name="coat_color"
-              type="text"
-              className="pet-report-input"
-              maxLength={50}
-              placeholder="Ví dụ: Trắng, vàng nâu, đen trắng..."
-              value={formData.coat_color}
-              onChange={handleInputChange}
-              aria-describedby={describedBy('coat_color')}
-              aria-invalid={errors.coat_color ? 'true' : undefined}
-            />
-
-            <FieldError
-              id="pet-report-coat_color-error"
-              message={errors.coat_color}
-            />
-
-          </div>
-
-
-          {/* APPEARANCE NOTES */}
-
-          <div className="pet-report-field pet-report-field--horizontal">
-
-            <label
-              htmlFor="pet-report-appearance_notes"
-              className="pet-report-label"
-            >
-              Đặc điểm ngoại hình
-            </label>
-
-            <textarea
-              id="pet-report-appearance_notes"
-              name="appearance_notes"
-              className="pet-report-input pet-report-textarea"
-              rows={3}
-              maxLength={300}
-              placeholder="Ví dụ: tai cụp, đuôi ngắn, có đốm nâu ở chân..."
-              value={formData.appearance_notes}
-              onChange={handleInputChange}
-              aria-describedby={describedBy('appearance_notes')}
-              aria-invalid={errors.appearance_notes ? 'true' : undefined}
-            />
-
-            <FieldError
-              id="pet-report-appearance_notes-error"
-              message={errors.appearance_notes}
-            />
-
-          </div>
-
-
-          {/* DESCRIPTION */}
-
-          <div className="pet-report-field pet-report-field--horizontal">
-
-            <label
-              htmlFor="pet-report-description"
-              className="pet-report-label"
-            >
-              Mô tả{' '}
-              <span className="pet-report-required">*</span>
-            </label>
-
-            <p
-              id="pet-report-description-hint"
-              className="pet-report-hint"
-            >
-              Ví dụ: màu lông, giống, kích thước, vòng cổ,
-              đặc điểm nhận dạng, tính cách...
-            </p>
-
-            <textarea
-              id="pet-report-description"
-              name="description"
-              className="pet-report-input pet-report-textarea"
-              rows={5}
-              maxLength={DESCRIPTION_MAX_LENGTH}
-              value={formData.description}
-              onChange={handleInputChange}
-              aria-describedby={describedBy(
-                'description',
-                'pet-report-description-hint pet-report-description-count'
-              )}
-              aria-invalid={errors.description ? 'true' : undefined}
-            />
-
-            <p
-              id="pet-report-description-count"
-              className="pet-report-counter"
-            >
-              {descriptionLength}/{DESCRIPTION_MAX_LENGTH} ký tự
-            </p>
-
-            <FieldError
-              id="pet-report-description-error"
-              message={errors.description}
-            />
-
-          </div>
-
 
           {/* EVENT TIME */}
 
@@ -1709,6 +1414,25 @@ export default function PetReportPage({
             </div>
 
 
+            <div className="pet-report-field pet-report-address-detail">
+              <label htmlFor="pet-report-address_detail" className="pet-report-label">
+                Địa chỉ cụ thể / mốc dễ nhận biết <span className="pet-report-required">*</span>
+              </label>
+              <input
+                id="pet-report-address_detail"
+                name="address_detail"
+                type="text"
+                className="pet-report-input"
+                maxLength={300}
+                placeholder="Ví dụ: Trường ĐH Kinh tế - Luật, cổng chính, đường Võ Văn Ngân..."
+                value={formData.address_detail}
+                onChange={handleInputChange}
+                aria-describedby={describedBy('address_detail')}
+                aria-invalid={errors.address_detail ? 'true' : undefined}
+              />
+              <FieldError id="pet-report-address_detail-error" message={errors.address_detail} />
+            </div>
+
             {/* MAP */}
 
             <div className="pet-report-field pet-report-map-field">
@@ -1720,8 +1444,7 @@ export default function PetReportPage({
                 </span>
 
                 <p className="pet-report-hint">
-                  Chọn tỉnh/thành phố và phường/xã để xác định vị trí,
-                  hoặc kéo ghim trên bản đồ để điều chỉnh.
+                  Nhập địa chỉ cụ thể rồi tìm kiếm. Kết quả chỉ là vị trí gần đúng; hãy chạm hoặc kéo ghim đến đúng nơi để xác nhận.
                 </p>
 
               </div>
@@ -1789,9 +1512,9 @@ export default function PetReportPage({
               {/* Coordinates */}
 
               <p className="pet-report-hint">
-                {formData.latitude && formData.longitude
-                  ? `Tọa độ: ${formData.latitude}, ${formData.longitude}`
-                  : 'Chưa chọn tọa độ trên bản đồ.'}
+                {mapLocationConfirmed && formData.latitude && formData.longitude
+                  ? `Đã xác nhận: ${formData.latitude}, ${formData.longitude}`
+                  : 'Chưa xác nhận vị trí. Hãy chạm vào bản đồ hoặc kéo ghim để lưu tọa độ.'}
               </p>
 
             </div>
