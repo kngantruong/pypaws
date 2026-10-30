@@ -7,7 +7,7 @@ Fine-tune **DINOv2 ViT-S/14** bằng **ArcFace** để so khớp khuôn mặt th
 Ảnh minh họa dữ liệu chó mèo dùng trong quá trình phát triển
 và đánh giá mô hình nhận diện cá thể.
 
-![Training Dataset Preview](dinov2_petface/preview/train_preview.jpg)
+![Training Dataset Preview](preview/train_preview.jpg)
 
 Lưu ý: Bộ dữ liệu huấn luyện đầy đủ không được lưu trong repository.
 
