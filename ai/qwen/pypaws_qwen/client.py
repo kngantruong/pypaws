@@ -124,5 +124,3 @@ def describe_pet_image(image_bytes: bytes, settings: Optional[Settings] = None) 
         elapsed_ms=elapsed_ms,
         usage=usage,
     )
- 
-Claude a terminé sa réponse.
