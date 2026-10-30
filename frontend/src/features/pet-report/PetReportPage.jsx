@@ -1226,7 +1226,7 @@ export default function PetReportPage({
             </label>
             <div className="pet-report-description-editor">
               <p id="pet-report-description-hint" className="pet-report-hint">
-                Nội dung AI đề xuất từ ảnh sẽ hiển thị tại đây. Bạn có thể chỉnh sửa, bổ sung hoặc viết lại để mô tả đúng bé nhất.
+                Sau khi API AI nhận diện ảnh được tích hợp, nội dung đề xuất sẽ hiển thị tại đây. Hiện tại bạn có thể tự nhập và chỉnh sửa mô tả.
               </p>
               <textarea
                 id="pet-report-description"
