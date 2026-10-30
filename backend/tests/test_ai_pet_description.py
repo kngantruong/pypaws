@@ -24,7 +24,8 @@ def jpeg():
 
 @pytest.fixture
 def api(monkeypatch):
-    monkeypatch.setenv("DASHSCOPE_API_KEY", "sk-test")
+    monkeypatch.setenv("QWEN_API_KEY", "sk-test")
+    monkeypatch.setenv("QWEN_MODEL", "mo-hinh-thu")
     app = FastAPI(); app.include_router(ai_pet_description.router)
     return TestClient(app)
 
@@ -74,10 +75,10 @@ def test_anh_qua_nang(api, monkeypatch):
 
 
 def test_thieu_khoa_api(api, monkeypatch):
-    monkeypatch.delenv("DASHSCOPE_API_KEY")
+    monkeypatch.delenv("QWEN_API_KEY")
     r = post(api, jpeg())
     assert r.status_code == 503 and r.json()["detail"]["code"] == "ai_not_configured"
-    assert "DASHSCOPE" not in r.text                      # không lộ tên biến cấu hình ra ngoài
+    assert "QWEN_API_KEY" not in r.text                      # không lộ tên biến cấu hình ra ngoài
 
 
 def test_thieu_truong_image(api):
@@ -86,5 +87,5 @@ def test_thieu_truong_image(api):
 
 def test_health(api, monkeypatch):
     assert api.get("/api/ai/health").json()["configured"] is True
-    monkeypatch.delenv("DASHSCOPE_API_KEY")
+    monkeypatch.delenv("QWEN_API_KEY")
     assert api.get("/api/ai/health").json() == {"configured": False, "model": None}
