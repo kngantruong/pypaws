@@ -1,7 +1,13 @@
-torch>=2.0
-torchvision>=0.15
+torch>=2.0.0
+torchvision>=0.15.0
 numpy
 pandas
-pillow
+pillow>=10.0
 scikit-learn
 matplotlib
+openai>=1.40.0
+python-dotenv>=1.0.0
+pydantic
+requests
+pytest
+pytest-mock
