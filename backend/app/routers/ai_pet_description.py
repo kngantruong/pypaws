@@ -1,58 +1,63 @@
-"""Endpoint AI 1: nhận ảnh chó/mèo, gọi Qwen-VL, trả về mô tả ngoại hình để người dùng chỉnh sửa.
- 
-Endpoint này KHÔNG lưu ảnh và KHÔNG ghi database. Việc lưu mô tả vào SQL Server do API "đăng tin" hiện có đảm nhiệm,
-sau khi người dùng đã xem và chỉnh sửa văn bản.
- 
-Gắn vào ứng dụng FastAPI hiện tại (app/main.py):
+"""
+Endpoint AI 1: Nhận ảnh chó/mèo, gọi Gemini 2.5 Flash qua OpenRouter
+và trả về mô tả ngoại hình để người dùng chỉnh sửa.
+
+Endpoint không lưu ảnh và không ghi dữ liệu vào database.
+Việc lưu mô tả vào SQL Server do API đăng tin hiện có đảm nhiệm
+sau khi người dùng xem và chỉnh sửa nội dung.
+
+Tích hợp vào ứng dụng FastAPI hiện tại (app/main.py):
+
     from app.routers import ai_pet_description
     app.include_router(ai_pet_description.router)
-Nếu backend đã có xác thực, thêm dependency để tránh bị lạm dụng quota AI:
-    app.include_router(ai_pet_description.router, dependencies=[Depends(get_current_user)])
+
+Nếu backend đã có xác thực, có thể thêm dependency xác thực
+để hạn chế việc sử dụng API và tránh phát sinh chi phí ngoài ý muốn.
 """
 import logging
 from typing import Optional
- 
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
- 
+
 from pypaws_qwen import PyPawsQwenError, describe_pet_image, is_configured, load_settings
- 
+
 logger = logging.getLogger("pypaws.ai")
- 
+
 router = APIRouter(prefix="/api/ai", tags=["AI - Mô tả ngoại hình thú cưng"])
- 
- 
+
+
 class DescribePetResponse(BaseModel):
     success: bool = True
-    is_pet: bool                       # False: ảnh không có chó/mèo
-    description: str                   # văn bản nhiều dòng, đưa vào ô chỉnh sửa; rỗng khi is_pet = False
-    message: Optional[str] = None      # thông báo hiển thị cho người dùng khi is_pet = False
+    is_pet: bool  # False: ảnh không có chó/mèo
+    description: str  # văn bản nhiều dòng, đưa vào ô chỉnh sửa; rỗng khi is_pet = False
+    message: Optional[str] = None  # thông báo hiển thị cho người dùng khi is_pet = False
     model: str
     elapsed_ms: int
- 
- 
+
+
 class ErrorDetail(BaseModel):
     code: str
     message: str
- 
- 
+
+
 class ErrorResponse(BaseModel):
     detail: ErrorDetail
- 
- 
+
+
 class HealthResponse(BaseModel):
     configured: bool
     model: Optional[str] = None
- 
- 
+
+
 @router.get("/health", response_model=HealthResponse, summary="Kiểm tra đã cấu hình khóa API chưa (không gọi Qwen)")
 async def ai_health():
     if not is_configured():
         return HealthResponse(configured=False)
     return HealthResponse(configured=True, model=load_settings().model)
- 
- 
+
+
 @router.post(
     "/describe-pet",
     response_model=DescribePetResponse,
@@ -69,11 +74,11 @@ async def ai_health():
     },
 )
 async def describe_pet(
-    image: UploadFile = File(..., description="Ảnh chó/mèo (JPEG, PNG hoặc WEBP), tối đa 10 MB"),
+        image: UploadFile = File(..., description="Ảnh chó/mèo (JPEG, PNG hoặc WEBP), tối đa 10 MB"),
 ):
     try:
         limit = load_settings().max_image_bytes
-        data = await image.read(limit + 1)          # đọc dư 1 byte để biết ảnh có vượt giới hạn không
+        data = await image.read(limit + 1)  # đọc dư 1 byte để biết ảnh có vượt giới hạn không
         # describe_pet_image là hàm chặn (gọi mạng), chạy trong threadpool để không treo event loop
         result = await run_in_threadpool(describe_pet_image, data)
     except PyPawsQwenError as e:
@@ -82,8 +87,9 @@ async def describe_pet(
                             detail={"code": e.code, "message": e.public_message})
     finally:
         await image.close()
- 
+
     return DescribePetResponse(
         is_pet=result.is_pet, description=result.description, message=result.message,
         model=result.model, elapsed_ms=result.elapsed_ms,
     )
+
