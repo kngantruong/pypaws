@@ -5,9 +5,6 @@ import {
   POST_TYPES,
   SPECIES,
 } from './types.js';
-const BREED_MAX_LENGTH = 100;
-const COAT_COLOR_MAX_LENGTH = 50;
-const APPEARANCE_NOTES_MAX_LENGTH = 300;
 
 /** Turns a byte count into a short readable text, e.g. "2.4 MB". */
 export function formatFileSize(bytes) {
@@ -60,21 +57,6 @@ export function validatePetReport(formData, images) {
     errors.species = 'Vui lòng chọn loài thú cưng.';
   }
 
-  // Breed is optional, but must respect the database length.
-  if (String(formData.breed ?? '').trim().length > BREED_MAX_LENGTH) {
-    errors.breed = `Giống thú cưng không được vượt quá ${BREED_MAX_LENGTH} ký tự.`;
-  }
-
-  // Coat color is optional; SQL Server uses NVARCHAR(50).
-  if (String(formData.coat_color ?? '').trim().length > COAT_COLOR_MAX_LENGTH) {
-    errors.coat_color = `Màu lông không được vượt quá ${COAT_COLOR_MAX_LENGTH} ký tự.`;
-  }
-
-  // Appearance notes are optional; SQL Server uses NVARCHAR(300).
-  if (String(formData.appearance_notes ?? '').trim().length > APPEARANCE_NOTES_MAX_LENGTH) {
-    errors.appearance_notes = `Đặc điểm ngoại hình không được vượt quá ${APPEARANCE_NOTES_MAX_LENGTH} ký tự.`;
-  }
-
   const description = formData.description.trim();
   if (description === '') {
     errors.description = 'Vui lòng nhập mô tả về thú cưng.';
@@ -96,8 +78,13 @@ export function validatePetReport(formData, images) {
     }
   }
 
-  if (isBlank(formData.location_text)) {
-    errors.location_text = 'Vui lòng mô tả địa điểm.';
+  if (isBlank(formData.address_detail)) {
+    errors.address_detail = 'Vui lòng nhập địa chỉ cụ thể hoặc mốc dễ nhận biết.';
+  }
+
+  // Chỉ chấp nhận tọa độ sau khi người dùng xác nhận ghim trên bản đồ.
+  if (formData.map_location_confirmed && (isBlank(formData.latitude) || isBlank(formData.longitude))) {
+    errors.latitude = 'Vui lòng xác nhận vị trí trên bản đồ.';
   }
 
   // Coordinates are optional, but if the user fills one in, both must be valid.
