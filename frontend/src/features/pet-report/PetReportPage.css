@@ -927,3 +927,64 @@
   color: #76675f !important;
   font-size: 13px !important;
 }
+
+
+/* Description editor and precise address layout. */
+.pet-report-page .pet-report-description-field {
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.pet-report-page .pet-report-description-editor {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pet-report-page .pet-report-description-editor .pet-report-hint {
+  margin: 0;
+  color: var(--pr-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.pet-report-page .pet-report-description-editor .pet-report-textarea {
+  width: 100%;
+  min-height: 150px;
+  resize: vertical;
+}
+
+.pet-report-page .pet-report-address-detail {
+  width: 100%;
+  margin: 4px 0 12px;
+}
+
+.pet-report-page .pet-report-address-detail .pet-report-input {
+  width: 100%;
+  min-height: 46px;
+}
+
+@media (max-width: 640px) {
+  .pet-report-page .pet-report-description-editor {
+    grid-column: 1;
+  }
+
+  .pet-report-page .pet-report-description-editor .pet-report-textarea {
+    min-height: 130px;
+  }
+
+  .pet-report-page .pet-report-map {
+    height: 300px !important;
+  }
+
+  .pet-report-page .pet-report-card {
+    padding: 22px 16px;
+    border-radius: 18px;
+  }
+
+  .pet-report-page .pet-report-form {
+    gap: 20px;
+  }
+}
