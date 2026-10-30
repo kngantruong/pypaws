@@ -47,10 +47,8 @@ export const SPECIES_OPTIONS = [
 export const INITIAL_FORM_DATA = Object.freeze({
   post_type: POST_TYPES.LOST,
   species: SPECIES.DOG,
-  breed: '',
-  coat_color: '',
-  appearance_notes: '',
   description: '',
+  address_detail: '',
   event_time: '',
 
   // Địa chỉ
