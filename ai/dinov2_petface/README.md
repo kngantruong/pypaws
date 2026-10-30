@@ -10,7 +10,13 @@ và đánh giá mô hình nhận diện cá thể.
 ![Training Dataset Preview](preview/train_preview.jpg)
 
 Lưu ý: Bộ dữ liệu huấn luyện đầy đủ không được lưu trong repository.
+### Verification Dataset Preview
 
+Ảnh minh họa các cặp chó mèo được sử dụng để đánh giá khả năng nhận diện cá thể của mô hình DINOv2 Pretrain và Fine-tune. Hình ảnh thể hiện nhãn thực tế, cosine similarity và kết quả dự đoán của từng mô hình.
+
+![Verification Dataset Preview](preview/veri_preview.png)
+
+Lưu ý: Đây là 8 cặp ảnh minh họa (4 cặp chó và 4 cặp mèo), không đại diện cho toàn bộ tập verification.
 ## Kết quả
 
 Đánh giá trên **1.001 cặp verification** (502 cặp cùng cá thể, 499 cặp khác cá thể; 502 cặp chó, 499 cặp mèo).
