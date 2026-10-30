@@ -872,3 +872,58 @@
     grid-row: auto;
   }
 }
+
+
+/* Ensure the address suggestion panels keep their intended custom styling. */
+.pet-report-page .pet-report-combobox {
+  position: relative !important;
+}
+
+.pet-report-page .pet-report-combobox__options {
+  position: absolute !important;
+  top: calc(100% - 1px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  display: block !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  padding: 4px !important;
+  border: 1px solid #e8d8cc !important;
+  border-radius: 0 0 10px 10px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 24px rgba(59, 42, 32, 0.14) !important;
+}
+
+.pet-report-page button.pet-report-combobox__option {
+  appearance: none !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #f3eee9 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #493b34 !important;
+  font: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  text-align: left !important;
+  box-shadow: none !important;
+  cursor: pointer !important;
+}
+
+.pet-report-page button.pet-report-combobox__option:hover,
+.pet-report-page button.pet-report-combobox__option[aria-selected='true'] {
+  background: #fff2e9 !important;
+  color: #a94f2b !important;
+}
+
+.pet-report-page .pet-report-combobox__empty {
+  margin: 0 !important;
+  padding: 12px !important;
+  color: #76675f !important;
+  font-size: 13px !important;
+}
