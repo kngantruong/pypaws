@@ -123,6 +123,7 @@ const postTypeLabel = {
 function App() {
   const [user, setUser] = useState(null)
   const [userReports, setUserReports] = useState(reports)
+  const [myReports, setMyReports] = useState([])
   const [activeLostReport, setActiveLostReport] = useState(reports[0])
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState('info')
@@ -148,6 +149,7 @@ function App() {
       images: imageUrls,
     }
     setUserReports((previous) => [newReport, ...previous])
+    setMyReports((previous) => [newReport, ...previous])
     if (payload.post_type === 'LOST') {
       setActiveLostReport(newReport)
       setCurrentPage('matching-results')
@@ -373,7 +375,7 @@ function App() {
     ) : currentPage === 'profile' ? (
       <ProfilePage
         user={user}
-        reports={[]}
+        reports={myReports}
         notifications={notifications}
         initialTab={profileInitialTab}
       />
