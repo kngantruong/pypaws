@@ -128,7 +128,7 @@ img {
   position: relative;
   z-index: 5;
   display: flex;
-  min-height: 80px;
+  min-height: 88px;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
@@ -144,8 +144,8 @@ img {
 }
 
 .brand-logo {
-  width: 145px;
-  max-height: 56px;
+  width: 170px;
+  max-height: 68px;
   object-fit: contain;
   object-position: left center;
 }
@@ -212,7 +212,7 @@ img {
 
 .hero h1 {
   color: var(--brown);
-  font-size: clamp(30px, 4vw, 48px);
+  font-size: clamp(29px, 3.55vw, 44px);
   font-weight: 800;
   letter-spacing: -2.8px;
   line-height: 1.18;
@@ -360,8 +360,9 @@ img {
   bottom: 29px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  max-width: 275px;
+  gap: 10px;
+  max-width: 340px;
+  white-space: nowrap;
   padding: 15px 18px;
   background: var(--white);
   border: 1px solid rgba(237, 223, 208, 0.85);
@@ -388,8 +389,9 @@ img {
 .mascot-caption p {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 10px;
-  line-height: 1.6;
+  font-size: 9px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .decor-paw {
@@ -1011,7 +1013,8 @@ img {
   }
 
   .brand-logo {
-    width: 125px;
+    width: 145px;
+    max-height: 54px;
   }
 
   .nav-links {
@@ -1073,8 +1076,8 @@ img {
   }
 
   .brand-logo {
-    width: 116px;
-    max-height: 44px;
+    width: 130px;
+    max-height: 50px;
   }
 
   .nav-cta {
@@ -1175,7 +1178,12 @@ img {
     right: 0;
     bottom: 7px;
     max-width: 240px;
-    padding: 11px 13px;
+    padding: 10px 11px;
+    gap: 8px;
+  }
+
+  .mascot-caption p {
+    font-size: 8px;
   }
 
   .caption-paw {
