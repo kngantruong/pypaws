@@ -33,7 +33,7 @@ function SearchSummary({ report }) {
   return (
     <section className="matching-summary">
       <p className="matching-summary-code">
-        Mã báo cáo: <strong>{report.report_code || 'Đang chờ mã báo cáo từ hệ thống'}</strong>
+        Mã báo cáo: <strong>{report.report_code || `${report.post_type || 'LOST'}${report.post_id}`}</strong>
       </p>
 
       <div className="matching-summary-layout">
@@ -41,7 +41,6 @@ function SearchSummary({ report }) {
           <section className="matching-summary-panel">
             <h3>Thông tin thú cưng</h3>
             <dl>
-              <div><dt>Loại tin:</dt><dd>{report.post_type || 'LOST'}</dd></div>
               <div><dt>Tên thú cưng:</dt><dd>{report.pet_name || 'Chưa cập nhật'}</dd></div>
               <div><dt>Loài:</dt><dd>{speciesLabel[report.species] || report.species || 'Chưa xác định'}</dd></div>
               <div><dt>Giới tính:</dt><dd>{genderLabel[report.gender] || 'Chưa xác định'}</dd></div>
@@ -57,6 +56,7 @@ function SearchSummary({ report }) {
         </div>
 
         <div className="matching-summary-photo">
+          <span className={`matching-summary-type ${String(report.post_type || 'LOST').toLowerCase()}`}>{report.post_type || 'LOST'}</span>
           {images.length > 0 ? (
             <>
               <img
