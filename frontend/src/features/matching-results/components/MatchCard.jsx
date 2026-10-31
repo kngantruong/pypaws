@@ -22,11 +22,7 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
     (typeof imageList[0] === 'string' ? imageList[0] : imageList[0]?.url || imageList[0]?.image_url) ||
     '/placeholder-pet.png'
 
-  const fullAddress = [
-    match.address_detail,
-    match.ward,
-    match.province,
-  ].filter(Boolean).join(', ') || match.location_text || 'Chưa cập nhật'
+  const provinceName = match.province || match.location_text || 'Chưa cập nhật tỉnh/thành'
 
   return (
     <article className="matching-card">
@@ -42,7 +38,7 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         </div>
 
         <div className="matching-card-quick-info">
-          <span>📍 {fullAddress}</span>
+          <span>📍 {provinceName}</span>
           <i>•</i>
           <span>🕒 {formatDateTime(match.event_time || match.created_at)}</span>
           <i>•</i>
