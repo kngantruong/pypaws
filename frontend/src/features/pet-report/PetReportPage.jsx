@@ -477,8 +477,7 @@ export default function PetReportPage({
       ...previous,
       province: selectedProvince?.name || '',
       ward: '',
-      location_text: '',
-      address_detail: '',
+      location_text: previous.address_detail || '',
       latitude: null,
       longitude: null,
     }));
@@ -579,19 +578,41 @@ export default function PetReportPage({
   // 5.9. WARD CHANGE
   // --------------------------------------------------
 
-  function handleWardChange(event) {
+  async function handleWardChange(event) {
     const wardCode = event.target.value;
     const selectedWard = wards.find((ward) => String(ward.code) === wardCode);
+    const wardName = selectedWard?.name || '';
+    const provinceName = formData.province;
+
     setFormData((previous) => ({
       ...previous,
-      ward: selectedWard?.name || '',
+      ward: wardName,
       latitude: null,
       longitude: null,
     }));
-    setWardInput(selectedWard?.name || '');
+    setWardInput(wardName);
     setMapLocationConfirmed(false);
     setLocationSearchError('');
     clearErrors(['ward', 'latitude', 'longitude']);
+
+    // Chỉ dùng phường/xã + tỉnh/thành phố để định vị khu vực.
+    // Không dùng địa chỉ cụ thể vì đây chỉ là ghi chú văn bản.
+    if (!wardName || !provinceName) return;
+
+    const requestId = ++locationRequestRef.current;
+    setIsSearchingLocation(true);
+    try {
+      const coordinates = await searchCoordinates(`${wardName}, ${provinceName}, Việt Nam`);
+      if (requestId !== locationRequestRef.current || !coordinates) return;
+      setMapPosition([coordinates.latitude, coordinates.longitude]);
+      setLocationSearchError('Bản đồ đang hiển thị khu vực phường/xã đã chọn. Hãy chạm vào vị trí chính xác hoặc kéo ghim để xác nhận.');
+    } catch (error) {
+      if (requestId === locationRequestRef.current) {
+        setLocationSearchError('Chưa định vị được khu vực này. Bạn có thể tự di chuyển bản đồ đến đúng nơi.');
+      }
+    } finally {
+      if (requestId === locationRequestRef.current) setIsSearchingLocation(false);
+    }
   }
 
   // --------------------------------------------------
@@ -628,12 +649,11 @@ export default function PetReportPage({
   // --------------------------------------------------
 
   async function handleSearchLocation() {
-    const address = [formData.address_detail, formData.ward, formData.province, 'Việt Nam']
-      .filter(Boolean).join(', ');
-    if (!formData.address_detail.trim()) {
-      setLocationSearchError('Vui lòng nhập địa chỉ cụ thể trước khi tìm vị trí.');
+    if (!formData.province || !formData.ward) {
+      setLocationSearchError('Vui lòng chọn Tỉnh/Thành phố và Phường/Xã trước.');
       return;
     }
+    const address = [formData.ward, formData.province, 'Việt Nam'].join(', ');
     const requestId = ++locationRequestRef.current;
     setIsSearchingLocation(true);
     setLocationSearchError('');
@@ -643,13 +663,13 @@ export default function PetReportPage({
       const coordinates = await searchCoordinates(address);
       if (requestId !== locationRequestRef.current) return;
       if (!coordinates) {
-        setLocationSearchError('Không tìm thấy địa chỉ. Bạn có thể di chuyển bản đồ đến đúng nơi.');
+        setLocationSearchError('Không tìm thấy khu vực đã chọn. Bạn có thể tự di chuyển bản đồ đến đúng nơi.');
         return;
       }
       setMapPosition([coordinates.latitude, coordinates.longitude]);
-      setLocationSearchError('Đây là vị trí gần đúng. Hãy chạm vào đúng vị trí hoặc kéo ghim để xác nhận.');
+      setLocationSearchError('Bản đồ hiển thị khu vực phường/xã đã chọn. Hãy chạm vào vị trí chính xác hoặc kéo ghim để xác nhận.');
     } catch (error) {
-      if (requestId === locationRequestRef.current) setLocationSearchError(error.message || 'Không thể tìm địa chỉ lúc này.');
+      if (requestId === locationRequestRef.current) setLocationSearchError(error.message || 'Không thể định vị khu vực lúc này.');
     } finally {
       if (requestId === locationRequestRef.current) setIsSearchingLocation(false);
     }
@@ -1066,7 +1086,7 @@ export default function PetReportPage({
 
           {/* BASIC INFORMATION */}
 
-          <div className="pet-report-grid pet-report-grid--three">
+          <div className="pet-report-grid pet-report-location-grid">
 
             {/* Post type */}
 
@@ -1226,7 +1246,7 @@ export default function PetReportPage({
             </label>
             <div className="pet-report-description-editor">
               <p id="pet-report-description-hint" className="pet-report-hint">
-                Sau khi API AI nhận diện ảnh được tích hợp, nội dung đề xuất sẽ hiển thị tại đây. Hiện tại bạn có thể tự nhập và chỉnh sửa mô tả.
+                Nội dung AI đề xuất nhận diện ảnh được tích hợp sẽ hiển thị tại đây. Bạn có thể tự nhập và chỉnh sửa mô tả.
               </p>
               <textarea
                 id="pet-report-description"
@@ -1439,7 +1459,7 @@ export default function PetReportPage({
                 </span>
 
                 <p className="pet-report-hint">
-                  Nhập địa chỉ cụ thể rồi tìm kiếm. Kết quả chỉ là vị trí gần đúng; hãy chạm hoặc kéo ghim đến đúng nơi để xác nhận.
+                  Bản đồ định vị theo Tỉnh/Thành phố và Phường/Xã. Địa chỉ cụ thể chỉ dùng để mô tả nơi xảy ra sự việc; hãy chạm hoặc kéo ghim để xác nhận tọa độ chính xác.
                 </p>
 
               </div>
