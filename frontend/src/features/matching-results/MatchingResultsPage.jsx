@@ -26,8 +26,16 @@ function MatchingResultsPage({
     return new Date(b.created_at || 0) - new Date(a.created_at || 0)
   }), [eligibleMatches, sortBy])
 
+  const rawDetailImages = selectedMatch
+    ? (selectedMatch.images || selectedMatch.image_urls || selectedMatch.photos || [])
+    : []
   const detailImages = selectedMatch
-    ? (selectedMatch.images?.length ? selectedMatch.images : selectedMatch.image_url ? [selectedMatch.image_url] : [])
+    ? [
+        selectedMatch.cover_image_url || selectedMatch.image_url,
+        ...rawDetailImages.map((image) =>
+          typeof image === 'string' ? image : image?.url || image?.image_url,
+        ),
+      ].filter((image, index, all) => image && all.indexOf(image) === index)
     : []
 
   const formatDateTime = (value) => {
@@ -90,7 +98,7 @@ function MatchingResultsPage({
         <div className="matching-detail-backdrop" role="presentation" onClick={() => setSelectedMatch(null)}>
           <section className="matching-detail-modal" role="dialog" aria-modal="true" aria-labelledby="matching-detail-title" onClick={(event) => event.stopPropagation()}>
             <button className="matching-detail-close" type="button" onClick={() => setSelectedMatch(null)} aria-label="Đóng">×</button>
-            <h2 id="matching-detail-title">Chi tiết bài FOUND</h2>
+            <h2 id="matching-detail-title">Chi tiết bài đăng FOUND</h2>\n            <p className="matching-detail-pet-name">{selectedMatch.pet_name || "Thú cưng được tìm thấy"}</p>
             <div className="matching-detail-gallery">
               {detailImages.length ? detailImages.map((src, index) => (
                 <img key={src || index} src={src} alt={`Ảnh thú cưng ${index + 1}`} />
