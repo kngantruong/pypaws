@@ -470,3 +470,23 @@
   cursor: pointer;
 }
 .notification-detail-button:hover { background: #fff3e6; }
+
+
+/* Stronger hierarchy and readable account typography */
+.profile-page { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; color: #49352c; font-size: 15px; line-height: 1.65; }
+.profile-heading h1 { color: #49352c; font-size: clamp(28px, 3vw, 36px); font-weight: 800; letter-spacing: -1px; line-height: 1.25; }
+.profile-section-heading h2 { color: #49352c; font-size: 22px; font-weight: 800; line-height: 1.35; }
+.profile-heading > p:last-child, .profile-section-heading p { color: #79685e; font-size: 14px; line-height: 1.7; }
+.my-report-info h3 { color: #49352c; font-size: 16px; font-weight: 800; line-height: 1.45; }
+.my-report-info p, .my-report-location { color: #766256; font-size: 13px; line-height: 1.65; }
+.my-report-status { display: inline-flex; align-items: center; width: fit-content; padding: 5px 10px; border-radius: 999px; background: #eaf5ed; color: #34734b; font-size: 12px; font-weight: 800; }
+.my-report-detail-button { min-height: 38px; padding: 8px 15px; background: #b85f30; color: #fff; font-size: 13px; font-weight: 750; }
+.my-report-detail-button:hover { background: #984820; }
+.my-report-card { min-width: 0; align-items: flex-start; }
+.my-report-info { flex: 1; min-width: 0; }
+.my-report-info * { word-break: normal; hyphens: none; }
+.my-report-info p, .my-report-info span { overflow-wrap: break-word; }
+.my-report-modal h2 { color: #49352c; font-size: 23px; font-weight: 800; line-height: 1.35; }
+.my-report-modal h3 { color: #a9572e; font-size: 16px; font-weight: 800; }
+.my-report-modal dt { color: #766256; font-size: 13px; font-weight: 700; }
+.my-report-modal dd, .my-report-modal-description { color: #49352c; font-size: 14px; line-height: 1.7; }
