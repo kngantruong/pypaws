@@ -128,7 +128,7 @@ img {
   position: relative;
   z-index: 5;
   display: flex;
-  min-height: 88px;
+  min-height: 92px;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
@@ -144,8 +144,8 @@ img {
 }
 
 .brand-logo {
-  width: 170px;
-  max-height: 68px;
+  width: 205px;
+  max-height: 80px;
   object-fit: contain;
   object-position: left center;
 }
@@ -187,6 +187,44 @@ img {
 .nav-cta:hover {
   background: var(--orange-dark);
   transform: translateY(-1px);
+}
+
+.nav-user-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 13px;
+  flex-shrink: 0;
+}
+
+.nav-notification-button {
+  position: relative;
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ead9c8;
+  border-radius: 50%;
+  background: #fffdf9;
+  color: #725b4d;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.nav-notification-button:hover {
+  border-color: var(--orange);
+  background: #fff3e7;
+  color: var(--orange-dark);
+}
+
+.nav-notification-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* HERO */
@@ -1019,8 +1057,8 @@ img {
   }
 
   .brand-logo {
-    width: 145px;
-    max-height: 54px;
+    width: 175px;
+    max-height: 68px;
   }
 
   .nav-links {
@@ -1077,8 +1115,22 @@ img {
   }
 
   .brand-logo {
-    width: 130px;
-    max-height: 50px;
+    width: 150px;
+    max-height: 58px;
+  }
+
+  .nav-user-actions {
+    gap: 7px;
+  }
+
+  .nav-notification-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .nav-notification-button svg {
+    width: 17px;
+    height: 17px;
   }
 
   .nav-cta {
