@@ -242,3 +242,32 @@
   border-color: var(--piu-error);
   color: var(--piu-error);
 }
+
+
+/* Compact upload rules and cover-image hint share one line. */
+.pet-image-uploader .pet-image-uploader__info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+}
+.pet-image-uploader .pet-image-uploader__info-row .pet-image-uploader__hint,
+.pet-image-uploader .pet-image-uploader__cover-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.pet-image-uploader .pet-image-uploader__cover-hint {
+  flex: 0 0 auto;
+  color: var(--piu-muted);
+  text-align: right;
+}
+@media (max-width: 700px) {
+  .pet-image-uploader .pet-image-uploader__info-row {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+}
