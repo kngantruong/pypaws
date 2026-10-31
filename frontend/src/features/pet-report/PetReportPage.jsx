@@ -1292,7 +1292,7 @@ export default function PetReportPage({
               >
                 {formData.post_type === 'FOUND'
                   ? 'Thời gian tìm thấy'
-                  : 'Thời gian xảy ra sự việc'}
+                  : 'Thời gian'}
 
                 {' '}
                 <span className="pet-report-required">*</span>
@@ -1321,7 +1321,7 @@ export default function PetReportPage({
             {/* PROVINCE: searchable dropdown showing all 34 current provinces */}
             <div className="pet-report-field pet-report-combobox">
               <label htmlFor="pet-report-province" className="pet-report-label">
-                {formData.post_type === 'FOUND' ? 'Tỉnh/thành phố tìm thấy' : 'Tỉnh/thành phố xảy ra sự việc'}
+                {formData.post_type === 'FOUND' ? 'Tỉnh/thành phố tìm thấy' : 'Tỉnh/thành phố'}
                 {' '}<span className="pet-report-required">*</span>
               </label>
 
