@@ -16,7 +16,7 @@ export const SPECIES = Object.freeze({
 export const POST_TYPE_OPTIONS = [
   {
     value: POST_TYPES.LOST,
-    label: 'Tôi bị lạc mất thú cưng',
+    label: 'Tôi đang tìm thú cưng',
     hint: 'Thú cưng của bạn đã đi lạc và bạn đang tìm bé.',
   },
   {
@@ -48,6 +48,9 @@ export const INITIAL_FORM_DATA = Object.freeze({
   post_type: POST_TYPES.LOST,
   species: SPECIES.DOG,
   description: '',
+  contact_name: '',
+  contact_phone: '',
+  contact_email: '',
   address_detail: '',
   event_time: '',
 
