@@ -512,3 +512,127 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== MATCH CARD: horizontal information + image layout ===== */
+.matching-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+.matching-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 32%);
+  min-height: 300px;
+  border-radius: 12px;
+}
+
+.matching-card-content {
+  grid-column: 1;
+  grid-row: 1;
+  padding: 22px 26px;
+}
+
+.matching-card-image {
+  grid-column: 2;
+  grid-row: 1;
+  height: 100%;
+  min-height: 300px;
+  max-height: 390px;
+}
+
+.matching-card-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.matching-card-title {
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.matching-card-title h3 {
+  margin-bottom: 7px;
+  white-space: normal;
+}
+
+.matching-card-title .matching-card-species {
+  display: inline-block;
+  padding: 0;
+  background: transparent;
+  color: #806b5d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.matching-card-status {
+  position: static;
+  flex-shrink: 0;
+}
+
+.matching-pet-information {
+  padding: 16px 18px;
+  border: 1px solid #e8e4df;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.matching-pet-information h4 {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8e4df;
+  color: #302b27;
+  font-size: 15px;
+}
+
+.matching-card-info {
+  gap: 9px;
+  margin: 0;
+}
+
+.matching-card-info p {
+  color: #62564e;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.matching-card-info p strong {
+  color: #3f3832;
+  font-weight: 600;
+}
+
+.matching-card-description {
+  display: block;
+  min-height: 0;
+  margin: 12px 0;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+}
+
+.matching-card-actions {
+  margin-top: 16px;
+}
+
+@media (max-width: 700px) {
+  .matching-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .matching-card-content {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 18px;
+  }
+
+  .matching-card-image {
+    grid-column: 1;
+    grid-row: 1;
+    height: 230px;
+    min-height: 230px;
+    max-height: 280px;
+  }
+}
