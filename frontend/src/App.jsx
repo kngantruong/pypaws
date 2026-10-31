@@ -342,12 +342,13 @@ function App() {
             <h1>
               Mỗi dấu chân
               <br />
-              đều dẫn lối <span>về nhà.</span>
+              đều dẫn lối
+              <br />
+              <span>về nhà.</span>
             </h1>
 
             <p className="hero-description">
-              Tìm kiếm chó mèo thất lạc, kết nối các báo cáo có đặc điểm
-              tương đồng và khám phá những người bạn đang chờ một mái ấm.
+              Tìm kiếm chó mèo thất lạc, kết nối các báo cáo có đặc điểm tương đồng.
               Cùng PyPaws giúp hành trình đoàn tụ gần hơn.
             </p>
 
@@ -399,8 +400,6 @@ function App() {
             <span className="eyebrow">PYPAWS CÙNG BẠN</span>
             <h2>Bạn cần giúp đỡ điều gì?</h2>
             <p>
-              Chọn hành động phù hợp để bắt đầu giúp một người bạn nhỏ.
-            </p>
           </div>
 
           <div className="tool-grid">
@@ -458,7 +457,7 @@ function App() {
                 <span className="eyebrow">CỘNG ĐỒNG PYPAWS</span>
                 <h2>Cùng nhau tìm bé về nhà</h2>
                 <p>
-                  Theo dõi các báo cáo để kịp thời chia sẻ thông tin hữu ích.
+                  Theo dõi báo cáo mới và chia sẻ thông tin để giúp các bé sớm trở về nhà.
                 </p>
               </div>
 
@@ -474,7 +473,7 @@ function App() {
             <div className="report-grid">
               {reports.map((report) => (
                 <article className="report-card" key={report.post_id}>
-                  <div className="report-placeholder">
+                  <div className="report-image-wrap">
                     <img src={mascot} alt="Linh vật PyPaws" />
 
                     <span
@@ -533,7 +532,7 @@ function App() {
             <h2>Cùng Py đưa những người bạn nhỏ về nhà.</h2>
 
             <p>
-              Vì chúng tôi tin rằng tất cả vật nuôi đều có cơ hội về nhà.
+              Vì chúng tôi tin rằng mọi thú cưng đều xứng đáng có cơ hội trở về nhà.
             </p>
 
             <a className="closing-btn" href="#report-options">
