@@ -55,6 +55,11 @@ const matchingResults = [
     created_at: '2026-10-28T09:00:00',
     description: 'Chó lông vàng, thân thiện, được tìm thấy gần khu dân cư.',
     image_url: null,
+    passed_threshold: true,
+    final_score: 0.91,
+    image_score: 0.94,
+    location_score: 0.88,
+    time_score: 0.90,
   },
   {
     post_id: 102,
@@ -102,6 +107,8 @@ const postTypeLabel = {
 
 function App() {
   const [user, setUser] = useState(null)
+  const [userReports, setUserReports] = useState(reports)
+  const [activeLostReport, setActiveLostReport] = useState(reports[0])
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState('info')
   const [currentPage, setCurrentPage] = useState('home')
@@ -114,6 +121,24 @@ function App() {
   }
   // Chưa có API thông báo kết nối từ backend; để rỗng thay vì hiển thị dữ liệu ghép trùng giả.
   const notifications = []
+  const handleLocalReportSubmit = (payload, images, coverIndex) => {
+    const imageUrls = images.map((file) => URL.createObjectURL(file))
+    const newReport = {
+      ...payload,
+      post_id: Date.now(),
+      status: 'ACTIVE',
+      created_at: new Date().toISOString(),
+      image_url: imageUrls[coverIndex] || null,
+      images: imageUrls,
+    }
+    setUserReports((previous) => [newReport, ...previous])
+    if (payload.post_type === 'LOST') {
+      setActiveLostReport(newReport)
+      setCurrentPage('matching-results')
+    } else {
+      setCurrentPage('home')
+    }
+  }
   const handleReportNavigation = (e) => {
   const value = e.target.value
 
@@ -289,7 +314,7 @@ function App() {
       )}
      {currentPage === 'all-reports' ? (
         <AllReportsPage
-            reports={reports}
+            reports={userReports}
             onCreateReport={handleCreateReport}
             onBackHome={() => setCurrentPage('home')}
           />
@@ -316,7 +341,7 @@ function App() {
   )
     ) : currentPage === 'matching-results' ? (
       <MatchingResultsPage
-        lostReport={reports[0]}
+        lostReport={activeLostReport || reports[0]}
         matches={matchingResults}
         onBackHome={() => setCurrentPage('home')}
         onViewDetail={(match) => {
@@ -335,7 +360,11 @@ function App() {
         initialTab={profileInitialTab}
       />
     ) : currentPage === 'report' ? (
-      <PetReportPage initialPostType={initialPostType} />
+      <PetReportPage
+        initialPostType={initialPostType}
+        onBack={() => setCurrentPage('home')}
+        onSubmitReport={handleLocalReportSubmit}
+      />
     ) : (
       <main>
         {/* HERO */}
@@ -475,7 +504,7 @@ function App() {
             </div>
 
             <div className="report-grid">
-              {reports.map((report) => (
+              {userReports.map((report) => (
                 <article className="report-card" key={report.post_id}>
                   <div className="report-image-wrap">
                     <img src={mascot} alt="Linh vật PyPaws" />
