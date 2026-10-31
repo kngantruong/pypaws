@@ -78,6 +78,14 @@ export function validatePetReport(formData, images) {
     }
   }
 
+  if (isBlank(formData.province)) {
+    errors.province = 'Vui lòng chọn tỉnh/thành phố.';
+  }
+
+  if (isBlank(formData.ward)) {
+    errors.ward = 'Vui lòng chọn phường/xã.';
+  }
+
   if (isBlank(formData.address_detail)) {
     errors.address_detail = 'Vui lòng nhập địa chỉ cụ thể hoặc mốc dễ nhận biết.';
   }
