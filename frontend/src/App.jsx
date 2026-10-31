@@ -472,15 +472,6 @@ function App() {
               Cùng PyPaws giúp hành trình đoàn tụ gần hơn.
             </p>
 
-            <div className="hero-actions">
-                <button
-                   className="primary-btn"
-                   type="button"
-                    onClick={() => setCurrentPage('report')}
-                    >
-                     Báo mất / thấy thú cưng <span>→</span>
-                </button>
-            </div>
 
             <div className="hero-trust">
               <span className="trust-icon">♡</span>
