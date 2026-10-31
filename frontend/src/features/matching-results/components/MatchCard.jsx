@@ -1,4 +1,4 @@
-function MatchCard({ match, onViewDetail, onContact, onReject }) {
+function MatchCard({ match, onViewDetail, onReject }) {
   const speciesLabel = { DOG: 'Chó', CAT: 'Mèo' }
   const genderLabel = { MALE: 'Đực', FEMALE: 'Cái', UNKNOWN: 'Chưa xác định' }
 
@@ -45,7 +45,7 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         <div className="matching-card-info">
           <p><strong>Giới tính:</strong> {genderLabel[match.gender] || 'Chưa xác định'}</p>
           <p><strong>Thời gian:</strong> {formatDateTime(match.event_time || match.created_at)}</p>
-          <p><strong>Địa chỉ:</strong> {fullAddress}</p>
+          <p><strong>Địa điểm tìm thấy:</strong> {fullAddress}</p>
           <p><strong>Đặc điểm:</strong> {match.description || 'Chưa cung cấp'}</p>
           <p><strong>Ghi chú:</strong> {match.notes || 'Không có'}</p>
         </div>
@@ -59,9 +59,6 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         <div className="matching-card-actions">
           <button type="button" className="matching-detail-button" onClick={() => onViewDetail?.(match)}>
             Xem chi tiết
-          </button>
-          <button type="button" className="matching-contact-button" onClick={() => onContact?.(match)}>
-            Liên hệ người đăng
           </button>
           <button type="button" className="matching-reject-button" onClick={() => onReject?.(match)}>
             Không phải thú cưng của tôi
