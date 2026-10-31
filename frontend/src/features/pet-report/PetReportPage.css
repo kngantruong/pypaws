@@ -1,1097 +1,206 @@
-/* All styles are scoped under .pet-report-page so they never affect the homepage. */
+
+
+/* ===== PYPAWS FORM VISUAL REFRESH ===== */
 .pet-report-page {
-  --pr-bg: #fff8f1;
-  --pr-surface: #ffffff;
-  --pr-primary: #c2531f;
-  --pr-primary-hover: #a54418;
-  --pr-primary-soft: #fdeee4;
-  --pr-text: #3b2a20;
-  --pr-muted: #6f5b4e;
-  --pr-border: #e6d3c2;
-  --pr-error: #b42318;
-  --pr-error-soft: #fef1f0;
-  --pr-teal: #1f6f63;
-  --pr-teal-soft: #e3f3f0;
-
-  min-height: 100%;
-  padding: 32px 16px 56px;
-  background: var(--pr-bg);
+  --pr-bg: #faf5ed;
+  --pr-primary: #dc8044;
+  --pr-primary-hover: #bd6531;
+  --pr-primary-soft: #fff0e3;
+  --pr-text: #443329;
+  --pr-muted: #79695e;
+  --pr-border: #eee1d4;
+  padding: clamp(24px, 4vw, 52px) 18px 72px;
+  background:
+    radial-gradient(ellipse at 12% 4%, rgba(239, 193, 151, .22), transparent 34%),
+    #faf5ed;
+  font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
   color: var(--pr-text);
-  font-family: inherit;
-  line-height: 1.5;
 }
-
-.pet-report-page *,
-.pet-report-page *::before,
-.pet-report-page *::after {
-  box-sizing: border-box;
-}
-
 .pet-report-page .pet-report-card {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 18px;
-  border: 1px solid var(--pr-border);
-  border-radius: 24px;
-  background: var(--pr-surface);
-  box-shadow: 0 12px 32px rgba(59, 42, 32, 0.08);
+  max-width: 1000px;
+  gap: 30px;
+  padding: clamp(22px, 4vw, 44px);
+  border: 1px solid rgba(224, 205, 186, .78);
+  border-radius: 26px;
+  box-shadow: 0 18px 55px rgba(83, 57, 38, .09);
 }
-
-@media (min-width: 640px) {
-  .pet-report-page .pet-report-card {
-    padding: 36px 40px;
-  }
-}
-
-/* ---------- Header ---------- */
 .pet-report-page .pet-report-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.pet-report-page .pet-report-title {
-  margin: 0 0 6px;
-  font-size: 1.75rem;
-  line-height: 1.2;
-  font-weight: 800;
-  text-wrap: balance;
-}
-
-.pet-report-page .pet-report-title:focus {
-  outline: none;
-}
-
-.pet-report-page .pet-report-title:focus-visible {
-  outline: 3px solid var(--pr-primary);
-  outline-offset: 4px;
-  border-radius: 4px;
-}
-
-.pet-report-page .pet-report-intro {
-  margin: 0;
-  color: var(--pr-muted);
-  text-wrap: pretty;
-}
-
-/* Simple CSS paw print: four toes and one pad. */
-.pet-report-page .pet-report-paw {
-  position: relative;
-  flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: var(--pr-primary-soft);
-}
-
-.pet-report-page .pet-report-paw__toe,
-.pet-report-page .pet-report-paw__pad {
-  position: absolute;
-  background: var(--pr-primary);
-  border-radius: 50%;
-}
-
-.pet-report-page .pet-report-paw__toe {
-  width: 9px;
-  height: 11px;
-}
-
-.pet-report-page .pet-report-paw__toe:nth-child(1) { top: 17px; left: 11px; }
-.pet-report-page .pet-report-paw__toe:nth-child(2) { top: 10px; left: 20px; }
-.pet-report-page .pet-report-paw__toe:nth-child(3) { top: 10px; left: 30px; }
-.pet-report-page .pet-report-paw__toe:nth-child(4) { top: 17px; left: 38px; }
-
-.pet-report-page .pet-report-paw__pad {
-  top: 26px;
-  left: 17px;
-  width: 22px;
-  height: 18px;
-  border-radius: 50% 50% 45% 45%;
-}
-
-/* ---------- Notices ---------- */
-.pet-report-page .pet-report-error-summary {
-  padding: 16px 18px;
-  border: 2px solid var(--pr-error);
-  border-radius: 14px;
-  background: var(--pr-error-soft);
-  color: var(--pr-error);
-}
-
-.pet-report-page .pet-report-error-summary__title {
-  margin: 0 0 8px;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.pet-report-page .pet-report-error-summary ul {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.pet-report-page .pet-report-error-summary a {
-  color: inherit;
-  text-decoration: underline;
-}
-
-.pet-report-page .pet-report-notice {
-  padding: 14px 16px;
-  border-left: 4px solid var(--pr-teal);
-  border-radius: 10px;
-  background: var(--pr-teal-soft);
-  color: var(--pr-teal);
-}
-
-.pet-report-page .pet-report-notice--warning {
-  border-left-color: var(--pr-primary);
-  background: var(--pr-primary-soft);
-  color: var(--pr-text);
-}
-
-/* ---------- Form layout ---------- */
-.pet-report-page .pet-report-form {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.pet-report-page .pet-report-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-/* ---------- Compact form grid ---------- */
-.pet-report-page .pet-report-grid {
-  display: grid;
-  gap: 16px;
-  width: 100%;
-  min-width: 0;
-}
-
-.pet-report-page .pet-report-grid--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* Hàng 1: luôn giữ 3 trường trên cùng một hàng, chia đều. */
-.pet-report-page .pet-report-basic-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  gap: 14px;
-}
-
-/* Hàng 2 + 3: dùng 10 cột để đặt tỷ lệ chính xác.
-   Thời gian 40% + địa chỉ 60%; tỉnh/thành phố 50% + phường/xã 50%. */
-.pet-report-page .pet-report-location-grid {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  align-items: start;
-  gap: 14px;
-}
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) {
-  grid-column: 1 / span 4;
-  grid-row: 1;
-}
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
-  grid-column: 5 / span 6;
-  grid-row: 1;
-}
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) {
-  grid-column: 1 / span 5;
-  grid-row: 2;
-}
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) {
-  grid-column: 6 / span 5;
-  grid-row: 2;
-}
-.pet-report-page .pet-report-basic-grid > .pet-report-field,
-.pet-report-page .pet-report-location-grid > .pet-report-field {
-  min-width: 0;
-}
-.pet-report-page .pet-report-basic-grid .pet-report-input,
-.pet-report-page .pet-report-location-grid .pet-report-input {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  height: 42px;
-  min-height: 42px;
-  padding: 9px 10px;
-  font-size: 0.875rem;
-}
-.pet-report-page .pet-report-location-grid .pet-report-address-detail {
-  margin: 0;
-}
-
-/* Giữ nguyên các hàng ngang ở mọi kích thước; trên màn hình nhỏ
-   cho phép cuộn ngang thay vì tự đẩy trường xuống hàng mới. */
-.pet-report-page .pet-report-basic-grid,
-.pet-report-page .pet-report-location-grid {
-  min-width: 0;
-}
-@media (max-width: 700px) {
-  .pet-report-page .pet-report-basic-grid,
-  .pet-report-page .pet-report-location-grid {
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-  .pet-report-page .pet-report-basic-grid {
-    grid-template-columns: repeat(3, minmax(150px, 1fr));
-  }
-  .pet-report-page .pet-report-location-grid {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-    min-width: 560px;
-  }
-}
-
-/* Ba trường thời gian, tỉnh/thành và phường/xã nằm cùng một hàng. */
-.pet-report-page .pet-report-grid--three {
-  align-items: start;
-}
-
-.pet-report-page .pet-report-grid--three > .pet-report-field {
-  min-width: 0;
-}
-
-.pet-report-page .pet-report-grid--three input.pet-report-input,
-.pet-report-page .pet-report-grid--three select.pet-report-input {
-  width: 100%;
-  min-width: 0;
-  height: 44px;
-  min-height: 44px;
-  padding: 9px 12px;
-  border-radius: 7px;
-  font-size: 0.875rem;
-  line-height: 1.35;
-}
-
-.pet-report-page .pet-report-grid--three input[type='datetime-local'].pet-report-input {
-  padding-right: 8px;
-}
-
-.pet-report-page .pet-report-grid--three .pet-report-label {
-  min-height: 20px;
-  line-height: 1.35;
-}
-
-
-.pet-report-page .pet-report-grid--two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-/* Bản đồ chiếm toàn bộ chiều ngang bên dưới thời gian và địa chỉ. */
-.pet-report-page .pet-report-grid--two > .pet-report-map-field,
-.pet-report-page .pet-report-grid--three > .pet-report-map-field {
-  grid-column: 1 / -1;
-}
-
-/* Đồng bộ kích thước ô ngày/giờ và các danh sách địa chỉ. */
-.pet-report-page input[type='datetime-local'].pet-report-input {
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  padding: 8px 10px;
-  font-family: inherit;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  color-scheme: light;
-}
-
-.pet-report-page select.pet-report-input {
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  padding: 8px 32px 8px 10px;
-  font-family: inherit;
-  font-size: 0.875rem;
-  line-height: 1.4;
-  cursor: pointer;
-}
-
-.pet-report-page select.pet-report-input:disabled {
-  background: #f5f5f5;
-  color: #8a817a;
-  cursor: not-allowed;
-}
-
-/* Smaller, cleaner controls like the reference form */
-.pet-report-page .pet-report-input {
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  background: #fff;
-  color: var(--pr-text);
-  font: inherit;
-  font-size: 0.875rem;
-}
-
-.pet-report-page .pet-report-grid .pet-report-field {
-  gap: 6px;
-}
-
-/* Searchable dropdown for province and ward fields. */
-.pet-report-page .pet-report-combobox {
-  position: relative;
-  z-index: 5;
-}
-
-.pet-report-page .pet-report-combobox:focus-within {
-  z-index: 20;
-}
-
-.pet-report-page .pet-report-combobox__options {
-  position: absolute;
-  top: calc(100% - 1px);
-  left: 0;
-  right: 0;
-  z-index: 50;
-  max-height: 280px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1px solid var(--pr-border);
-  border-radius: 0 0 8px 8px;
-  background: #ffffff;
-  box-shadow: 0 8px 20px rgba(59, 42, 32, 0.16);
-}
-
-.pet-report-page .pet-report-combobox__option {
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  padding: 9px 12px;
-  border: 0;
-  border-bottom: 1px solid #f0e8e1;
-  background: #ffffff;
-  color: var(--pr-text);
-  font: inherit;
-  font-size: 0.875rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.pet-report-page .pet-report-combobox__option:hover,
-.pet-report-page .pet-report-combobox__option[aria-selected='true'] {
-  background: var(--pr-primary-soft);
-  color: var(--pr-primary-hover);
-}
-
-.pet-report-page .pet-report-combobox__empty {
-  margin: 0;
-  padding: 12px;
-  color: var(--pr-muted);
-  font-size: 0.8125rem;
-}
-
-
-.pet-report-page .pet-report-grid .pet-report-label {
-  margin-bottom: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-@media (max-width: 640px) {
-  .pet-report-page .pet-report-grid--three,
-  .pet-report-page .pet-report-grid--two {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.pet-report-page .pet-report-label {
-  padding: 0;
-  margin-bottom: 2px;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.pet-report-page .pet-report-sublabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.pet-report-page .pet-report-required,
-.pet-report-page .pet-report-optional {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--pr-muted);
-}
-
-.pet-report-page .pet-report-hint {
-  margin: -4px 0 0;
-  font-size: 0.875rem;
-  color: var(--pr-muted);
-}
-
-.pet-report-page .pet-report-counter {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--pr-muted);
-  text-align: right;
-}
-
-.pet-report-page .pet-report-field__error {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--pr-error);
-}
-
-/* ---------- Inputs ---------- */
-.pet-report-page .pet-report-input {
-  width: 100%;
-  min-width: 0;
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
-  background: #fff;
-  color: var(--pr-text);
-  font: inherit;
-  font-size: 0.875rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.pet-report-page .pet-report-input:hover {
-  border-color: #d4b9a3;
-}
-
-.pet-report-page .pet-report-input:focus {
-  outline: none;
-  border-color: var(--pr-primary);
-  box-shadow: 0 0 0 3px rgba(194, 83, 31, 0.2);
-}
-
-.pet-report-page .pet-report-input[aria-invalid='true'] {
-  border-color: var(--pr-error);
-  background: var(--pr-error-soft);
-}
-
-.pet-report-page .pet-report-textarea {
-  min-height: 120px;
-  resize: vertical;
-}
-
-/* ---------- Radio cards ---------- */
-.pet-report-page .pet-report-choice-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-@media (min-width: 560px) {
-  .pet-report-page .pet-report-choice-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.pet-report-page .pet-report-choice-grid--compact {
-  grid-template-columns: 1fr 1fr;
-}
-
-.pet-report-page .pet-report-choice {
-  position: relative;
-}
-
-/* Hide the native radio visually but keep it focusable for the keyboard. */
-.pet-report-page .pet-report-choice input {
-  position: absolute;
-  opacity: 0;
-  width: 1px;
-  height: 1px;
-}
-
-.pet-report-page .pet-report-choice__label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  height: 100%;
-  padding: 14px 16px 14px 46px;
-  border: 2px solid var(--pr-border);
-  border-radius: 14px;
-  background: var(--pr-surface);
-  cursor: pointer;
-  position: relative;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-/* Custom radio circle drawn with CSS. */
-.pet-report-page .pet-report-choice__label::before {
-  content: '';
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--pr-border);
-  border-radius: 50%;
-  background: var(--pr-surface);
-}
-
-.pet-report-page .pet-report-choice__label:hover {
-  border-color: #d4b9a3;
-}
-
-.pet-report-page .pet-report-choice input:checked + .pet-report-choice__label {
-  border-color: var(--pr-primary);
-  background: var(--pr-primary-soft);
-}
-
-.pet-report-page .pet-report-choice input:checked + .pet-report-choice__label::before {
-  border-color: var(--pr-primary);
-  box-shadow: inset 0 0 0 4px var(--pr-surface);
-  background: var(--pr-primary);
-}
-
-.pet-report-page .pet-report-choice input:focus-visible + .pet-report-choice__label {
-  outline: 3px solid var(--pr-primary);
-  outline-offset: 2px;
-}
-
-.pet-report-page .pet-report-choice input[aria-invalid='true'] + .pet-report-choice__label {
-  border-color: var(--pr-error);
-}
-
-.pet-report-page .pet-report-choice__title {
-  font-weight: 700;
-}
-
-.pet-report-page .pet-report-choice__hint {
-  font-size: 0.875rem;
-  color: var(--pr-muted);
-}
-
-/* ---------- Coordinates ---------- */
-.pet-report-page .pet-report-coordinates__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-@media (min-width: 560px) {
-  .pet-report-page .pet-report-coordinates__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.pet-report-page .pet-report-coordinates__item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pet-report-page .pet-report-geo {
-  display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 18px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #f0e5da;
 }
-
-.pet-report-page .pet-report-geo__message {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--pr-teal);
+.pet-report-page .pet-report-paw {
+  width: 62px;
+  height: 62px;
+  border-radius: 19px;
+  background: #fff0e3;
+  transform: rotate(-5deg);
 }
-
-.pet-report-page .pet-report-geo__message--error {
-  color: var(--pr-error);
+.pet-report-page .pet-report-title {
+  color: #49352b;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 850;
+  letter-spacing: -.8px;
+  line-height: 1.2;
 }
-
-/* ---------- Buttons ---------- */
-.pet-report-page .pet-report-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 8px;
+.pet-report-page .pet-report-intro {
+  max-width: 680px;
+  color: #79695e;
+  font-size: 14px;
+  line-height: 1.75;
 }
-
-.pet-report-page .pet-report-button {
-  min-height: 48px;
-  padding: 12px 22px;
-  border: 2px solid transparent;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.pet-report-page .pet-report-button:focus-visible {
-  outline: 3px solid var(--pr-primary);
-  outline-offset: 3px;
-}
-
-.pet-report-page .pet-report-button:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.pet-report-page .pet-report-button--primary {
-  background: var(--pr-primary);
-  color: #ffffff;
-}
-
-.pet-report-page .pet-report-button--primary:hover:not(:disabled) {
-  background: var(--pr-primary-hover);
-}
-
-.pet-report-page .pet-report-button--secondary {
-  border-color: var(--pr-border);
-  background: var(--pr-surface);
-  color: var(--pr-text);
-}
-
-.pet-report-page .pet-report-button--secondary:hover:not(:disabled) {
-  border-color: var(--pr-primary);
-  color: var(--pr-primary);
-}
-
-.pet-report-page .pet-report-button--small {
-  min-height: 40px;
-  padding: 8px 16px;
-  font-size: 0.875rem;
-}
-
-@media (max-width: 479px) {
-  .pet-report-page .pet-report-actions .pet-report-button {
-    flex: 1 1 100%;
-  }
-}
-
-/* ---------- Review step ---------- */
-.pet-report-page .pet-report-review {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.pet-report-page .pet-report-review__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.pet-report-page .pet-report-tag {
-  padding: 4px 14px;
-  border-radius: 999px;
-  background: var(--pr-primary-soft);
-  color: var(--pr-text);
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.pet-report-page .pet-report-tag--lost {
-  background: var(--pr-primary);
-  color: #ffffff;
-}
-
-.pet-report-page .pet-report-tag--found {
-  background: var(--pr-teal);
-  color: #ffffff;
-}
-
-.pet-report-page .pet-report-review__list {
-  width: 100%;
-}
-
-.pet-report-page .pet-report-review__row {
-  display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
-  align-items: start;
-  column-gap: 20px;
-  padding: 12px 16px;
-}
-
-.pet-report-page .pet-report-review__row + .pet-report-review__row {
-  border-top: 1px solid var(--pr-border);
-}
-
-.pet-report-page .pet-report-review__row dt {
-  margin: 0;
-  font-weight: 700;
-  color: var(--pr-muted);
-  text-align: left;
-}
-
-.pet-report-page .pet-report-review__row dd {
-  margin: 0;
-  min-width: 0;
-  text-align: left;
-  overflow-wrap: anywhere;
-}
-
-.pet-report-page .pet-report-review__description {
-  white-space: pre-line;
-}
-
-@media (max-width: 480px) {
-  .pet-report-page .pet-report-review__row {
-    grid-template-columns: 1fr;
-    row-gap: 6px;
-  }
-}
-
-.pet-report-page .pet-report-review__images {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pet-report-page .pet-report-review__image {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  border: 2px solid var(--pr-border);
-  border-radius: 12px;
-  overflow: hidden;
-  background: var(--pr-primary-soft);
-}
-
-.pet-report-page .pet-report-review__image--cover {
-  border-color: var(--pr-primary);
-}
-
-.pet-report-page .pet-report-review__image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.pet-report-page .pet-report-review__badge {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--pr-primary);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-/* Bản đồ chọn địa điểm */
-.pet-report-page .pet-report-location-grid > .pet-report-map-field {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  width: 100%;
-}
-
-.pet-report-page .pet-report-map-field {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-}
-
-.pet-report-page .pet-report-map-search {
-  width: 100%;
-  min-height: 40px;
-  padding: 9px 14px;
-  border: 1px solid var(--pr-border);
-  border-radius: 8px;
-  background: var(--pr-primary-soft);
-  color: var(--pr-text);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.pet-report-page .pet-report-map-search:hover:not(:disabled) {
-  border-color: var(--pr-primary);
-  background: #fbe5d6;
-}
-
-.pet-report-page .pet-report-map-search:disabled {
-  opacity: 0.65;
-  cursor: wait;
-}
-
-.pet-report-page .pet-report-map-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.pet-report-page .pet-report-map-heading .pet-report-hint {
-  margin: 0;
-}
-
-
-.pet-report-page .pet-report-map {
-  display: block !important;
-  width: 100% !important;
-  height: 480px !important;
-  min-height: 480px;
-  position: relative;
-  z-index: 1;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #f3f4f6;
-}
-
-.pet-report-page .pet-report-map .leaflet-tile {
-  max-width: none !important;
-  max-height: none !important;
-}
-
-
-
-.pet-report-page .pet-report-image-description {
-  margin: 6px 0 10px;
-  color: #64748b;
-  font-size: 0.75rem;
+.pet-report-page .pet-report-form { gap: 28px; }
+.pet-report-page .pet-report-field,
+.pet-report-page .pet-report-grid .pet-report-field { gap: 9px; }
+.pet-report-page .pet-report-label {
+  color: #554236;
+  font-size: 14px;
+  font-weight: 750;
   line-height: 1.5;
-  text-align: left;
 }
-
-.pet-report-page .pet-report-image-description strong {
-  display: block;
-  margin-bottom: 4px;
-  color: #334155;
-  font-size: 0.8rem;
-  text-align: left;
+.pet-report-page .pet-report-required { color: #d36f36; font-weight: 800; }
+.pet-report-page .pet-report-hint {
+  color: #8a786c;
+  font-size: 13px;
+  line-height: 1.65;
 }
-
-.pet-report-page .pet-report-image-description ul {
-  margin: 0 0 6px;
-  padding-left: 18px;
-  text-align: left;
-}
-
-.pet-report-page .pet-report-image-description li {
-  margin-bottom: 2px;
-}
-
-.pet-report-page .pet-report-image-description p {
-  margin: 0;
-  font-size: 0.75rem;
-  text-align: left;
-}
-
-/* Bố cục ngang cho các trường thông tin thú cưng */
-.pet-report-page .pet-report-field--horizontal {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  column-gap: 20px;
-  row-gap: 6px;
-  align-items: start;
-  margin-bottom: 20px;
-}
-
-/* Nhãn nằm ở cột bên trái */
-.pet-report-page .pet-report-field--horizontal > .pet-report-label {
-  grid-column: 1;
-  grid-row: 1;
-  margin: 0;
-  padding-top: 10px;
-}
-
-/* Ô nhập nằm ở cột bên phải */
-.pet-report-page .pet-report-field--horizontal > .pet-report-input {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-/* Thông báo lỗi nằm ngay dưới ô nhập */
-.pet-report-page .pet-report-field--horizontal > .pet-report-input ~ * {
-  min-width: 0;
-}
-
-/* Gợi ý của trường Mô tả nằm bên phải, trên ô nhập */
-.pet-report-page .pet-report-field--horizontal > .pet-report-hint {
-  grid-column: 2;
-  grid-row: 1;
-  margin: 0 0 6px;
-}
-
-/* Đẩy ô Mô tả xuống dưới dòng gợi ý */
-.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-input {
-  grid-row: 2;
-}
-
-/* Hiển thị bộ đếm ký tự và lỗi dưới ô Mô tả */
-.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-counter,
-.pet-report-page .pet-report-field--horizontal:has(.pet-report-hint) > .pet-report-input ~ * {
-  grid-column: 2;
-}
-
-/* Màn hình nhỏ: nhãn ở trên, ô nhập ở dưới */
-@media (max-width: 640px) {
-  .pet-report-page .pet-report-field--horizontal {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 6px;
-  }
-
-  .pet-report-page .pet-report-field--horizontal > .pet-report-label,
-  .pet-report-page .pet-report-field--horizontal > .pet-report-input,
-  .pet-report-page .pet-report-field--horizontal > .pet-report-hint,
-  .pet-report-page .pet-report-field--horizontal > .pet-report-counter {
-    grid-column: 1;
-    grid-row: auto;
-  }
-}
-
-
-/* Ensure the address suggestion panels keep their intended custom styling. */
-.pet-report-page .pet-report-combobox {
-  position: relative !important;
-}
-
-.pet-report-page .pet-report-combobox__options {
-  position: absolute !important;
-  top: calc(100% - 1px) !important;
-  left: 0 !important;
-  right: 0 !important;
-  z-index: 1000 !important;
-  display: block !important;
-  max-height: 280px !important;
-  overflow-y: auto !important;
-  padding: 4px !important;
-  border: 1px solid #e8d8cc !important;
-  border-radius: 0 0 10px 10px !important;
-  background: #fff !important;
-  box-shadow: 0 10px 24px rgba(59, 42, 32, 0.14) !important;
-}
-
-.pet-report-page button.pet-report-combobox__option {
-  appearance: none !important;
-  display: block !important;
-  width: 100% !important;
-  min-height: 38px !important;
-  margin: 0 !important;
-  padding: 9px 12px !important;
-  border: 0 !important;
-  border-bottom: 1px solid #f3eee9 !important;
-  border-radius: 6px !important;
-  background: #fff !important;
-  color: #493b34 !important;
-  font: inherit !important;
-  font-size: 14px !important;
-  line-height: 1.4 !important;
-  text-align: left !important;
-  box-shadow: none !important;
-  cursor: pointer !important;
-}
-
-.pet-report-page button.pet-report-combobox__option:hover,
-.pet-report-page button.pet-report-combobox__option[aria-selected='true'] {
-  background: #fff2e9 !important;
-  color: #a94f2b !important;
-}
-
-.pet-report-page .pet-report-combobox__empty {
-  margin: 0 !important;
-  padding: 12px !important;
-  color: #76675f !important;
-  font-size: 13px !important;
-}
-
-
-/* Description editor and precise address layout. */
-.pet-report-page .pet-report-description-field {
-  display: block;
-  margin-top: 8px;
-  margin-bottom: 16px;
-}
-
-.pet-report-page .pet-report-description-field > .pet-report-label {
-  display: block;
-  margin: 0 0 8px;
-  padding: 0;
-}
-
-.pet-report-page .pet-report-description-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-}
-
-.pet-report-page .pet-report-description-editor .pet-report-hint {
-  margin: 0;
-  padding: 10px 12px;
-  border-left: 3px solid #d58b5c;
-  border-radius: 6px;
-  background: #fff7f1;
-  color: var(--pr-muted);
-  font-size: 0.875rem;
-  line-height: 1.55;
-}
-
-.pet-report-page .pet-report-description-editor .pet-report-textarea {
-  width: 100%;
-  min-height: 150px;
-  resize: vertical;
-}
-
-.pet-report-page .pet-report-address-detail {
-  width: 100%;
-  margin: 0;
-}
-
-.pet-report-page .pet-report-address-detail .pet-report-input {
-  width: 100%;
+.pet-report-page .pet-report-input {
   min-height: 46px;
-}
-
-@media (max-width: 640px) {
-  .pet-report-page .pet-report-description-editor .pet-report-textarea {
-    min-height: 130px;
-  }
-
-  .pet-report-page .pet-report-map {
-    height: 360px !important;
-    min-height: 360px;
-  }
-
-  .pet-report-page .pet-report-card {
-    padding: 22px 16px;
-    border-radius: 18px;
-  }
-
-  .pet-report-page .pet-report-form {
-    gap: 20px;
-  }
-}
-
-/* Map occupies the full content width for a usable location picker. */
-.pet-report-page .pet-report-location-grid > .pet-report-map-field,
-.pet-report-page .pet-report-location-grid > .pet-report-map-field .pet-report-map {
-  width: 100% !important;
-  max-width: 100%;
-}
-
-
-/* FOUND success message stays in the page flow (not a popup) */
-.pet-report-page .pet-report-success-panel {
-  margin: 24px 0;
-  padding: 22px 24px;
-  border: 1px solid #b8d9ce;
-  border-left: 5px solid #438b73;
+  padding: 11px 14px;
+  border: 1px solid #e5d8cb;
   border-radius: 12px;
-  background: #f0faf6;
-  color: #315f50;
+  background: #fffdfb;
+  color: #443329;
+  font-size: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
 }
-.pet-report-page .pet-report-success-content h3 { margin: 0 0 12px; }
-.pet-report-page .pet-report-success-code { display: inline-block; margin: 4px 0 12px; font-size: 24px; letter-spacing: 1px; }
+.pet-report-page .pet-report-input:hover { border-color: #d8b99f; }
+.pet-report-page .pet-report-input:focus {
+  border-color: #dc8044;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(220, 128, 68, .13);
+}
+.pet-report-page .pet-report-textarea { min-height: 160px; line-height: 1.7; }
+.pet-report-page .pet-report-description-editor .pet-report-hint {
+  padding: 12px 14px;
+  border-left: 3px solid #e59a63;
+  border-radius: 10px;
+  background: #fff7ef;
+}
+.pet-report-page .pet-report-choice__label {
+  min-height: 86px;
+  justify-content: center;
+  padding: 16px 18px 16px 50px;
+  border: 1.5px solid #e9dbce;
+  border-radius: 15px;
+  background: #fffdfb;
+}
+.pet-report-page .pet-report-choice__label::before { top: 20px; left: 18px; }
+.pet-report-page .pet-report-choice input:checked + .pet-report-choice__label {
+  border-color: #dc8044;
+  background: #fff4eb;
+  box-shadow: 0 5px 16px rgba(220, 128, 68, .09);
+}
+.pet-report-page .pet-report-choice__title { color: #49352b; font-size: 15px; font-weight: 800; }
+.pet-report-page .pet-report-choice__hint { color: #837267; font-size: 13px; line-height: 1.55; }
+.pet-report-page .pet-report-map {
+  border: 1px solid #e6d8ca;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(70, 50, 35, .07);
+}
+.pet-report-page .pet-report-map-search {
+  min-height: 44px;
+  border: 1px solid #efd8c5;
+  border-radius: 12px;
+  background: #fff4eb;
+  color: #a9572e;
+  font-size: 13px;
+  font-weight: 750;
+}
+.pet-report-page .pet-report-button {
+  min-height: 46px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 750;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.pet-report-page .pet-report-button--primary {
+  border-color: #d8793d;
+  background: linear-gradient(135deg, #e99458, #d8793d);
+  box-shadow: 0 7px 17px rgba(198, 105, 52, .2);
+}
+.pet-report-page .pet-report-button--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d98247, #bd6531);
+  box-shadow: 0 9px 22px rgba(198, 105, 52, .25);
+  transform: translateY(-1px);
+}
+.pet-report-page .pet-report-button--secondary {
+  border-color: #e7d8ca;
+  background: #fff;
+  color: #70594a;
+}
+.pet-report-page .pet-report-button--secondary:hover:not(:disabled) { background: #fff7f0; }
+.pet-report-page .pet-report-error-summary {
+  border: 1px solid #f0b8b2;
+  border-left: 4px solid #c84d43;
+  border-radius: 14px;
+  box-shadow: 0 5px 16px rgba(150, 45, 35, .06);
+}
+.pet-report-page .pet-report-review {
+  gap: 22px;
+  padding: 22px;
+  border: 1px solid #eee1d4;
+  border-radius: 18px;
+  background: #fffdfb;
+}
+.pet-report-page .pet-report-review__row {
+  padding: 14px 16px;
+  border-radius: 10px;
+}
+.pet-report-page .pet-report-review__row dt {
+  color: #8b6a54;
+  font-size: 13px;
+  font-weight: 750;
+}
+.pet-report-page .pet-report-review__row dd {
+  color: #49382e;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.pet-report-page .pet-report-review__row:nth-child(odd) { background: #fff8f1; }
+.pet-report-page .pet-report-review__image {
+  border: 2px solid #eee0d2;
+  border-radius: 14px;
+}
+.pet-report-page .pet-report-review__image--cover { border-color: #dc8044; }
+.pet-report-page .pet-report-review__badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #dc8044;
+  font-size: 11px;
+  font-weight: 800;
+}
+.pet-report-page .pet-report-tag {
+  padding: 6px 13px;
+  background: #fff0e3;
+  color: #a9572e;
+  font-size: 12px;
+  font-weight: 800;
+}
+.pet-report-page .pet-report-tag--lost { background: #dc8044; color: #fff; }
+.pet-report-page .pet-report-tag--found { background: #478b70; color: #fff; }
+.pet-report-page .pet-report-success-panel {
+  border: 1px solid #c6e4d6;
+  border-left: 4px solid #438b73;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(49, 95, 80, .07);
+}
+@media (max-width: 640px) {
+  .pet-report-page { padding: 20px 12px 44px; }
+  .pet-report-page .pet-report-card { gap: 22px; padding: 22px 16px; border-radius: 19px; }
+  .pet-report-page .pet-report-header { align-items: flex-start; }
+  .pet-report-page .pet-report-title { font-size: 25px; }
+  .pet-report-page .pet-report-review { padding: 14px; }
+}
