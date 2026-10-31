@@ -47,6 +47,9 @@ const FIELD_FOCUS_IDS = {
   longitude: 'pet-report-map-search',
   images: 'pet-report-images',
   address_detail: 'pet-report-address_detail',
+  contact_name: 'pet-report-contact_name',
+  contact_phone: 'pet-report-contact_phone',
+  contact_email: 'pet-report-contact_email',
 };
 
 const FIELD_LABELS = {
@@ -61,6 +64,9 @@ const FIELD_LABELS = {
   longitude: 'Kinh độ',
   images: 'Ảnh thú cưng',
   address_detail: 'Địa chỉ cụ thể',
+  contact_name: 'Tên người liên hệ',
+  contact_phone: 'Số điện thoại',
+  contact_email: 'Email',
 };
 
 function normalizeAddressSearch(value = '') {
@@ -132,6 +138,9 @@ function buildPetReportPayload(formData) {
     post_type: formData.post_type,
     species: formData.species,
     gender: formData.gender || null,
+    contact_name: formData.contact_name.trim(),
+    contact_phone: formData.contact_phone.trim(),
+    contact_email: formData.contact_email.trim(),
 
     address_detail: formData.address_detail,
     province: formData.province || null,
@@ -885,13 +894,12 @@ export default function PetReportPage({
 
               <div className="pet-report-review__row">
                 <dt>Địa chỉ cụ thể</dt>
-                <dd>{payload.location_text}</dd>
+                <dd>{[payload.address_detail, payload.ward, payload.province].filter(Boolean).join(', ')}</dd>
               </div>
 
-              <div className="pet-report-review__row">
-                <dt>Vị trí bản đồ</dt>
-                <dd>{payload.latitude !== null ? `${payload.latitude}, ${payload.longitude}` : 'Chưa xác nhận ghim'}</dd>
-              </div>
+              <div className="pet-report-review__row"><dt>Người liên hệ</dt><dd>{payload.contact_name}</dd></div>
+              <div className="pet-report-review__row"><dt>Số điện thoại</dt><dd>{payload.contact_phone}</dd></div>
+              <div className="pet-report-review__row"><dt>Email</dt><dd>{payload.contact_email}</dd></div>
 
             </dl>
 
@@ -1540,6 +1548,13 @@ export default function PetReportPage({
 
           </div>
 
+
+          <section className="pet-report-contact-fields">
+            <h2 className="pet-report-section-title">Thông tin liên hệ</h2>
+            <div className="pet-report-field"><label htmlFor="pet-report-contact_name" className="pet-report-label">Họ và tên <span className="pet-report-required">*</span></label><input id="pet-report-contact_name" name="contact_name" className="pet-report-input" value={formData.contact_name} onChange={handleInputChange} autoComplete="name" /><FieldError id="pet-report-contact_name-error" message={errors.contact_name} /></div>
+            <div className="pet-report-field"><label htmlFor="pet-report-contact_phone" className="pet-report-label">Số điện thoại <span className="pet-report-required">*</span></label><input id="pet-report-contact_phone" name="contact_phone" type="tel" className="pet-report-input" value={formData.contact_phone} onChange={handleInputChange} autoComplete="tel" /><FieldError id="pet-report-contact_phone-error" message={errors.contact_phone} /></div>
+            <div className="pet-report-field"><label htmlFor="pet-report-contact_email" className="pet-report-label">Email <span className="pet-report-required">*</span></label><input id="pet-report-contact_email" name="contact_email" type="email" className="pet-report-input" value={formData.contact_email} onChange={handleInputChange} autoComplete="email" /><FieldError id="pet-report-contact_email-error" message={errors.contact_email} /></div>
+          </section>
 
           {/* FORM ACTION */}
 
