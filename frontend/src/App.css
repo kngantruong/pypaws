@@ -159,7 +159,7 @@ img {
 
 .nav-links a {
   color: #725b4d;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   transition: color 0.2s ease;
 }
@@ -1063,11 +1063,6 @@ img {
   html {
     scroll-padding-top: 15px;
   }
-   .nav-links .nav-report-trigger {
-      font-size: 10px;
-      font-weight: 700;
-      font-family: inherit;
-    }
   .navbar {
     min-height: 72px;
     flex-wrap: wrap;
@@ -1095,8 +1090,13 @@ img {
     border-top: 1px solid #f0e4d8;
   }
 
-  .nav-links a {
-    font-size: 10px;
+  .nav-links a,
+  .nav-links .nav-report-trigger {
+    font-size: 12px;
+  }
+
+  .nav-report-menu button {
+    font-size: 12px;
   }
     .nav-links .nav-report-select {
       font-family: inherit;
@@ -1464,7 +1464,7 @@ img {
   background: transparent;
   color: #725b4d;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   transition: color 0.2s ease;
   cursor: pointer;
@@ -1517,7 +1517,7 @@ img {
   background: transparent;
   color: #5b4638;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
 }
