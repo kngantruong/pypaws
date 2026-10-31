@@ -1,4 +1,4 @@
-function MatchCard({ match, onViewDetail, onContact }) {
+function MatchCard({ match, onViewDetail, onContact, onReject }) {
   const speciesLabel = {
     DOG: 'Chó',
     CAT: 'Mèo',
@@ -6,25 +6,25 @@ function MatchCard({ match, onViewDetail, onContact }) {
 
   const formatDate = (date) => {
     if (!date) return 'Chưa cập nhật'
-
     const parsedDate = new Date(date)
-
-    if (Number.isNaN(parsedDate.getTime())) {
-      return 'Chưa cập nhật'
-    }
-
+    if (Number.isNaN(parsedDate.getTime())) return 'Chưa cập nhật'
     return parsedDate.toLocaleDateString('vi-VN')
   }
+
+  const scoreParts = [
+    ['Hình ảnh', match.image_score],
+    ['Địa điểm', match.location_score],
+    ['Thời gian', match.time_score],
+  ].filter(([, value]) => typeof value === 'number')
 
   return (
     <article className="matching-card">
       <div className="matching-card-image">
         <img
           src={match.image_url || '/placeholder-pet.png'}
-          alt={match.pet_name || 'Thú cưng'}
+          alt={match.pet_name || 'Thú cưng được tìm thấy'}
         />
-
-        <span className="matching-card-status">Đang tìm chủ</span>
+        <span className="matching-card-status">Bài FOUND</span>
       </div>
 
       <div className="matching-card-content">
@@ -34,13 +34,30 @@ function MatchCard({ match, onViewDetail, onContact }) {
         </div>
 
         <div className="matching-card-info">
-          <p>Tuổi: {match.age || 'Chưa cập nhật'}</p>
           <p>Khu vực: {match.location_text || 'Chưa cập nhật'}</p>
-          <p>Ngày đăng: {formatDate(match.created_at)}</p>
+          <p>Thời gian nhìn thấy: {formatDate(match.event_time || match.created_at)}</p>
         </div>
 
         <p className="matching-card-description">
           {match.description || 'Chưa có mô tả cho thú cưng này.'}
+        </p>
+
+        {typeof match.final_score === 'number' && (
+          <div className="matching-score" aria-label="Điểm tương đồng do hệ thống tính">
+            <strong>Điểm tương đồng: {(match.final_score * 100).toFixed(1)}%</strong>
+            {scoreParts.length > 0 && (
+              <ul>
+                {scoreParts.map(([label, value]) => (
+                  <li key={label}>{label}: {(value * 100).toFixed(1)}%</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <p className="matching-contact-privacy">
+          Thông tin liên hệ của người đăng đang được bảo vệ. Chỉ hiển thị khi bạn
+          chủ động chọn liên hệ.
         </p>
 
         <div className="matching-card-actions">
@@ -57,7 +74,15 @@ function MatchCard({ match, onViewDetail, onContact }) {
             className="matching-contact-button"
             onClick={() => onContact?.(match)}
           >
-            Liên hệ
+            Liên hệ người đăng
+          </button>
+
+          <button
+            type="button"
+            className="matching-reject-button"
+            onClick={() => onReject?.(match)}
+          >
+            Không phải thú cưng của tôi
           </button>
         </div>
       </div>
