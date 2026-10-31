@@ -124,6 +124,11 @@ function App() {
   const [user, setUser] = useState(null)
   const [userReports, setUserReports] = useState(reports)
   const [myReports, setMyReports] = useState([])
+  const [notifications, setNotifications] = useState([
+    { id: 'demo-match-1', type: 'MATCH', title: 'Tìm thấy bài đăng có thể phù hợp', message: 'PYPAWS AI phát hiện một bài FOUND có đặc điểm tương đồng với tin LOST của bạn. Nhấn để xem kết quả matching.', created_at: '2026-10-31T19:45:00+07:00', is_read: false, post_id: 1 },
+    { id: 'demo-match-2', type: 'MATCH', title: 'Có thêm kết quả matching mới', message: 'Một bài đăng FOUND mới có thể liên quan đến bé cún bạn đang tìm.', created_at: '2026-10-31T18:20:00+07:00', is_read: false, post_id: 3 },
+    { id: 'demo-system-1', type: 'SYSTEM', title: 'Tin LOST đang được hiển thị', message: 'Tin tìm thú cưng của bạn đã được đăng thành công trên PYPAWS.', created_at: '2026-10-31T16:10:00+07:00', is_read: true, post_id: 1 },
+  ])
   const [activeLostReport, setActiveLostReport] = useState(reports[0])
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState('info')
@@ -135,8 +140,19 @@ function App() {
   setInitialPostType('LOST')
   setCurrentPage('report')
   }
-  // Chưa có API thông báo kết nối từ backend; để rỗng thay vì hiển thị dữ liệu ghép trùng giả.
-  const notifications = []
+  const unreadNotificationCount = notifications.filter((item) => !item.is_read).length
+  const handleOpenNotification = (notification) => {
+    setNotifications((previous) => previous.map((item) => item.id === notification.id ? { ...item, is_read: true } : item))
+    const relatedReport = userReports.find((item) => String(item.post_id) === String(notification.post_id)) || reports.find((item) => String(item.post_id) === String(notification.post_id))
+    if (relatedReport?.post_type === 'LOST') {
+      setActiveLostReport(relatedReport)
+      setCurrentPage('matching-results')
+    } else {
+      setProfileInitialTab('reports')
+      setCurrentPage('profile')
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const handleLocalReportSubmit = (payload, images, coverIndex) => {
     const imageUrls = images.map((file) => URL.createObjectURL(file))
     const newReport = {
@@ -277,21 +293,32 @@ function App() {
           </button>
         ) : (
           <div className="nav-user-actions">
-            <button
-              type="button"
-              className="nav-notification-button"
-              aria-label="Xem thông báo"
-              title="Thông báo"
-              onClick={() => {
-                setProfileInitialTab('notifications')
-                setCurrentPage('profile')
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-                <path d="M10 21h4" />
-              </svg>
-            </button>
+            <div className="nav-notification-wrap">
+              <button type="button" className="nav-notification-button" aria-label="Xem thông báo" title="Thông báo">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                  <path d="M10 21h4" />
+                </svg>
+                {unreadNotificationCount > 0 && <span className="nav-notification-count">{unreadNotificationCount}</span>}
+              </button>
+              <div className="nav-notification-dropdown">
+                <div className="nav-notification-heading"><strong>Thông báo</strong><span>{unreadNotificationCount} chưa đọc</span></div>
+                <div className="nav-notification-list">
+                  {notifications.map((notification) => (
+                    <button type="button" key={notification.id} className={`nav-notification-item ${notification.is_read ? 'read' : 'unread'}`} onClick={() => handleOpenNotification(notification)}>
+                      <span className="nav-notification-item-icon">{notification.type === 'MATCH' ? '🔎' : 'ℹ️'}</span>
+                      <span className="nav-notification-item-content">
+                        <strong>{notification.title}</strong>
+                        <span>{notification.message}</span>
+                        <small>{new Date(notification.created_at).toLocaleString('vi-VN')}</small>
+                      </span>
+                      {!notification.is_read && <i aria-label="Chưa đọc" />}
+                    </button>
+                  ))}
+                </div>
+                <button type="button" className="nav-notification-see-all" onClick={() => { setProfileInitialTab('notifications'); setCurrentPage('profile') }}>Xem tất cả thông báo</button>
+              </div>
+            </div>
 
             <div className="nav-report-dropdown">
               <button
