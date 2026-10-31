@@ -1472,11 +1472,11 @@ export default function PetReportPage({
                 type="button"
                 className="pet-report-map-search"
                 onClick={handleSearchLocation}
-                disabled={isSearchingLocation}
+                disabled={isSearchingLocation || !formData.province || !formData.ward}
               >
                 {isSearchingLocation
-                  ? 'Đang tìm vị trí...'
-                  : 'Tìm vị trí'}
+                  ? 'Đang định vị khu vực...'
+                  : 'Định vị theo phường/xã'}
               </button>
 
 
