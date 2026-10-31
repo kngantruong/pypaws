@@ -271,3 +271,29 @@
     justify-content: flex-start;
   }
 }
+
+
+/* Photo-taking guidance restored below the upload area. */
+.pet-image-uploader .pet-report-image-description {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #f0dfd2;
+  border-radius: 10px;
+  background: #fffaf6;
+  color: var(--piu-text);
+  text-align: left;
+}
+.pet-image-uploader .pet-report-image-description strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.8125rem;
+}
+.pet-image-uploader .pet-report-image-description ul {
+  margin: 0;
+  padding-left: 19px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+.pet-image-uploader .pet-report-image-description li {
+  margin: 2px 0;
+}
