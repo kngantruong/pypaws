@@ -342,9 +342,7 @@ function App() {
             <h1>
               Mỗi dấu chân
               <br />
-              đều dẫn lối
-              <br />
-              <span>về nhà.</span>
+              đều dẫn lối <span>về nhà.</span>
             </h1>
 
             <p className="hero-description">
