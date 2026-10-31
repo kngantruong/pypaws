@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import mascot from '../../assets/logo/pypaws_mascot.png'
 import { getProvinces, getWards } from '../pet-report/data/vietnamAddress.js'
 import './all-reports.css'
@@ -184,7 +184,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
         ) : (
           <div className="all-reports-empty">
             <h3>Không tìm thấy báo cáo phù hợp</h3>
-            <p>Hãy thử thay đổi từ khóa hoặc bộ lọc để xem các báo cáo khác.</p>
+            <p>Hãy thử thay đổi bộ lọc khu vực hoặc thời gian để xem các báo cáo khác.</p>
             <button type="button" onClick={resetFilters}>Xóa bộ lọc</button>
           </div>
         )}
