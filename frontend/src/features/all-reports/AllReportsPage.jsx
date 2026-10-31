@@ -75,7 +75,7 @@ function AllReportsPage({ reports = [], onCreateReport, onBackHome }) {
   }
 
   const getStatusLabel = (type) => {
-    return type === 'LOST' ? 'Lost' : 'Found'
+    return type === 'LOST' ? 'LOST' : 'FOUND'
   }
 
   return (
