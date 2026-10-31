@@ -12,19 +12,19 @@ function MatchingResultsPage({
   onBackHome,
 }) {
   const [sortBy, setSortBy] = useState('newest')
-  const [speciesFilter, setSpeciesFilter] = useState('ALL')
 
   // Backend is responsible for calculating the combined image, location,
   // and time score. The UI must never decide whether a candidate qualifies.
   // Only records explicitly marked passed_threshold are eligible for display.
   const eligibleMatches = useMemo(
-    () => matches.filter((item) => item.passed_threshold === true),
+    () => matches.filter(
+      (item) => item.passed_threshold === true && item.species === lostReport?.species,
+    ),
     [matches],
   )
 
   const filteredMatches = useMemo(() => {
     return eligibleMatches
-      .filter((item) => speciesFilter === 'ALL' || item.species === speciesFilter)
       .sort((a, b) => {
         if (sortBy === 'oldest') {
           return new Date(a.created_at || 0) - new Date(b.created_at || 0)
@@ -32,7 +32,7 @@ function MatchingResultsPage({
 
         return new Date(b.created_at || 0) - new Date(a.created_at || 0)
       })
-  }, [eligibleMatches, speciesFilter, sortBy])
+  }, [eligibleMatches, sortBy])
 
   return (
     <main className="matching-page">
@@ -40,7 +40,6 @@ function MatchingResultsPage({
         <section className="matching-hero">
           <p className="matching-eyebrow">PYPAWS AI MATCHING</p>
           <h1>Kết quả tìm kiếm của bạn</h1>
-          <p>PYPAWS chỉ hiển thị những bài FOUND đạt ngưỡng đề xuất do hệ thống AI xác định.</p>
         </section>
 
         <SearchSummary report={lostReport} />
@@ -58,16 +57,6 @@ function MatchingResultsPage({
           </div>
 
           <div className="matching-filters">
-            <select
-              value={speciesFilter}
-              onChange={(event) => setSpeciesFilter(event.target.value)}
-              aria-label="Lọc theo loài"
-            >
-              <option value="ALL">Tất cả</option>
-              <option value="DOG">Chó</option>
-              <option value="CAT">Mèo</option>
-            </select>
-
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
