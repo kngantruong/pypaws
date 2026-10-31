@@ -48,11 +48,6 @@ function MatchingResultsPage({
           <div className="matching-section-heading">
             <div>
               <h2>Các bài đăng có thể liên quan</h2>
-              <p>
-                {filteredMatches.length > 0
-                  ? `Có ${filteredMatches.length} bài FOUND đạt ngưỡng đề xuất.`
-                  : 'Chưa có bài FOUND nào đạt ngưỡng đề xuất.'}
-              </p>
             </div>
           </div>
 
