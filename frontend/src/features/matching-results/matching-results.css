@@ -1011,3 +1011,34 @@
   .matching-card-actions .matching-reject-button { grid-column: auto; }
   .matching-detail-button, .matching-contact-button { white-space: normal; }
 }
+
+
+/* Final matching-page polish: wider cards and one consistent orange palette. */
+.matching-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.matching-card { border-radius: 20px; }
+.matching-card-image { height: 225px; }
+.matching-card-content { padding: 20px; }
+.matching-card-quick-info { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; scrollbar-width: thin; }
+.matching-detail-button,
+.matching-contact-button,
+.matching-resolution-trigger,
+.matching-modal-primary {
+  min-height: 44px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.matching-detail-button { border-color: #e4b993; background: #fff9f3; color: #a85e32; }
+.matching-detail-button:hover { background: #fff0e3; }
+.matching-contact-button,
+.matching-resolution-trigger,
+.matching-modal-primary {
+  border-color: #df874c;
+  background: #df874c;
+  color: #fff;
+}
+.matching-contact-button:hover,
+.matching-resolution-trigger:hover,
+.matching-modal-primary:hover { border-color: #c96f37; background: #c96f37; }
+.matching-reject-button { border-radius: 999px; }
+@media (max-width: 1024px) { .matching-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 600px) { .matching-grid { grid-template-columns: 1fr; } .matching-card-quick-info { flex-wrap: wrap; white-space: normal; } }
