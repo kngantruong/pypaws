@@ -421,3 +421,14 @@
   .my-report-modal-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .my-report-modal dl > div { grid-template-columns:115px minmax(0,1fr); }
 }
+
+
+/* Keep report descriptions compact on the profile cards; full text stays in detail view. */
+.my-report-info .my-report-card-description {
+  display: -webkit-box;
+  max-width: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.5;
+}
