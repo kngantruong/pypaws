@@ -1803,3 +1803,164 @@ img {
 }
 
 .nav-notification-wrap.open .nav-notification-dropdown { display: block; }
+
+
+/* --------------------------------------------------
+   PYPAWS DESIGN SYSTEM — typography and UI refinement
+-------------------------------------------------- */
+:root {
+  --font-ui: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: clamp(1.75rem, 3vw, 2.4rem);
+  --font-size-display: clamp(2.35rem, 5vw, 3.7rem);
+  --text-primary: #49352c;
+  --text-secondary: #79685e;
+  --text-muted: #9b887b;
+  --surface: #fffdf9;
+  --surface-soft: #fff6ec;
+  --line-soft: #efe3d7;
+  --radius-card: 20px;
+  --shadow-card: 0 12px 34px rgba(73, 53, 44, 0.07);
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+}
+
+body {
+  font-size: var(--font-size-md);
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+button,
+input,
+textarea,
+select {
+  font-size: inherit;
+}
+
+h1, h2, h3, h4 {
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+.nav-links a,
+.nav-report-trigger,
+.nav-report-menu button {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.nav-cta,
+.primary-btn,
+.secondary-btn,
+.outline-link,
+.closing-btn {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.section-heading h2,
+.ai-content h2,
+.closing-content h2 {
+  font-size: var(--font-size-2xl);
+  line-height: 1.25;
+  letter-spacing: -0.04em;
+}
+
+.section-heading > p,
+.hero-description,
+.ai-content > p,
+.closing-content p {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.tool-card,
+.report-card,
+.adoption-card {
+  border-color: var(--line-soft);
+  border-radius: var(--radius-card);
+  box-shadow: 0 8px 26px rgba(73, 53, 44, 0.045);
+}
+
+.tool-card:hover,
+.report-card:hover,
+.adoption-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.report-body h3,
+.tool-card h3,
+.adoption-body h3 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+
+.report-date,
+.report-location,
+.report-description,
+.report-link,
+.demo-note {
+  font-size: 0.875rem;
+}
+
+.report-description {
+  line-height: 1.75;
+}
+
+.status-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.eyebrow,
+.tool-kicker,
+.adoption-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+input,
+textarea,
+select {
+  letter-spacing: 0;
+}
+
+@media (max-width: 700px) {
+  body { font-size: 0.9rem; }
+  .hero h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .section-heading h2,
+  .ai-content h2,
+  .closing-content h2 { font-size: clamp(1.65rem, 7vw, 2.1rem); }
+  .section-heading > p,
+  .hero-description,
+  .ai-content > p,
+  .closing-content p { font-size: 0.9rem; }
+  .report-date,
+  .report-location,
+  .report-description,
+  .report-link { font-size: 0.85rem; }
+}
