@@ -12,10 +12,8 @@ function MatchingResultsPage({
   onBackHome,
 }) {
   const [sortBy, setSortBy] = useState('newest')
+  const [selectedMatch, setSelectedMatch] = useState(null)
 
-  // Backend is responsible for calculating the combined image, location,
-  // and time score. The UI must never decide whether a candidate qualifies.
-  // Only records explicitly marked passed_threshold are eligible for display.
   const eligibleMatches = useMemo(
     () => matches.filter(
       (item) => item.passed_threshold === true && item.species === lostReport?.species,
@@ -23,16 +21,24 @@ function MatchingResultsPage({
     [matches, lostReport?.species],
   )
 
-  const filteredMatches = useMemo(() => {
-    return eligibleMatches
-      .sort((a, b) => {
-        if (sortBy === 'oldest') {
-          return new Date(a.created_at || 0) - new Date(b.created_at || 0)
-        }
+  const filteredMatches = useMemo(() => [...eligibleMatches].sort((a, b) => {
+    if (sortBy === 'oldest') return new Date(a.created_at || 0) - new Date(b.created_at || 0)
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  }), [eligibleMatches, sortBy])
 
-        return new Date(b.created_at || 0) - new Date(a.created_at || 0)
-      })
-  }, [eligibleMatches, sortBy])
+  const detailImages = selectedMatch
+    ? (selectedMatch.images?.length ? selectedMatch.images : selectedMatch.image_url ? [selectedMatch.image_url] : [])
+    : []
+
+  const formatDateTime = (value) => {
+    if (!value) return 'Chưa cập nhật'
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
+    return date.toLocaleString('vi-VN', {
+      hour: '2-digit', minute: '2-digit', weekday: 'long',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+    })
+  }
 
   return (
     <main className="matching-page">
@@ -46,17 +52,10 @@ function MatchingResultsPage({
 
         <section className="matching-results-section">
           <div className="matching-section-heading">
-            <div>
-              <h2>Các bài đăng có thể liên quan</h2>
-            </div>
+            <div><h2>Các bài đăng có thể liên quan</h2></div>
           </div>
-
           <div className="matching-filters">
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              aria-label="Sắp xếp kết quả"
-            >
+            <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sắp xếp kết quả">
               <option value="newest">Bài mới nhất</option>
               <option value="oldest">Bài cũ nhất</option>
             </select>
@@ -65,15 +64,8 @@ function MatchingResultsPage({
           {filteredMatches.length === 0 ? (
             <div className="matching-empty-state">
               <h3>Hiện chưa có bài đăng phù hợp</h3>
-              <p>
-                PYPAWS sẽ tiếp tục tìm kiếm. Khi có bài FOUND mới đạt ngưỡng
-                tương đồng, bạn sẽ nhận được thông báo trong tài khoản.
-              </p>
-              {onBackHome && (
-                <button type="button" onClick={onBackHome}>
-                  Về trang chủ
-                </button>
-              )}
+              <p>PYPAWS sẽ tiếp tục tìm kiếm. Khi có bài FOUND mới đạt ngưỡng tương đồng, bạn sẽ nhận được thông báo trong tài khoản.</p>
+              {onBackHome && <button type="button" onClick={onBackHome}>Về trang chủ</button>}
             </div>
           ) : (
             <div className="matching-grid">
@@ -81,7 +73,10 @@ function MatchingResultsPage({
                 <MatchCard
                   key={match.candidate_id || match.post_id}
                   match={match}
-                  onViewDetail={onViewDetail}
+                  onViewDetail={(item) => {
+                    setSelectedMatch(item)
+                    onViewDetail?.(item)
+                  }}
                   onContact={onContact}
                   onReject={onReject}
                 />
@@ -90,6 +85,32 @@ function MatchingResultsPage({
           )}
         </section>
       </div>
+
+      {selectedMatch && (
+        <div className="matching-detail-backdrop" role="presentation" onClick={() => setSelectedMatch(null)}>
+          <section className="matching-detail-modal" role="dialog" aria-modal="true" aria-labelledby="matching-detail-title" onClick={(event) => event.stopPropagation()}>
+            <button className="matching-detail-close" type="button" onClick={() => setSelectedMatch(null)} aria-label="Đóng">×</button>
+            <h2 id="matching-detail-title">Chi tiết bài FOUND</h2>
+            <div className="matching-detail-gallery">
+              {detailImages.length ? detailImages.map((src, index) => (
+                <img key={src || index} src={src} alt={`Ảnh thú cưng ${index + 1}`} />
+              )) : <p>Chưa có hình ảnh.</p>}
+            </div>
+            <dl className="matching-detail-data">
+              <div><dt>Loài:</dt><dd>{selectedMatch.species === 'DOG' ? 'Chó' : selectedMatch.species === 'CAT' ? 'Mèo' : 'Chưa xác định'}</dd></div>
+              <div><dt>Giới tính:</dt><dd>{selectedMatch.gender === 'MALE' ? 'Đực' : selectedMatch.gender === 'FEMALE' ? 'Cái' : 'Chưa xác định'}</dd></div>
+              <div><dt>Thời gian:</dt><dd>{formatDateTime(selectedMatch.event_time || selectedMatch.created_at)}</dd></div>
+              <div><dt>Địa chỉ:</dt><dd>{[selectedMatch.address_detail, selectedMatch.ward, selectedMatch.province].filter(Boolean).join(', ') || selectedMatch.location_text || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Đặc điểm:</dt><dd>{selectedMatch.description || 'Chưa cung cấp'}</dd></div>
+              {selectedMatch.notes && <div><dt>Ghi chú:</dt><dd>{selectedMatch.notes}</dd></div>}
+            </dl>
+            <div className="matching-detail-modal-actions">
+              <button type="button" className="matching-contact-button" onClick={() => onContact?.(selectedMatch)}>Liên hệ người đăng</button>
+              <button type="button" className="matching-detail-button" onClick={() => setSelectedMatch(null)}>Đóng</button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
