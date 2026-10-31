@@ -376,6 +376,11 @@ function App() {
       <ProfilePage
         user={user}
         reports={myReports}
+        onOpenLostMatching={(report) => {
+          setActiveLostReport(report)
+          setCurrentPage('matching-results')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
         notifications={notifications}
         initialTab={profileInitialTab}
       />
