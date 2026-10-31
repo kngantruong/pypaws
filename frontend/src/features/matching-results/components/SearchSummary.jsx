@@ -50,6 +50,10 @@ function SearchSummary({ report }) {
               <div><dt>Địa chỉ:</dt><dd>{fullAddress}</dd></div>
               <div><dt>Đặc điểm:</dt><dd>{report.description || 'Chưa cung cấp'}</dd></div>
               {report.notes && <div><dt>Ghi chú:</dt><dd>{report.notes}</dd></div>}
+              <div className="matching-summary-contact-heading"><dt>Thông tin liên hệ</dt><dd></dd></div>
+              <div><dt>Người liên hệ:</dt><dd>{report.contact_name || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Số điện thoại:</dt><dd>{report.contact_phone || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Email:</dt><dd>{report.contact_email || 'Chưa cập nhật'}</dd></div>
             </dl>
           </section>
 
