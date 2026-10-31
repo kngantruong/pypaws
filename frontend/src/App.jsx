@@ -575,71 +575,60 @@ function App() {
               <div>
                 <span className="eyebrow">CỘNG ĐỒNG PYPAWS</span>
                 <h2>Cùng nhau tìm bé về nhà</h2>
-                <p>
-                  Theo dõi báo cáo mới và chia sẻ thông tin để giúp các bé sớm trở về nhà.
-                </p>
+                <p>Theo dõi báo cáo mới và chia sẻ thông tin để giúp các bé sớm trở về nhà.</p>
               </div>
-
               <button
-              type="button"
-              className="outline-link"
-              onClick={() => {
-                setCurrentPage('all-reports')
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-              }}
-            >
-              Xem tất cả <span>→</span>
-            </button>
+                type="button"
+                className="outline-link"
+                onClick={() => {
+                  setCurrentPage('all-reports')
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+              >
+                Xem tất cả <span>→</span>
+              </button>
             </div>
 
             <div className="report-grid">
-              {userReports.filter((report) => report.status === 'ACTIVE').slice(0, 3).map((report) => (
-                <article className="report-card" key={report.post_id}>
-                  <div className="report-image-wrap">
-                    <img src={report.image_url || report.cover_image_url || mascot} alt={report.pet_name || 'Thú cưng trong báo cáo'} />
-
-                    <span
-                      className={`status-pill status-${report.post_type.toLowerCase()}`}
-                    >
-                      <span />
-                      {postTypeLabel[report.post_type]}
-                    </span>
-                  </div>
-
-                  <div className="report-body">
-                    <span className="report-date">
-                      {report.created_at
-                        ? new Date(report.created_at).toLocaleDateString(
-                            'vi-VN',
-                          )
-                        : 'Thông tin minh họa'}
-                    </span>
-
-                    <h3>
-                      {speciesLabel[report.species]}{' '}
-                      {report.post_type === 'LOST'
-                        ? 'thất lạc'
-                        : 'được tìm thấy'}
-                    </h3>
-
-                    <p className="report-location">
-                      <span aria-hidden="true">⌖</span>{' '}
-                      {report.location_text || 'Chưa cập nhật địa điểm'}
-                    </p>
-
-                    <p className="report-description">
-                      {report.description}
-                    </p>
-
-                    <a className="report-link" href="#report-options">
-                      Xem hướng dẫn báo tin <span>→</span>
-                    </a>
-                  </div>
-                </article>
-              ))}
+              {userReports.filter((report) => report.status === 'ACTIVE').slice(0, 3).map((report) => {
+                const eventTime = report.event_time || report.lost_time || report.found_time
+                const formattedTime = eventTime && !Number.isNaN(new Date(eventTime).getTime())
+                  ? new Date(eventTime).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+                  : 'Chưa cập nhật thời gian'
+                const gender = ({ MALE: 'Đực', FEMALE: 'Cái', UNKNOWN: 'Chưa xác định' })[report.gender || report.sex] || 'Chưa xác định'
+                return (
+                  <article className="report-card" key={report.post_id}>
+                    <div className="report-image-wrap">
+                      <img src={report.image_url || report.cover_image_url || mascot} alt={speciesLabel[report.species] || 'Thú cưng'} />
+                      <span className={`status-pill status-${(report.post_type || 'FOUND').toLowerCase()}`}>
+                        {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
+                      </span>
+                    </div>
+                    <div className="report-body">
+                      <div className="report-title-row">
+                        <h3>{speciesLabel[report.species] || 'Thú cưng'}</h3>
+                      </div>
+                      <div className="report-quick-info">
+                        <span>📍 {report.location_text || [report.address_detail, report.ward, report.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa điểm'}</span>
+                        <span>🕒 {formattedTime}</span>
+                        <span>⚧ {gender}</span>
+                      </div>
+                      <p className="report-description">{report.description || 'Chưa có mô tả.'}</p>
+                      <button
+                        type="button"
+                        className="report-link"
+                        onClick={() => {
+                          setCurrentPage('all-reports')
+                          window.scrollTo({ top: 0, behavior: 'smooth' })
+                        }}
+                      >
+                        Xem tất cả báo cáo <span>→</span>
+                      </button>
+                    </div>
+                  </article>
+                )
+              })}
             </div>
-
-
           </div>
         </section>
 
