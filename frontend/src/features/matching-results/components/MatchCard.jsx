@@ -11,12 +11,6 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
     return parsedDate.toLocaleDateString('vi-VN')
   }
 
-  const scoreParts = [
-    ['Hình ảnh', match.image_score],
-    ['Địa điểm', match.location_score],
-    ['Thời gian', match.time_score],
-  ].filter(([, value]) => typeof value === 'number')
-
   return (
     <article className="matching-card">
       <div className="matching-card-image">
@@ -24,7 +18,7 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
           src={match.image_url || '/placeholder-pet.png'}
           alt={match.pet_name || 'Thú cưng được tìm thấy'}
         />
-        <span className="matching-card-status">Bài FOUND</span>
+        <span className="matching-card-status">FOUND</span>
       </div>
 
       <div className="matching-card-content">
@@ -45,13 +39,6 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         {typeof match.final_score === 'number' && (
           <div className="matching-score" aria-label="Điểm tương đồng do hệ thống tính">
             <strong>Điểm tương đồng: {(match.final_score * 100).toFixed(1)}%</strong>
-            {scoreParts.length > 0 && (
-              <ul>
-                {scoreParts.map(([label, value]) => (
-                  <li key={label}>{label}: {(value * 100).toFixed(1)}%</li>
-                ))}
-              </ul>
-            )}
           </div>
         )}
 
