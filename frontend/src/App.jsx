@@ -173,6 +173,29 @@ function App() {
     }
     return newReport
   }
+
+  const handleResolveLostReport = ({ source, foundPost, lostReport }) => {
+    const lostId = String(lostReport?.post_id)
+    const foundId = foundPost ? String(foundPost.post_id) : null
+    const updateReport = (report) => {
+      if (String(report.post_id) === lostId) return { ...report, status: 'RESOLVED' }
+      if (source === 'PYPAWS' && foundId && String(report.post_id) === foundId) return { ...report, status: 'RESOLVED' }
+      return report
+    }
+    setUserReports((previous) => previous.map(updateReport))
+    setMyReports((previous) => {
+      const hasLost = previous.some((item) => String(item.post_id) === lostId)
+      const updated = previous.map(updateReport)
+      if (!hasLost) updated.unshift({ ...lostReport, status: 'RESOLVED' })
+      if (source === 'PYPAWS' && foundPost && !updated.some((item) => String(item.post_id) === foundId)) updated.unshift({ ...foundPost, post_type: 'FOUND', status: 'RESOLVED' })
+      return updated
+    })
+    setActiveLostReport((previous) => previous && String(previous.post_id) === lostId ? { ...previous, status: 'RESOLVED' } : previous)
+    setCurrentPage('profile')
+    setProfileInitialTab('reports')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleReportNavigation = (e) => {
   const value = e.target.value
 
@@ -359,7 +382,7 @@ function App() {
       )}
      {currentPage === 'all-reports' ? (
         <AllReportsPage
-            reports={userReports}
+            reports={userReports.filter((item) => item.status === 'ACTIVE')}
             onCreateReport={handleCreateReport}
             onBackHome={() => {
           setCurrentPage('home')
@@ -391,6 +414,7 @@ function App() {
       <MatchingResultsPage
         lostReport={activeLostReport || reports[0]}
         matches={matchingResults.filter((item) => item.species === (activeLostReport || reports[0]).species)}
+        onResolve={handleResolveLostReport}
         onBackHome={() => setCurrentPage('home')}
         onViewDetail={(match) => {
           console.log('Xem chi tiết thú cưng:', match)
@@ -560,7 +584,7 @@ function App() {
             </div>
 
             <div className="report-grid">
-              {userReports.map((report) => (
+              {userReports.filter((report) => report.status === 'ACTIVE').map((report) => (
                 <article className="report-card" key={report.post_id}>
                   <div className="report-image-wrap">
                     <img src={mascot} alt="Linh vật PyPaws" />
