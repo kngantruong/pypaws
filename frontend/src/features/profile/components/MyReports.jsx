@@ -1,7 +1,7 @@
 
 import { useState } from 'react'
 
-function MyReports({ reports = [] }) {
+function MyReports({ reports = [], onOpenLostMatching }) {
   const myReports = reports
   const [selectedReport, setSelectedReport] = useState(null)
   const imagesOf = (report) => {
@@ -59,14 +59,14 @@ function MyReports({ reports = [] }) {
 
                 <h3>{`Tin đăng #${report.post_id}`}</h3>
 
-                <p>{report.description || 'Chưa có mô tả.'}</p>
+                <p className="my-report-card-description">{report.description || 'Chưa có mô tả.'}</p>
 
                 <span className="my-report-location">
                   {report.location_text || 'Chưa cập nhật địa điểm'}
                 </span>
 
                 <span className="my-report-status">{getStatusLabel(report.status)}</span>
-                <button type="button" className="my-report-detail-button" onClick={() => setSelectedReport(report)}>Xem chi tiết</button>
+                <button type="button" className="my-report-detail-button" onClick={() => report.post_type === 'LOST' ? onOpenLostMatching?.(report) : setSelectedReport(report)}>Xem chi tiết</button>
               </div>
             </article>
           ))}
