@@ -1,5 +1,4 @@
-
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import SearchSummary from './components/SearchSummary'
 import MatchCard from './components/MatchCard'
 import './matching-results.css'
@@ -9,30 +8,39 @@ function MatchingResultsPage({
   matches = [],
   onViewDetail,
   onContact,
+  onReject,
   onBackHome,
 }) {
   const [sortBy, setSortBy] = useState('newest')
   const [speciesFilter, setSpeciesFilter] = useState('ALL')
 
-  const filteredMatches = matches
-    .filter((item) => {
-      return speciesFilter === 'ALL' || item.species === speciesFilter
-    })
-    .sort((a, b) => {
-      if (sortBy === 'oldest') {
-        return new Date(a.created_at) - new Date(b.created_at)
-      }
+  // Backend is responsible for calculating the combined image, location,
+  // and time score. The UI must never decide whether a candidate qualifies.
+  // Only records explicitly marked passed_threshold are eligible for display.
+  const eligibleMatches = useMemo(
+    () => matches.filter((item) => item.passed_threshold === true),
+    [matches],
+  )
 
-      return new Date(b.created_at) - new Date(a.created_at)
-    })
+  const filteredMatches = useMemo(() => {
+    return eligibleMatches
+      .filter((item) => speciesFilter === 'ALL' || item.species === speciesFilter)
+      .sort((a, b) => {
+        if (sortBy === 'oldest') {
+          return new Date(a.created_at || 0) - new Date(b.created_at || 0)
+        }
+
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0)
+      })
+  }, [eligibleMatches, speciesFilter, sortBy])
 
   return (
     <main className="matching-page">
       <div className="matching-container">
-
         <section className="matching-hero">
           <p className="matching-eyebrow">PYPAWS AI MATCHING</p>
-          <h1>Những kết quả dành cho bạn!</h1>
+          <h1>Kết quả tìm kiếm của bạn</h1>
+          <p>PYPAWS chỉ hiển thị những bài FOUND đạt ngưỡng đề xuất do hệ thống AI xác định.</p>
         </section>
 
         <SearchSummary report={lostReport} />
@@ -40,9 +48,11 @@ function MatchingResultsPage({
         <section className="matching-results-section">
           <div className="matching-section-heading">
             <div>
-              <h2>Kết quả tìm kiếm</h2>
+              <h2>Các bài đăng có thể liên quan</h2>
               <p>
-                Tìm thấy {filteredMatches.length} tin đăng được đề xuất.
+                {filteredMatches.length > 0
+                  ? `Có ${filteredMatches.length} bài FOUND đạt ngưỡng đề xuất.`
+                  : 'Chưa có bài FOUND nào đạt ngưỡng đề xuất.'}
               </p>
             </div>
           </div>
@@ -51,6 +61,7 @@ function MatchingResultsPage({
             <select
               value={speciesFilter}
               onChange={(event) => setSpeciesFilter(event.target.value)}
+              aria-label="Lọc theo loài"
             >
               <option value="ALL">Tất cả</option>
               <option value="DOG">Chó</option>
@@ -60,28 +71,35 @@ function MatchingResultsPage({
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
+              aria-label="Sắp xếp kết quả"
             >
-              <option value="newest">Mới nhất</option>
-              <option value="oldest">Cũ nhất</option>
+              <option value="newest">Bài mới nhất</option>
+              <option value="oldest">Bài cũ nhất</option>
             </select>
           </div>
 
           {filteredMatches.length === 0 ? (
             <div className="matching-empty-state">
-              <h3>Chưa tìm thấy kết quả</h3>
+              <h3>Hiện chưa có bài đăng phù hợp</h3>
               <p>
-                Hiện chưa có tin đăng phù hợp với tiêu chí tìm kiếm.
-                Bạn có thể quay lại kiểm tra sau.
+                PYPAWS sẽ tiếp tục tìm kiếm. Khi có bài FOUND mới đạt ngưỡng
+                tương đồng, bạn sẽ nhận được thông báo trong tài khoản.
               </p>
+              {onBackHome && (
+                <button type="button" onClick={onBackHome}>
+                  Về trang chủ
+                </button>
+              )}
             </div>
           ) : (
             <div className="matching-grid">
               {filteredMatches.map((match) => (
                 <MatchCard
-                  key={match.post_id}
+                  key={match.candidate_id || match.post_id}
                   match={match}
                   onViewDetail={onViewDetail}
                   onContact={onContact}
+                  onReject={onReject}
                 />
               ))}
             </div>
