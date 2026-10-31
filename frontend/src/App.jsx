@@ -131,6 +131,7 @@ function App() {
   ])
   const [activeLostReport, setActiveLostReport] = useState(reports[0])
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState('info')
   const [currentPage, setCurrentPage] = useState('home')
   const [initialPostType, setInitialPostType] = useState('LOST')
@@ -293,8 +294,8 @@ function App() {
           </button>
         ) : (
           <div className="nav-user-actions">
-            <div className="nav-notification-wrap">
-              <button type="button" className="nav-notification-button" aria-label="Xem thông báo" title="Thông báo">
+            <div className={`nav-notification-wrap ${isNotificationOpen ? "open" : ""}`} onMouseLeave={() => setIsNotificationOpen(false)}>
+              <button type="button" className="nav-notification-button" aria-label="Xem thông báo" title="Thông báo" aria-expanded={isNotificationOpen} onClick={() => setIsNotificationOpen((open) => !open)}>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
                   <path d="M10 21h4" />
@@ -305,7 +306,7 @@ function App() {
                 <div className="nav-notification-heading"><strong>Thông báo</strong><span>{unreadNotificationCount} chưa đọc</span></div>
                 <div className="nav-notification-list">
                   {notifications.map((notification) => (
-                    <button type="button" key={notification.id} className={`nav-notification-item ${notification.is_read ? 'read' : 'unread'}`} onClick={() => handleOpenNotification(notification)}>
+                    <button type="button" key={notification.id} className={`nav-notification-item ${notification.is_read ? 'read' : 'unread'}`} onClick={() => { setIsNotificationOpen(false); handleOpenNotification(notification) }}>
                       <span className="nav-notification-item-icon">{notification.type === 'MATCH' ? '🔎' : 'ℹ️'}</span>
                       <span className="nav-notification-item-content">
                         <strong>{notification.title}</strong>
@@ -316,7 +317,7 @@ function App() {
                     </button>
                   ))}
                 </div>
-                <button type="button" className="nav-notification-see-all" onClick={() => { setProfileInitialTab('notifications'); setCurrentPage('profile') }}>Xem tất cả thông báo</button>
+                <button type="button" className="nav-notification-see-all" onClick={() => { setIsNotificationOpen(false); setProfileInitialTab('notifications'); setCurrentPage('profile') }}>Xem tất cả thông báo</button>
               </div>
             </div>
 
