@@ -178,7 +178,7 @@ async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
 
   // Chế độ demo frontend: lưu dữ liệu trong state của ứng dụng.
   // Chưa gửi lên server và sẽ được thay bằng API khi backend sẵn sàng.
-  await onSubmitReport(payload, images, coverIndex);
+  return await onSubmitReport(payload, images, coverIndex);
 }
 
 
