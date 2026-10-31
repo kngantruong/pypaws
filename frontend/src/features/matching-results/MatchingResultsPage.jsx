@@ -122,6 +122,41 @@ function MatchingResultsPage({
           </section>
         </div>
       )}
+
+      {contactMatch && (
+        <div className="matching-detail-backdrop" role="presentation" onClick={() => setContactMatch(null)}>
+          <section className="matching-action-modal" role="dialog" aria-modal="true" aria-labelledby="matching-contact-title" onClick={(event) => event.stopPropagation()}>
+            <button className="matching-detail-close" type="button" onClick={() => setContactMatch(null)} aria-label="Đóng">×</button>
+            <h2 id="matching-contact-title">Thông tin người đăng tin FOUND</h2>
+            <p className="matching-modal-demo-note">Thông tin minh họa để kiểm thử giao diện, chưa phải dữ liệu người dùng thật.</p>
+            <dl className="matching-detail-data">
+              <div><dt>Họ và tên:</dt><dd>{contactMatch.contact_name || 'Nguyễn Minh Anh (DEMO)'}</dd></div>
+              <div><dt>Số điện thoại:</dt><dd>{contactMatch.contact_phone || '0901 234 567'}</dd></div>
+              <div><dt>Email:</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
+            </dl>
+            <button type="button" className="matching-modal-primary" onClick={() => setContactMatch(null)}>Đóng</button>
+          </section>
+        </div>
+      )}
+
+      {rejectMatch && (
+        <div className="matching-detail-backdrop" role="presentation" onClick={() => setRejectMatch(null)}>
+          <section className="matching-action-modal" role="dialog" aria-modal="true" aria-labelledby="matching-reject-title" onClick={(event) => event.stopPropagation()}>
+            <button className="matching-detail-close" type="button" onClick={() => setRejectMatch(null)} aria-label="Đóng">×</button>
+            <h2 id="matching-reject-title">Xác nhận từ chối kết quả?</h2>
+            <p>Bạn xác nhận bé <strong>{rejectMatch.pet_name || 'thú cưng này'}</strong> không phải thú cưng bạn đang tìm?</p>
+            <p className="matching-modal-demo-note">Trong bản demo, kết quả sẽ được ẩn khỏi danh sách hiện tại.</p>
+            <div className="matching-modal-actions">
+              <button type="button" className="matching-modal-secondary" onClick={() => setRejectMatch(null)}>Hủy</button>
+              <button type="button" className="matching-modal-primary" onClick={() => {
+                setRejectedIds((previous) => [...previous, rejectMatch.candidate_id || rejectMatch.post_id])
+                onReject?.(rejectMatch)
+                setRejectMatch(null)
+              }}>Xác nhận</button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
