@@ -7,13 +7,11 @@ function MatchingResultsPage({
   lostReport,
   matches = [],
   onViewDetail,
-  onContact,
   onReject,
   onBackHome,
 }) {
   const [sortBy, setSortBy] = useState('newest')
   const [selectedMatch, setSelectedMatch] = useState(null)
-  const [contactMatch, setContactMatch] = useState(null)
   const [rejectMatch, setRejectMatch] = useState(null)
   const [rejectedIds, setRejectedIds] = useState([])
 
@@ -50,6 +48,10 @@ function MatchingResultsPage({
       day: '2-digit', month: '2-digit', year: 'numeric',
     })
   }
+
+  const fullAddress = selectedMatch
+    ? [selectedMatch.address_detail, selectedMatch.ward, selectedMatch.province].filter(Boolean).join(', ') || selectedMatch.location_text || 'Chưa cập nhật'
+    : ''
 
   return (
     <main className="matching-page">
@@ -88,10 +90,6 @@ function MatchingResultsPage({
                     setSelectedMatch(item)
                     onViewDetail?.(item)
                   }}
-                  onContact={(item) => {
-                    setContactMatch(item)
-                    onContact?.(item)
-                  }}
                   onReject={(item) => setRejectMatch(item)}
                 />
               ))}
@@ -104,7 +102,8 @@ function MatchingResultsPage({
         <div className="matching-detail-backdrop" role="presentation" onClick={() => setSelectedMatch(null)}>
           <section className="matching-detail-modal" role="dialog" aria-modal="true" aria-labelledby="matching-detail-title" onClick={(event) => event.stopPropagation()}>
             <button className="matching-detail-close" type="button" onClick={() => setSelectedMatch(null)} aria-label="Đóng">×</button>
-            <h2 id="matching-detail-title">Chi tiết bài đăng FOUND</h2>\n            <p className="matching-detail-pet-name">{selectedMatch.pet_name || "Thú cưng được tìm thấy"}</p>
+            <h2 id="matching-detail-title">Chi tiết bài đăng FOUND</h2>
+            <p className="matching-detail-pet-name">{selectedMatch.pet_name || 'Thú cưng được tìm thấy'}</p>
             <div className="matching-detail-gallery">
               {detailImages.length ? detailImages.map((src, index) => (
                 <img key={src || index} src={src} alt={`Ảnh thú cưng ${index + 1}`} />
@@ -114,32 +113,11 @@ function MatchingResultsPage({
               <div><dt>Loài:</dt><dd>{selectedMatch.species === 'DOG' ? 'Chó' : selectedMatch.species === 'CAT' ? 'Mèo' : 'Chưa xác định'}</dd></div>
               <div><dt>Giới tính:</dt><dd>{selectedMatch.gender === 'MALE' ? 'Đực' : selectedMatch.gender === 'FEMALE' ? 'Cái' : 'Chưa xác định'}</dd></div>
               <div><dt>Thời gian:</dt><dd>{formatDateTime(selectedMatch.event_time || selectedMatch.created_at)}</dd></div>
-              <div><dt>Địa chỉ:</dt><dd>{[selectedMatch.address_detail, selectedMatch.ward, selectedMatch.province].filter(Boolean).join(', ') || selectedMatch.location_text || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Địa điểm tìm thấy:</dt><dd>{fullAddress}</dd></div>
               <div><dt>Đặc điểm:</dt><dd>{selectedMatch.description || 'Chưa cung cấp'}</dd></div>
               {selectedMatch.notes && <div><dt>Ghi chú:</dt><dd>{selectedMatch.notes}</dd></div>}
             </dl>
-
-          </section>
-        </div>
-      )}
-
-      {contactMatch && (
-        <div className="matching-detail-backdrop" role="presentation" onClick={() => setContactMatch(null)}>
-          <section className="matching-action-modal" role="dialog" aria-modal="true" aria-labelledby="matching-contact-title" onClick={(event) => event.stopPropagation()}>
-            <button className="matching-detail-close" type="button" onClick={() => setContactMatch(null)} aria-label="Đóng">×</button>
-            <h2 id="matching-contact-title">Thông tin người đăng tin FOUND</h2>
-            <p className="matching-modal-demo-note">Thông tin minh họa để kiểm thử giao diện, chưa phải dữ liệu người dùng thật.</p>
-            <dl className="matching-detail-data matching-contact-data">
-              <div><dt>Họ và tên</dt><dd>{contactMatch.contact_name || 'Nguyễn Minh Anh (DEMO)'}</dd></div>
-              <div><dt>Số điện thoại</dt><dd>{contactMatch.contact_phone || '0901 234 567'}</dd></div>
-              <div><dt>Email</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
-            </dl>
-            <p className="matching-modal-demo-note">Bạn nên trao đổi trước để xác nhận đặc điểm thú cưng và địa điểm gặp an toàn. Không chia sẻ mã xác thực hoặc thông tin nhạy cảm.</p>
-            <div className="matching-modal-actions">
-              <a className="matching-modal-primary" href={`tel:${contactMatch.contact_phone || '0901234567'}`}>Gọi điện</a>
-              <a className="matching-modal-secondary" href={`mailto:${contactMatch.contact_email || 'minhanh.demo@example.com'}`}>Gửi email</a>
-              <button type="button" className="matching-modal-secondary" onClick={() => setContactMatch(null)}>Đóng</button>
-            </div>
+            <p className="matching-modal-demo-note">Hãy đối chiếu địa điểm và thời gian tìm thấy với thông tin thú cưng bị mất trước khi đến khu vực này. Không nên tự ý vào khu vực riêng tư.</p>
           </section>
         </div>
       )}
