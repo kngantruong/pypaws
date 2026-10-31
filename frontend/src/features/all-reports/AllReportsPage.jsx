@@ -164,19 +164,22 @@ function AllReportsPage({ reports = [], onBackHome }) {
             {filteredReports.map((report) => (
               <article className="all-report-card" key={report.post_id} onClick={() => setSelectedReport(report)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedReport(report) }}>
                 <div className="all-report-image">
-                  <img src={report.image_url || report.cover_image_url || mascot} alt={report.pet_name || 'Thú cưng'} />
-                  <span className={`all-report-status ${report.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>{statusLabel(report.post_type)}</span>
+                  <img src={report.image_url || report.cover_image_url || mascot} alt={speciesLabel(report.species)} />
+                  <span className={`all-report-status ${report.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>
+                    {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
+                  </span>
                 </div>
                 <div className="all-report-info">
-                  <div className="all-report-meta">{speciesLabel(report.species)} <span>•</span> {formatDate(report.created_at)}</div>
-                  <div className="all-report-facts">
-                    <p><strong>Giới tính:</strong> {genderLabel(report.gender || report.sex)}</p>
-                    <p><strong>Thời gian xảy ra:</strong> {formatDateTime(report.event_time || report.lost_time || report.found_time)}</p>
-                    <p><strong>Địa điểm:</strong> {addressOf(report)}</p>
-                    <p><strong>Ngày đăng:</strong> {formatDate(report.created_at)}</p>
-                    <p className="all-report-description"><strong>Mô tả:</strong> {report.description || 'Chưa có mô tả.'}</p>
+                  <h3 className="all-report-species">{speciesLabel(report.species)}</h3>
+                  <div className="all-report-quick-info">
+                    <span>📍 {addressOf(report)}</span>
+                    <span>🕒 {formatDateTime(report.event_time || report.lost_time || report.found_time)}</span>
+                    <span>⚧ {genderLabel(report.gender || report.sex)}</span>
                   </div>
-                  <button type="button" className="all-report-detail-link" onClick={(event) => { event.stopPropagation(); setSelectedReport(report) }}>Xem chi tiết <span aria-hidden="true">→</span></button>
+                  <p className="all-report-description">{report.description || report.notes || 'Chưa có mô tả.'}</p>
+                  <button type="button" className="all-report-detail-link" onClick={(event) => { event.stopPropagation(); setSelectedReport(report) }}>
+                    Xem chi tiết <span aria-hidden="true">→</span>
+                  </button>
                 </div>
               </article>
             ))}
