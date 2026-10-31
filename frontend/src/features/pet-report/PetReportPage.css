@@ -1106,3 +1106,32 @@
 }
 .pet-report-page .pet-report-success-content h3 { margin: 0 0 12px; }
 .pet-report-page .pet-report-success-code { display: inline-block; margin: 4px 0 12px; font-size: 24px; letter-spacing: 1px; }
+
+
+/* Final layout refinement: wider form, clear labels and consistent buttons. */
+.pet-report-page .pet-report-card { max-width: 1360px; padding: 38px 48px; }
+.pet-report-page .pet-report-basic-grid { grid-template-columns: minmax(260px,1.2fr) minmax(260px,1.2fr) minmax(190px,.9fr); gap: 18px; }
+.pet-report-page .pet-report-location-grid { gap: 18px; }
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) { grid-column: 1 / span 5; }
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) { grid-column: 6 / span 5; }
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) { grid-column: 1 / span 5; }
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) { grid-column: 6 / span 5; }
+.pet-report-page .pet-report-label { white-space: nowrap; }
+.pet-report-page .pet-report-contact-fields { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; }
+.pet-report-page .pet-report-contact-fields .pet-report-section-title { grid-column: 1 / -1; white-space: nowrap; }
+.pet-report-page .pet-report-required { display: none !important; }
+.pet-report-page .pet-report-button--primary,
+.pet-report-page .pet-report-map-search { background: #df874c; border-color: #df874c; color: #fff; }
+.pet-report-page .pet-report-button--primary:hover,
+.pet-report-page .pet-report-map-search:hover:not(:disabled) { background: #c96f37; border-color: #c96f37; }
+.pet-report-page .pet-report-button--secondary { background: #fff8f1; border-color: #e8cdb8; color: #9c5b35; }
+@media (max-width: 900px) {
+ .pet-report-page .pet-report-card { padding: 28px 24px; }
+ .pet-report-page .pet-report-contact-fields { grid-template-columns: 1fr; }
+ .pet-report-page .pet-report-contact-fields .pet-report-section-title { grid-column: 1; }
+}
+@media (max-width: 700px) {
+ .pet-report-page .pet-report-basic-grid { grid-template-columns: repeat(3,minmax(210px,1fr)); }
+ .pet-report-page .pet-report-location-grid { min-width: 650px; }
+ .pet-report-page .pet-report-label { white-space: normal; }
+}
