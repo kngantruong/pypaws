@@ -196,12 +196,12 @@
   grid-row: 2;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) {
-  grid-column: 1;
-  grid-row: 1;
-}
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
   grid-column: 2;
   grid-row: 2;
+}
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
+  grid-column: 1;
+  grid-row: 1;
 }
 .pet-report-page .pet-report-location-grid .pet-report-input {
   width: 100%;
@@ -216,10 +216,11 @@
   .pet-report-page .pet-report-location-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(n) {
-    grid-column: 1;
-    grid-row: auto;
-  }
+  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) { grid-row: 1; }
+  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) { grid-row: 2; }
+  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) { grid-row: 3; }
+  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) { grid-row: 4; }
+  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(n) { grid-column: 1; }
 }
 
 /* Ba trường thời gian, tỉnh/thành và phường/xã nằm cùng một hàng. */
