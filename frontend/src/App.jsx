@@ -600,7 +600,7 @@ function App() {
                         <h3>{speciesLabel[report.species] || 'Thú cưng'}</h3>
                       </div>
                       <div className="report-quick-info">
-                        <span>📍 {report.location_text || [report.address_detail, report.ward, report.province].filter(Boolean).join(', ') || 'Chưa cập nhật địa điểm'}</span>
+                        <span>📍 {report.province || report.location_text || 'Chưa cập nhật tỉnh/thành'}</span>
                         <span>🕒 {formattedTime}</span>
                         <span>⚧ {gender}</span>
                       </div>
