@@ -158,10 +158,9 @@ function buildPetReportPayload(formData) {
 // 3. API PLACEHOLDER
 // ======================================================
 
-// TODO: Kết nối API backend khi nhóm hoàn thành endpoint.
-//
-// Hiện tại hàm này chỉ thông báo chưa kết nối API,
-// không giả lập việc đăng tin thành công.
+// Chế độ demo frontend trong lúc backend chưa có API.
+// Dữ liệu được chuyển về App để cập nhật giao diện trong phiên chạy.
+// Khi backend hoàn thành, thay phần callback này bằng API thật.
 
 async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
   if (typeof onSubmitReport !== 'function') {
