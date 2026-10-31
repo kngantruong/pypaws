@@ -1023,19 +1023,6 @@ export default function PetReportPage({
         aria-labelledby="pet-report-title"
       >
 
-        {/* Back button */}
-
-        {onBack && (
-          <button
-            type="button"
-            className="pet-report-button pet-report-button--secondary"
-            onClick={onBack}
-          >
-            ← Quay về trang chủ
-          </button>
-        )}
-
-
         {/* Header */}
 
         <header className="pet-report-header">
