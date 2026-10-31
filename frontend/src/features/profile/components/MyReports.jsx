@@ -22,7 +22,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
   const getStatusLabel = (status) => {
     const statuses = {
       ACTIVE: 'Đang hiển thị',
-      RESOLVED: 'Đã tìm thấy chủ',
+      RESOLVED: 'Đã tìm thấy',
       CLOSED: 'Đã đóng',
     }
 
