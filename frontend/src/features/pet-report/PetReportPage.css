@@ -784,6 +784,12 @@
 }
 
 /* Bản đồ chọn địa điểm */
+.pet-report-page .pet-report-location-grid > .pet-report-map-field {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  width: 100%;
+}
+
 .pet-report-page .pet-report-map-field {
   display: flex;
   flex-direction: column;
@@ -830,8 +836,8 @@
 .pet-report-page .pet-report-map {
   display: block !important;
   width: 100% !important;
-  height: 360px !important;
-  min-height: 360px;
+  height: 480px !important;
+  min-height: 480px;
   position: relative;
   z-index: 1;
   border: 1px solid #d1d5db;
@@ -1048,7 +1054,8 @@
   }
 
   .pet-report-page .pet-report-map {
-    height: 300px !important;
+    height: 360px !important;
+    min-height: 360px;
   }
 
   .pet-report-page .pet-report-card {
@@ -1059,4 +1066,11 @@
   .pet-report-page .pet-report-form {
     gap: 20px;
   }
+}
+
+/* Map occupies the full content width for a usable location picker. */
+.pet-report-page .pet-report-location-grid > .pet-report-map-field,
+.pet-report-page .pet-report-location-grid > .pet-report-map-field .pet-report-map {
+  width: 100% !important;
+  max-width: 100%;
 }
