@@ -60,11 +60,6 @@ const matchingResults = [
     image_score: 0.94,
     location_score: 0.88,
     time_score: 0.90,
-    passed_threshold: true,
-    final_score: 0.91,
-    image_score: 0.94,
-    location_score: 0.88,
-    time_score: 0.90,
   },
   {
     post_id: 102,
