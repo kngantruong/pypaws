@@ -1,6 +1,19 @@
 
+import { useState } from 'react'
+
 function MyReports({ reports = [] }) {
   const myReports = reports
+  const [selectedReport, setSelectedReport] = useState(null)
+  const imagesOf = (report) => {
+    const list = report.images || report.image_urls || report.photos || []
+    return [report.image_url || report.cover_image_url, ...list.map((image) => typeof image === 'string' ? image : image?.url || image?.image_url)].filter((src, index, all) => src && all.indexOf(src) === index)
+  }
+  const displayDate = (value) => {
+    if (!value) return 'Chưa cập nhật'
+    const date = new Date(value)
+    return Number.isNaN(date.getTime()) ? 'Chưa cập nhật' : date.toLocaleString('vi-VN')
+  }
+  const displayAddress = (report) => [report.address_detail, report.ward, report.province].filter(Boolean).join(', ') || report.location_text || 'Chưa cập nhật'
 
   const getPostTypeLabel = (type) => {
     return type === 'LOST' ? 'Tìm thú cưng' : 'Đã tìm thấy'
@@ -44,9 +57,7 @@ function MyReports({ reports = [] }) {
                   {getPostTypeLabel(report.post_type)}
                 </span>
 
-                <h3>
-                  {report.pet_name || `Tin đăng #${report.post_id}`}
-                </h3>
+                <h3>{`Tin đăng #${report.post_id}`}</h3>
 
                 <p>{report.description || 'Chưa có mô tả.'}</p>
 
@@ -54,12 +65,37 @@ function MyReports({ reports = [] }) {
                   {report.location_text || 'Chưa cập nhật địa điểm'}
                 </span>
 
-                <span className="my-report-status">
-                  {getStatusLabel(report.status)}
-                </span>
+                <span className="my-report-status">{getStatusLabel(report.status)}</span>
+                <button type="button" className="my-report-detail-button" onClick={() => setSelectedReport(report)}>Xem chi tiết</button>
               </div>
             </article>
           ))}
+        </div>
+      )}
+      {selectedReport && (
+        <div className="my-report-modal-backdrop" role="presentation" onClick={() => setSelectedReport(null)}>
+          <section className="my-report-modal" role="dialog" aria-modal="true" aria-label="Chi tiết tin đăng" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="my-report-modal-close" onClick={() => setSelectedReport(null)} aria-label="Đóng">×</button>
+            <h2>{`Tin đăng #${selectedReport.post_id}`}</h2>
+            <span className={`my-report-type ${selectedReport.post_type?.toLowerCase()}`}>{getPostTypeLabel(selectedReport.post_type)}</span>
+            <div className="my-report-modal-gallery">
+              {imagesOf(selectedReport).length ? imagesOf(selectedReport).map((src, index) => <img key={src} src={src} alt={`Ảnh thú cưng ${index + 1}`} />) : <p>Chưa có hình ảnh.</p>}
+            </div>
+            <h3>Thông tin thú cưng</h3>
+            <dl>
+              <div><dt>Tên thú cưng</dt><dd>{selectedReport.pet_name || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Loại báo cáo</dt><dd>{selectedReport.post_type || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Loài</dt><dd>{selectedReport.species === 'DOG' ? 'Chó' : selectedReport.species === 'CAT' ? 'Mèo' : 'Chưa cập nhật'}</dd></div>
+              <div><dt>Giới tính</dt><dd>{selectedReport.gender === 'MALE' ? 'Đực' : selectedReport.gender === 'FEMALE' ? 'Cái' : 'Chưa cập nhật'}</dd></div>
+              <div><dt>Thời gian xảy ra</dt><dd>{displayDate(selectedReport.event_time || selectedReport.lost_time || selectedReport.found_time)}</dd></div>
+              <div><dt>Địa điểm</dt><dd>{displayAddress(selectedReport)}</dd></div>
+              <div><dt>Ngày đăng</dt><dd>{displayDate(selectedReport.created_at)}</dd></div>
+              <div><dt>Trạng thái</dt><dd>{getStatusLabel(selectedReport.status)}</dd></div>
+            </dl>
+            <h3>Mô tả chi tiết</h3>
+            <p className="my-report-modal-description">{selectedReport.description || 'Chưa có mô tả.'}</p>
+            {selectedReport.notes && <><h3>Ghi chú</h3><p className="my-report-modal-description">{selectedReport.notes}</p></>}
+          </section>
         </div>
       )}
     </div>
