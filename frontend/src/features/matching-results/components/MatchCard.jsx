@@ -28,7 +28,9 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         </div>
 
         <div className="matching-card-info">
-          <p>Khu vực: {match.location_text || 'Chưa cập nhật'}</p>
+          <p>Giới tính: {match.gender === 'MALE' ? 'Đực' : match.gender === 'FEMALE' ? 'Cái' : 'Chưa xác định'}</p>
+          <p>Địa chỉ cụ thể: {[match.address_detail, match.ward, match.province].filter(Boolean).join(', ') || match.location_text || 'Chưa cập nhật'}</p>
+          <p>Tỉnh/thành phố: {match.province || 'Chưa cập nhật'}</p>
           <p>Thời gian nhìn thấy: {formatDate(match.event_time || match.created_at)}</p>
         </div>
 
