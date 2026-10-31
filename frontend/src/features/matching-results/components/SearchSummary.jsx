@@ -24,11 +24,7 @@ function SearchSummary({ report }) {
           year: 'numeric',
         })
       : 'Chưa cập nhật'
-  const fullAddress = [
-    report.address_detail,
-    report.ward,
-    report.province,
-  ].filter(Boolean).join(', ') || report.location_text || 'Chưa cập nhật'
+  const provinceName = report.province || report.location_text || 'Chưa cập nhật tỉnh/thành'
 
   return (
     <section className="matching-summary">
@@ -47,7 +43,7 @@ function SearchSummary({ report }) {
               <div><dt>Thời gian:</dt><dd>{formattedEventTime}</dd></div>
               <div><dt>Ngày đăng:</dt><dd>{report.created_at ? new Date(report.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</dd></div>
               <div><dt>Trạng thái:</dt><dd>{{ ACTIVE: 'Đang hiển thị', RESOLVED: 'Đã tìm thấy chủ', CLOSED: 'Đã đóng' }[report.status] || report.status || 'Chưa cập nhật'}</dd></div>
-              <div><dt>Địa chỉ:</dt><dd>{fullAddress}</dd></div>
+              <div><dt>Địa chỉ:</dt><dd>{provinceName}</dd></div>
               <div><dt>Đặc điểm:</dt><dd>{report.description || 'Chưa cung cấp'}</dd></div>
               {report.notes && <div><dt>Ghi chú:</dt><dd>{report.notes}</dd></div>}
               <div className="matching-summary-contact-heading"><dt>Thông tin liên hệ</dt><dd></dd></div>
