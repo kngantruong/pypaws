@@ -584,14 +584,17 @@ function App() {
               <button
               type="button"
               className="outline-link"
-              onClick={() => setCurrentPage('all-reports')}
+              onClick={() => {
+                setCurrentPage('all-reports')
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
             >
               Xem tất cả <span>→</span>
             </button>
             </div>
 
             <div className="report-grid">
-              {userReports.filter((report) => report.status === 'ACTIVE').map((report) => (
+              {userReports.filter((report) => report.status === 'ACTIVE').slice(0, 3).map((report) => (
                 <article className="report-card" key={report.post_id}>
                   <div className="report-image-wrap">
                     <img src={report.image_url || report.cover_image_url || mascot} alt={report.pet_name || 'Thú cưng trong báo cáo'} />
