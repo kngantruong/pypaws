@@ -15,12 +15,6 @@ function SearchSummary({ report }) {
     : report.image_url
       ? [report.image_url]
       : []
-  const coordinates =
-    report.latitude !== null && report.latitude !== undefined &&
-    report.longitude !== null && report.longitude !== undefined
-      ? `${report.latitude}, ${report.longitude}`
-      : 'Chưa xác định'
-
   const eventDate = report.event_time ? new Date(report.event_time) : null
   const formattedEventTime =
     eventDate && !Number.isNaN(eventDate.getTime())
@@ -88,10 +82,6 @@ function SearchSummary({ report }) {
           <strong className="matching-summary-preserve">
             {[report.ward, report.province].filter(Boolean).join(', ') || report.location_text || 'Chưa cung cấp'}
           </strong>
-        </div>
-        <div className="matching-summary-item">
-          <span>Vị trí bản đồ</span>
-          <strong>{coordinates}</strong>
         </div>
       </div>
     </section>
