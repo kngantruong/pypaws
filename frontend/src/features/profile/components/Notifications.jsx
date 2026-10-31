@@ -44,9 +44,10 @@ function Notifications({ notifications = [], onOpenNotification }) {
                 </span>
               </div>
 
-              {!notification.is_read && (
-                <span className="notification-dot" />
-              )}
+              <div className="notification-card-actions">
+                {!notification.is_read && <span className="notification-dot" />}
+                <button type="button" className="notification-detail-button" onClick={() => onOpenNotification?.(notification)}>Xem chi tiết</button>
+              </div>
             </article>
           ))}
         </div>
