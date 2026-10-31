@@ -10,11 +10,8 @@ function SearchSummary({ report }) {
     FEMALE: 'Cái',
     UNKNOWN: 'Chưa xác định',
   }
-  const images = report.images?.length
-    ? report.images
-    : report.image_url
-      ? [report.image_url]
-      : []
+  const rawImages = report.images || report.image_urls || report.photos || []
+  const images = [report.image_url || report.cover_image_url, ...rawImages.map((image) => typeof image === 'string' ? image : image?.url || image?.image_url)].filter((image, index, all) => image && all.indexOf(image) === index)
   const eventDate = report.event_time ? new Date(report.event_time) : null
   const formattedEventTime =
     eventDate && !Number.isNaN(eventDate.getTime())
@@ -44,23 +41,19 @@ function SearchSummary({ report }) {
           <section className="matching-summary-panel">
             <h3>Thông tin thú cưng</h3>
             <dl>
+              <div><dt>Loại tin:</dt><dd>{report.post_type || 'LOST'}</dd></div>
+              <div><dt>Tên thú cưng:</dt><dd>{report.pet_name || 'Chưa cập nhật'}</dd></div>
               <div><dt>Loài:</dt><dd>{speciesLabel[report.species] || report.species || 'Chưa xác định'}</dd></div>
               <div><dt>Giới tính:</dt><dd>{genderLabel[report.gender] || 'Chưa xác định'}</dd></div>
               <div><dt>Thời gian:</dt><dd>{formattedEventTime}</dd></div>
+              <div><dt>Ngày đăng:</dt><dd>{report.created_at ? new Date(report.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</dd></div>
+              <div><dt>Trạng thái:</dt><dd>{{ ACTIVE: 'Đang hiển thị', RESOLVED: 'Đã tìm thấy chủ', CLOSED: 'Đã đóng' }[report.status] || report.status || 'Chưa cập nhật'}</dd></div>
               <div><dt>Địa chỉ:</dt><dd>{fullAddress}</dd></div>
               <div><dt>Đặc điểm:</dt><dd>{report.description || 'Chưa cung cấp'}</dd></div>
               {report.notes && <div><dt>Ghi chú:</dt><dd>{report.notes}</dd></div>}
             </dl>
           </section>
 
-          <section className="matching-summary-panel">
-            <h3>Thông tin liên hệ</h3>
-            <dl>
-              <div><dt>Họ tên:</dt><dd>{report.contact_name || 'Chưa cung cấp'}</dd></div>
-              <div><dt>Số điện thoại:</dt><dd>{report.contact_phone || 'Chưa cung cấp'}</dd></div>
-              <div><dt>Email:</dt><dd>{report.contact_email || 'Chưa cung cấp'}</dd></div>
-            </dl>
-          </section>
         </div>
 
         <div className="matching-summary-photo">
