@@ -163,14 +163,14 @@ function buildPetReportPayload(formData) {
 // Hiện tại hàm này chỉ thông báo chưa kết nối API,
 // không giả lập việc đăng tin thành công.
 
-async function submitPetReport(payload, images, coverIndex) {
-  console.info('[PYPAWS] Report ready for API:', {
-    payload,
-    images,
-    coverIndex,
-  });
+async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
+  if (typeof onSubmitReport !== 'function') {
+    throw new Error('LOCAL_DEMO_HANDLER_MISSING');
+  }
 
-  throw new Error('NOT_CONNECTED');
+  // Chế độ demo frontend: lưu dữ liệu trong state của ứng dụng.
+  // Chưa gửi lên server và sẽ được thay bằng API khi backend sẵn sàng.
+  await onSubmitReport(payload, images, coverIndex);
 }
 
 
@@ -273,6 +273,7 @@ function MapMarker({ position, onPositionChange }) {
 
 export default function PetReportPage({
   onBack,
+  onSubmitReport,
   initialPostType = 'LOST',
 }) {
 
@@ -734,11 +735,11 @@ export default function PetReportPage({
       await submitPetReport(
         buildPetReportPayload(formData),
         images,
-        coverIndex
+        coverIndex,
+        onSubmitReport
       );
 
-      // TODO: Xử lý khi backend trả về thành công.
-      setSubmitStatus('idle');
+      setSubmitStatus('success');
 
     } catch (error) {
       console.error('Lỗi gửi tin:', error);
@@ -823,9 +824,9 @@ export default function PetReportPage({
             className="pet-report-notice"
             role="note"
           >
-            <strong>Lưu ý:</strong> Tin của bạn{' '}
-            <strong>chưa được lưu hoặc đăng</strong>.
-            Đây chỉ là bản xem trước trên máy của bạn.
+            <strong>Chế độ demo:</strong> Sau khi xác nhận, tin sẽ được thêm vào
+            dữ liệu tạm trong phiên chạy ứng dụng để bạn kiểm tra luồng đăng tin
+            và matching. Tin chưa được lưu lên máy chủ.
           </div>
 
 
@@ -940,6 +941,15 @@ export default function PetReportPage({
           {/* Submit status */}
 
           <div aria-live="polite">
+
+            {submitStatus === 'success' && (
+              <div className="pet-report-notice">
+                Tin đã được thêm vào dữ liệu demo của PYPAWS.
+                {formData.post_type === 'LOST'
+                  ? ' Đang mở kết quả matching minh họa.'
+                  : ' Bạn có thể quay về trang chủ để xem tin vừa đăng.'}
+              </div>
+            )}
 
             {submitStatus === 'not-connected' && (
               <div className="pet-report-notice pet-report-notice--warning">
