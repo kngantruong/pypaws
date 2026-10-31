@@ -793,3 +793,34 @@
     padding: 20px 16px;
   }
 }
+
+
+/* Contact / reject demo dialogs */
+.matching-action-modal {
+  position: relative;
+  width: min(520px, 100%);
+  padding: 30px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(0,0,0,.22);
+}
+.matching-action-modal h2 { margin: 0 42px 16px 0; color: #604536; font-size: 21px; }
+.matching-modal-demo-note { color: #927d6d; font-size: 12px; line-height: 1.6; }
+.matching-modal-primary, .matching-modal-secondary {
+  padding: 10px 16px; border-radius: 9px; font: inherit; font-weight: 600; cursor: pointer;
+}
+.matching-modal-primary { border: 1px solid #c17d53; background: #c17d53; color: #fff; }
+.matching-modal-secondary { border: 1px solid #e8cbb2; background: #fff; color: #806b5d; }
+.matching-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+.matching-action-modal > .matching-modal-primary { display: block; margin: 22px 0 0 auto; }
+.pet-report-page .pet-report-success-panel {
+  margin: 24px 0;
+  padding: 22px 24px;
+  border: 1px solid #b8d9ce;
+  border-left: 5px solid #438b73;
+  border-radius: 12px;
+  background: #f0faf6;
+  color: #315f50;
+}
+.pet-report-page .pet-report-success-content h3 { margin: 0 0 12px; }
+.pet-report-page .pet-report-success-code { display: inline-block; margin: 4px 0 12px; font-size: 24px; letter-spacing: 1px; }
