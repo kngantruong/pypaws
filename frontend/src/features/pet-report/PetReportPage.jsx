@@ -1026,9 +1026,7 @@ export default function PetReportPage({
             </h1>
 
             <p className="pet-report-intro">
-              Hãy cung cấp thông tin và hình ảnh của thú cưng.
-              Càng chi tiết, cộng đồng PYPAWS càng dễ nhận ra bé
-              và giúp bé sớm về nhà.
+              Chia sẻ thông tin và ảnh rõ nét để cộng đồng PYPAWS nhận ra bé và giúp bé sớm trở về.
             </p>
           </div>
 
@@ -1431,7 +1429,7 @@ export default function PetReportPage({
 
             <div className="pet-report-field pet-report-address-detail">
               <label htmlFor="pet-report-address_detail" className="pet-report-label">
-                Địa chỉ cụ thể / mốc dễ nhận biết <span className="pet-report-required">*</span>
+                Địa chỉ cụ thể <span className="pet-report-required">*</span>
               </label>
               <input
                 id="pet-report-address_detail"
@@ -1439,7 +1437,7 @@ export default function PetReportPage({
                 type="text"
                 className="pet-report-input"
                 maxLength={300}
-                placeholder="Ví dụ: Trường ĐH Kinh tế - Luật, cổng chính, đường Võ Văn Ngân..."
+                placeholder="Ví dụ: Trường ĐH Kinh tế - Luật, cổng chính..."
                 value={formData.address_detail}
                 onChange={handleInputChange}
                 aria-describedby={describedBy('address_detail')}
@@ -1458,9 +1456,6 @@ export default function PetReportPage({
                   Chọn vị trí trên bản đồ
                 </span>
 
-                <p className="pet-report-hint">
-                  Bản đồ định vị theo Tỉnh/Thành phố và Phường/Xã. Địa chỉ cụ thể chỉ dùng để mô tả nơi xảy ra sự việc; hãy chạm hoặc kéo ghim để xác nhận tọa độ chính xác.
-                </p>
 
               </div>
 
@@ -1475,8 +1470,8 @@ export default function PetReportPage({
                 disabled={isSearchingLocation || !formData.province || !formData.ward}
               >
                 {isSearchingLocation
-                  ? 'Đang định vị khu vực...'
-                  : 'Định vị theo phường/xã'}
+                  ? 'Đang tìm...'
+                  : 'Tìm vị trí'}
               </button>
 
 
