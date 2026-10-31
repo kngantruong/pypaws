@@ -133,11 +133,11 @@ function buildPetReportPayload(formData) {
     species: formData.species,
     gender: formData.gender || null,
 
-    address_detail: formData.address_detail.trim(),
+    address_detail: formData.address_detail,
     province: formData.province || null,
     ward: formData.ward || null,
 
-    description: formData.description.trim(),
+    description: formData.description,
 
     event_time: eventDate.toISOString(),
 
