@@ -93,7 +93,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
       <section className="all-reports-content">
         <div className="all-reports-filter-panel">
           <div className="all-reports-filter-heading">
-            <div>
+            <div className="all-reports-filter-title">
               <h2>Tìm kiếm báo cáo</h2>
               <p>Lọc theo loại báo cáo, loài thú cưng, khu vực và thời gian đăng.</p>
             </div>
@@ -141,9 +141,9 @@ function AllReportsPage({ reports = [], onBackHome }) {
               <span>Thời gian đăng</span>
               <select value={period} onChange={(e) => setPeriod(e.target.value)}>
                 <option value="all">Tất cả thời gian</option>
-                <option value="1">1 day ago</option>
-                <option value="7">7 days</option>
-                <option value="30">30 days</option>
+                <option value="1">1 ngày trước</option>
+                <option value="7">7 ngày</option>
+                <option value="30">30 ngày</option>
               </select>
             </label>
           </div>
@@ -176,7 +176,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
                     <p><strong>Ngày đăng:</strong> {formatDate(report.created_at)}</p>
                     <p className="all-report-description"><strong>Mô tả:</strong> {report.description || 'Chưa có mô tả.'}</p>
                   </div>
-                  <button type="button" className="all-report-detail-link" onClick={(event) => { event.stopPropagation(); setSelectedReport(report) }}>Xem chi tiết ảnh <span aria-hidden="true">→</span></button>
+                  <button type="button" className="all-report-detail-link" onClick={(event) => { event.stopPropagation(); setSelectedReport(report) }}>Xem chi tiết <span aria-hidden="true">→</span></button>
                 </div>
               </article>
             ))}
@@ -192,10 +192,31 @@ function AllReportsPage({ reports = [], onBackHome }) {
 
       {selectedReport && (
         <div className="all-report-modal-backdrop" role="presentation" onClick={() => setSelectedReport(null)}>
-          <section className="all-report-modal all-report-images-only" role="dialog" aria-modal="true" aria-label="Tất cả ảnh thú cưng" onClick={(event) => event.stopPropagation()}>
+          <section className="all-report-modal" role="dialog" aria-modal="true" aria-label="Chi tiết báo cáo" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="all-report-modal-close" onClick={() => setSelectedReport(null)} aria-label="Đóng">×</button>
-            <div className="all-report-modal-gallery">
-              {imagesOf(selectedReport).length ? imagesOf(selectedReport).map((src, index) => <img key={src} src={src} alt={`Ảnh thú cưng ${index + 1}`} />) : <img src={mascot} alt="Hình minh họa PyPaws" />}
+            <header className="all-report-modal-header">
+              <span className={`all-report-status ${selectedReport.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>{statusLabel(selectedReport.post_type)}</span>
+              <h2>{selectedReport.pet_name || `Tin đăng #${selectedReport.post_id}`}</h2>
+              <p>Mã báo cáo: {selectedReport.post_id || 'Chưa cập nhật'}</p>
+            </header>
+            <div className="all-report-modal-body">
+              <div className="all-report-modal-gallery">
+                {imagesOf(selectedReport).length ? imagesOf(selectedReport).map((src, index) => <img key={src} src={src} alt={`Ảnh thú cưng ${index + 1}`} />) : <img src={mascot} alt="Hình minh họa PyPaws" />}
+              </div>
+              <div className="all-report-modal-details">
+                <h3>Thông tin thú cưng</h3>
+                <dl>
+                  <div><dt>Loài</dt><dd>{speciesLabel(selectedReport.species)}</dd></div>
+                  <div><dt>Giới tính</dt><dd>{genderLabel(selectedReport.gender || selectedReport.sex)}</dd></div>
+                  <div><dt>Thời gian xảy ra</dt><dd>{formatDateTime(selectedReport.event_time || selectedReport.lost_time || selectedReport.found_time)}</dd></div>
+                  <div><dt>Địa điểm</dt><dd>{addressOf(selectedReport)}</dd></div>
+                  <div><dt>Ngày đăng</dt><dd>{formatDate(selectedReport.created_at)}</dd></div>
+                  <div><dt>Trạng thái</dt><dd>{selectedReport.status || 'Chưa cập nhật'}</dd></div>
+                </dl>
+                <h3>Mô tả chi tiết</h3>
+                <p>{selectedReport.description || 'Chưa có mô tả.'}</p>
+                {selectedReport.notes && <><h3>Ghi chú</h3><p>{selectedReport.notes}</p></>}
+              </div>
             </div>
           </section>
         </div>
