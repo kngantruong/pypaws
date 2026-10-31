@@ -14,12 +14,14 @@ function MatchingResultsPage({
   const [sortBy, setSortBy] = useState('newest')
   const [selectedMatch, setSelectedMatch] = useState(null)
   const [contactMatch, setContactMatch] = useState(null)
+  const [rejectMatch, setRejectMatch] = useState(null)
+  const [rejectedIds, setRejectedIds] = useState([])
 
   const eligibleMatches = useMemo(
     () => matches.filter(
-      (item) => item.passed_threshold === true && item.species === lostReport?.species,
+      (item) => item.passed_threshold === true && item.species === lostReport?.species && !rejectedIds.includes(item.candidate_id || item.post_id),
     ),
-    [matches, lostReport?.species],
+    [matches, lostReport?.species, rejectedIds],
   )
 
   const filteredMatches = useMemo(() => [...eligibleMatches].sort((a, b) => {
@@ -90,7 +92,7 @@ function MatchingResultsPage({
                     setContactMatch(item)
                     onContact?.(item)
                   }}
-                  onReject={onReject}
+                  onReject={(item) => setRejectMatch(item)}
                 />
               ))}
             </div>
