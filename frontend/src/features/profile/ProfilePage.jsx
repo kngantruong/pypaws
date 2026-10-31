@@ -5,8 +5,8 @@ import MyReports from './components/MyReports'
 import Notifications from './components/Notifications'
 import './profile.css'
 
-function ProfilePage({ user, reports = [], notifications = [] }) {
-  const [activeTab, setActiveTab] = useState('info')
+function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info' }) {
+  const [activeTab, setActiveTab] = useState(initialTab)
 
   return (
     <main className="profile-page">
