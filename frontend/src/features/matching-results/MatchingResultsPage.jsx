@@ -172,8 +172,8 @@ function MatchingResultsPage({
               </>
             ) : resolutionStep === 'found' ? (
               <>
-                <h2 id="matching-resolution-title">Chọn bài đăng FOUND tương ứng</h2>
-                <p className="matching-modal-demo-note">Chỉ hiển thị bài FOUND còn hiệu lực và có matching ở trạng thái PENDING hoặc CONTACTED.</p>
+                <h2 id="matching-resolution-title">Chọn bài đăng tìm thấy thú cưng</h2>
+                <p className="matching-modal-demo-note">Chỉ hiện những bài đăng tìm thấy còn hoạt động và đã có kết quả ghép phù hợp.</p>
                 {eligibleFoundPosts.length ? <div className="matching-resolution-list">{eligibleFoundPosts.map((item) => {
                   const id = item.candidate_id || item.post_id
                   return <button type="button" key={id} className={String(selectedFoundPost?.candidate_id || selectedFoundPost?.post_id) === String(id) ? 'matching-resolution-option selected' : 'matching-resolution-option'} onClick={() => setSelectedFoundPost(item)}><strong>{item.pet_name || 'Thú cưng được tìm thấy'} · FOUND #{item.post_id}</strong><span>{item.location_text || 'Chưa cập nhật địa điểm'} · {item.description || 'Chưa có mô tả'}</span></button>
@@ -183,8 +183,9 @@ function MatchingResultsPage({
             ) : (
               <>
                 <h2 id="matching-resolution-title">Xác nhận đã tìm thấy thú cưng?</h2>
-                {resolutionSource === 'PYPAWS' ? <p>Bạn xác nhận đã tìm thấy thú cưng nhờ bài FOUND <strong>#{selectedFoundPost?.post_id}</strong>?</p> : <p>Bạn xác nhận đã tự tìm thấy thú cưng bằng nguồn khác, không thông qua Pypaws?</p>}
-                <p className="matching-modal-demo-note">Sau khi xác nhận, bài LOST sẽ chuyển sang RESOLVED và ngừng matching. {resolutionSource === 'PYPAWS' ? 'Bài FOUND được chọn cũng sẽ chuyển sang RESOLVED.' : 'Các bài FOUND khác vẫn giữ nguyên trạng thái.'} Thao tác này không xóa bài đăng.</p>
+                {resolutionSource === 'PYPAWS' ? <p>Bạn xác nhận đã tìm thấy bé nhờ bài đăng <strong>FOUND #{selectedFoundPost?.post_id}</strong> chứ?</p> : <p>Bạn xác nhận đã tự tìm lại được bé bằng cách khác?</p>}
+                <p className="matching-modal-demo-note">Sau khi xác nhận, tin tìm thú cưng (LOST) của bạn sẽ được chuyển thành <strong>Đã tìm thấy</strong> và không tiếp tục ghép kết quả nữa. Bài đăng tìm thấy của người khác không được thêm vào mục “Tin đăng của tôi”.</p>
+                <p className="matching-modal-demo-note"></p>
                 <div className="matching-modal-actions"><button type="button" className="matching-modal-secondary" onClick={() => setResolutionStep(resolutionSource === 'PYPAWS' ? 'found' : 'choice')}>Quay lại</button><button type="button" className="matching-modal-primary" onClick={() => { onResolve?.({ source: resolutionSource, foundPost: selectedFoundPost, lostReport }); setShowResolution(false) }}>Xác nhận hoàn tất</button></div>
               </>
             )}
