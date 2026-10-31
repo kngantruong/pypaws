@@ -1801,3 +1801,5 @@ img {
 @media (max-width: 520px) {
   .nav-notification-dropdown { right: -58px; }
 }
+
+.nav-notification-wrap.open .nav-notification-dropdown { display: block; }
