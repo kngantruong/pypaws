@@ -331,7 +331,10 @@ function App() {
         <AllReportsPage
             reports={userReports}
             onCreateReport={handleCreateReport}
-            onBackHome={() => setCurrentPage('home')}
+            onBackHome={() => {
+          setCurrentPage('home')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
           />
     ) : currentPage === 'auth' ? (
         authPage === 'register' ? (
@@ -377,7 +380,10 @@ function App() {
     ) : currentPage === 'report' ? (
       <PetReportPage
         initialPostType={initialPostType}
-        onBack={() => setCurrentPage('home')}
+        onBack={() => {
+          setCurrentPage('home')
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }}
         onSubmitReport={handleLocalReportSubmit}
       />
     ) : (
