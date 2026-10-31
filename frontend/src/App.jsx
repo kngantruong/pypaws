@@ -141,7 +141,7 @@ function App() {
     const newReport = {
       ...payload,
       post_id: Date.now(),
-      report_code: `${payload.post_type}-${Date.now()}`,
+      report_code: `${payload.post_type}${userReports.filter((item) => item.post_type === payload.post_type).length + 1}`,
       status: 'ACTIVE',
       created_at: new Date().toISOString(),
       image_url: imageUrls[coverIndex] || null,
