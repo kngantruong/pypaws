@@ -1964,3 +1964,22 @@ select {
   .report-description,
   .report-link { font-size: 0.85rem; }
 }
+
+
+/* Site-wide legibility pass */
+body { color: #49352c; font-size: 15px; font-weight: 500; line-height: 1.7; }
+h1, h2, h3, h4 { color: #49352c; font-weight: 800; line-height: 1.25; }
+button, input, textarea, select { font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; }
+p { line-height: 1.75; }
+.app, .app * { word-break: normal; hyphens: none; }
+.app p, .app span, .app a, .app dd { overflow-wrap: break-word; }
+.section-heading h2 { color: #49352c; font-weight: 800; letter-spacing: -0.8px; }
+.section-heading > p, .hero-description { color: #766256; font-weight: 500; }
+.nav-links a { color: #604b3f; font-weight: 700; }
+.nav-cta, .primary-btn { font-weight: 800; }
+.report-body h3, .tool-card h3, .adoption-body h3 { color: #49352c; font-weight: 800; }
+.report-date, .report-location, .report-description { color: #766256; }
+@media (max-width: 640px) {
+ .section-wrap { width: min(100% - 36px, 1160px); }
+ .report-card, .tool-card, .adoption-card { min-width: 0; }
+}
