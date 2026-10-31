@@ -868,3 +868,5 @@
 .matching-resolution-empty{margin-top:18px;padding:18px;border-radius:10px;background:#fff8f0;color:#927d6d;font-size:13px}
 .matching-modal-primary:disabled{opacity:.45;cursor:not-allowed}
 @media(max-width:600px){.matching-resolution-trigger-wrap{align-items:stretch;flex-direction:column}.matching-resolution-trigger{width:100%}}
+
+.matching-summary-photo{position:relative}.matching-summary-type{position:absolute;z-index:2;top:12px;left:12px;padding:6px 11px;border-radius:7px;background:rgba(255,250,243,.96);color:#bd6b3c;font-size:11px;font-weight:800;letter-spacing:.4px}.matching-summary-type.found{color:#5f855b}
