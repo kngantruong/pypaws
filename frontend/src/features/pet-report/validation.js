@@ -78,6 +78,12 @@ export function validatePetReport(formData, images) {
     }
   }
 
+  if (isBlank(formData.contact_name)) errors.contact_name = 'Vui lòng nhập tên người liên hệ.';
+  if (isBlank(formData.contact_phone)) errors.contact_phone = 'Vui lòng nhập số điện thoại.';
+  else if (!/^[0-9+().\s-]{8,20}$/.test(formData.contact_phone.trim())) errors.contact_phone = 'Số điện thoại không hợp lệ.';
+  if (isBlank(formData.contact_email)) errors.contact_email = 'Vui lòng nhập email.';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact_email.trim())) errors.contact_email = 'Email không hợp lệ.';
+
   if (isBlank(formData.province)) {
     errors.province = 'Vui lòng chọn tỉnh/thành phố.';
   }
