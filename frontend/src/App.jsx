@@ -151,9 +151,8 @@ function App() {
     if (payload.post_type === 'LOST') {
       setActiveLostReport(newReport)
       setCurrentPage('matching-results')
-    } else {
-      setCurrentPage('home')
     }
+    return newReport
   }
   const handleReportNavigation = (e) => {
   const value = e.target.value
