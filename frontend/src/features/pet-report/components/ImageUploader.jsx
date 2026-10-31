@@ -142,6 +142,15 @@ export default function ImageUploader({ id = 'pet-image-input', files, coverInde
       </div>
 
 
+      <div className="pet-report-image-description">
+        <strong>Ảnh rõ nét giúp cộng đồng nhận diện bé nhanh hơn:</strong>
+        <ul>
+          <li>Chụp rõ mặt và đôi mắt của bé.</li>
+          <li>Chụp toàn thân, thấy rõ màu lông và đặc điểm nhận dạng.</li>
+          <li>Ưu tiên ảnh đủ sáng, không bị mờ hoặc che khuất.</li>
+        </ul>
+      </div>
+
       <div className="pet-image-uploader__info-row">
         <p id={hintId} className="pet-image-uploader__hint">
           {IMAGE_RULES.ACCEPTED_LABEL}, tối đa {formatFileSize(IMAGE_RULES.MAX_FILE_SIZE_BYTES)} mỗi ảnh, tối đa {IMAGE_RULES.MAX_FILES} ảnh.
