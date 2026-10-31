@@ -60,6 +60,11 @@ const matchingResults = [
     image_score: 0.94,
     location_score: 0.88,
     time_score: 0.90,
+    passed_threshold: true,
+    final_score: 0.91,
+    image_score: 0.94,
+    location_score: 0.88,
+    time_score: 0.90,
   },
   {
     post_id: 102,
@@ -70,6 +75,11 @@ const matchingResults = [
     created_at: '2026-10-27T14:30:00',
     description: 'Bé chó lông trắng, có đeo vòng cổ màu đỏ.',
     image_url: null,
+    passed_threshold: true,
+    final_score: 0.91,
+    image_score: 0.94,
+    location_score: 0.88,
+    time_score: 0.90,
   },
   {
     post_id: 103,
@@ -80,6 +90,11 @@ const matchingResults = [
     created_at: '2026-10-26T10:00:00',
     description: 'Mèo tam thể, khá dạn người và sạch sẽ.',
     image_url: null,
+    passed_threshold: true,
+    final_score: 0.91,
+    image_score: 0.94,
+    location_score: 0.88,
+    time_score: 0.90,
   },
   {
     post_id: 104,
@@ -90,6 +105,11 @@ const matchingResults = [
     created_at: '2026-10-25T08:00:00',
     description: 'Chó có bộ lông đốm nâu trắng, tính cách hiền.',
     image_url: null,
+    passed_threshold: true,
+    final_score: 0.91,
+    image_score: 0.94,
+    location_score: 0.88,
+    time_score: 0.90,
   },
 ]
 
