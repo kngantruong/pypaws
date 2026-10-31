@@ -70,7 +70,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
   const speciesLabel = (value) => value === 'DOG' ? 'Chó' : value === 'CAT' ? 'Mèo' : 'Chưa xác định'
   const genderLabel = (value) => ({ MALE: 'Đực', FEMALE: 'Cái', UNKNOWN: 'Chưa xác định' }[value] || value || 'Chưa cập nhật')
   const statusLabel = (value) => value === 'LOST' ? 'LOST' : 'FOUND'
-  const addressOf = (report) => [report.address_detail, report.ward, report.province].filter(Boolean).join(', ') || report.location_text || 'Chưa cập nhật'
+  const addressOf = (report) => report.province || report.location_text || 'Chưa cập nhật tỉnh/thành'
 
   const imagesOf = (report) => {
     const images = report.images || report.image_urls || report.photos || []
