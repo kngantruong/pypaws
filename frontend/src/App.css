@@ -1998,3 +1998,17 @@ p { line-height: 1.75; }
 .report-location, .report-description { font-size: 12px; }
 .report-link { padding: 9px 14px; border: 1px solid #e4b993; border-radius: 999px; background: #fff9f3; }
 @media (max-width: 700px) { .report-grid { grid-template-columns: 1fr; } }
+
+
+/* Keep the main navigation's "Báo cáo" control on one line beside "Trang chủ". */
+.nav-links { flex-wrap: nowrap; gap: 24px; }
+.nav-links > a,
+.nav-links .nav-report-trigger { white-space: nowrap; flex: 0 0 auto; }
+.nav-report-dropdown { flex: 0 0 auto; min-width: max-content; }
+.nav-links .nav-report-trigger { min-width: 112px; padding: 0 18px; justify-content: center; }
+.nav-report-menu { min-width: 190px; }
+.nav-report-menu button { white-space: nowrap; }
+@media (max-width: 700px) {
+  .nav-links { gap: 12px; }
+  .nav-links .nav-report-trigger { min-width: 100px; padding: 0 12px; }
+}
