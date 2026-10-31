@@ -1,5 +1,5 @@
 
-function Notifications({ notifications = [] }) {
+function Notifications({ notifications = [], onOpenNotification }) {
   const getNotificationIcon = (type) => {
     const icons = {
       MATCH: '🔎',
