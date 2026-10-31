@@ -129,12 +129,17 @@ function MatchingResultsPage({
             <button className="matching-detail-close" type="button" onClick={() => setContactMatch(null)} aria-label="Đóng">×</button>
             <h2 id="matching-contact-title">Thông tin người đăng tin FOUND</h2>
             <p className="matching-modal-demo-note">Thông tin minh họa để kiểm thử giao diện, chưa phải dữ liệu người dùng thật.</p>
-            <dl className="matching-detail-data">
-              <div><dt>Họ và tên:</dt><dd>{contactMatch.contact_name || 'Nguyễn Minh Anh (DEMO)'}</dd></div>
-              <div><dt>Số điện thoại:</dt><dd>{contactMatch.contact_phone || '0901 234 567'}</dd></div>
-              <div><dt>Email:</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
+            <dl className="matching-detail-data matching-contact-data">
+              <div><dt>Họ và tên</dt><dd>{contactMatch.contact_name || 'Nguyễn Minh Anh (DEMO)'}</dd></div>
+              <div><dt>Số điện thoại</dt><dd>{contactMatch.contact_phone || '0901 234 567'}</dd></div>
+              <div><dt>Email</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
             </dl>
-            <button type="button" className="matching-modal-primary" onClick={() => setContactMatch(null)}>Đóng</button>
+            <p className="matching-modal-demo-note">Bạn nên trao đổi trước để xác nhận đặc điểm thú cưng và địa điểm gặp an toàn. Không chia sẻ mã xác thực hoặc thông tin nhạy cảm.</p>
+            <div className="matching-modal-actions">
+              <a className="matching-modal-primary" href={`tel:${contactMatch.contact_phone || '0901234567'}`}>Gọi điện</a>
+              <a className="matching-modal-secondary" href={`mailto:${contactMatch.contact_email || 'minhanh.demo@example.com'}`}>Gửi email</a>
+              <button type="button" className="matching-modal-secondary" onClick={() => setContactMatch(null)}>Đóng</button>
+            </div>
           </section>
         </div>
       )}
