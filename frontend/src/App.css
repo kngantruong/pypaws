@@ -128,7 +128,7 @@ img {
   position: relative;
   z-index: 5;
   display: flex;
-  min-height: 92px;
+  min-height: 98px;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
@@ -144,8 +144,8 @@ img {
 }
 
 .brand-logo {
-  width: 205px;
-  max-height: 80px;
+  width: 235px;
+  max-height: 88px;
   object-fit: contain;
   object-position: left center;
 }
@@ -1057,8 +1057,8 @@ img {
   }
 
   .brand-logo {
-    width: 175px;
-    max-height: 68px;
+    width: 195px;
+    max-height: 76px;
   }
 
   .nav-links {
@@ -1108,15 +1108,15 @@ img {
     scroll-padding-top: 15px;
   }
   .navbar {
-    min-height: 72px;
+    min-height: 78px;
     flex-wrap: wrap;
     gap: 13px;
     padding: 12px 5%;
   }
 
   .brand-logo {
-    width: 150px;
-    max-height: 58px;
+    width: 170px;
+    max-height: 64px;
   }
 
   .nav-user-actions {
