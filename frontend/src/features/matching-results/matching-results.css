@@ -870,3 +870,35 @@
 @media(max-width:600px){.matching-resolution-trigger-wrap{align-items:stretch;flex-direction:column}.matching-resolution-trigger{width:100%}}
 
 .matching-summary-photo{position:relative}.matching-summary-type{position:absolute;z-index:2;top:12px;left:12px;padding:6px 11px;border-radius:7px;background:rgba(255,250,243,.96);color:#bd6b3c;font-size:11px;font-weight:800;letter-spacing:.4px}.matching-summary-type.found{color:#5f855b}
+
+
+/* Typography refinement: clearer hierarchy and stable wrapping */
+.matching-page, .matching-page button, .matching-page select {
+  font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+  color: #49352c;
+}
+.matching-page { font-size: 15px; line-height: 1.7; }
+.matching-page h1 { color: #49352c; font-size: clamp(30px, 3.5vw, 42px); font-weight: 800; line-height: 1.2; letter-spacing: -1.1px; }
+.matching-page h2 { color: #49352c; font-size: clamp(21px, 2.2vw, 27px); font-weight: 750; line-height: 1.3; }
+.matching-page h3 { color: #604536; font-weight: 700; }
+.matching-page p { color: #766256; font-size: 14px; line-height: 1.75; }
+.matching-summary-code { color: #9b5b31; font-size: 14px; font-weight: 600; }
+.matching-summary-code strong { display: inline-block; padding: 4px 10px; border-radius: 7px; background: #fff0df; color: #a64f1e; font-size: 15px; font-weight: 800; }
+.matching-summary-panel h3 { margin-bottom: 14px; color: #a9572e; font-size: 17px; font-weight: 800; }
+.matching-summary-panel dl > div { align-items: start; }
+.matching-summary-panel dt { color: #766256; font-size: 13px; font-weight: 700; }
+.matching-summary-panel dd { color: #49352c; font-size: 14px; font-weight: 500; line-height: 1.65; }
+.matching-summary-contact-heading { margin-top: 8px; padding-top: 12px; border-top: 1px solid #f0e3d6; }
+.matching-summary-contact-heading dt { color: #b65d2c !important; font-size: 14px !important; font-weight: 800 !important; }
+.matching-resolution-modal h2 { max-width: 100%; color: #49352c; font-size: 23px; font-weight: 800; line-height: 1.35; }
+.matching-resolution-modal p { color: #766256; font-size: 14px; line-height: 1.75; }
+.matching-resolution-option strong { color: #49352c; font-size: 14px; font-weight: 750; line-height: 1.5; }
+.matching-resolution-option span { color: #766256; font-size: 13px; line-height: 1.6; }
+.matching-modal-primary, .matching-modal-secondary { min-height: 42px; font-size: 14px; font-weight: 700; }
+.matching-page * { word-break: normal; hyphens: none; }
+.matching-page p, .matching-page dd, .matching-page span { overflow-wrap: break-word; }
+.matching-summary-panel dd { min-width: 0; }
+@media (max-width: 600px) {
+ .matching-summary-panel dl > div { grid-template-columns: minmax(105px, 34%) minmax(0, 1fr); }
+ .matching-summary-panel dd { font-size: 13px; }
+}
