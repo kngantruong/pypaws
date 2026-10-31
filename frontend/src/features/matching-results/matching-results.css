@@ -467,3 +467,44 @@
   font: inherit;
   cursor: pointer;
 }
+
+
+/* LOST report snapshot in matching results */
+.matching-summary-code {
+  margin: 10px 0 0;
+  color: #806b5d;
+  font-size: 13px;
+}
+.matching-summary-code strong {
+  color: #604536;
+}
+.matching-summary-images {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  margin: 0 0 18px;
+  padding-bottom: 4px;
+}
+.matching-summary-images img {
+  width: 150px;
+  height: 120px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.matching-summary-preserve {
+  white-space: pre-wrap;
+}
+.matching-summary-content {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1024px) {
+  .matching-summary-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .matching-summary-content {
+    grid-template-columns: 1fr;
+  }
+}
