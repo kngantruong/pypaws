@@ -142,27 +142,14 @@ export default function ImageUploader({ id = 'pet-image-input', files, coverInde
       </div>
 
 
-    <div className="pet-report-image-description">
-      <strong>Mẹo chụp ảnh giúp tìm bé nhanh hơn</strong>
-
-      <ul>
-        <li>Chụp rõ mặt và đôi mắt của bé.</li>
-        <li>Chụp toàn thân, thấy rõ màu lông và đặc điểm nhận dạng.</li>
-        <li>Chụp góc nghiêng hai bên và phía sau.</li>
-        <li>Ưu tiên ảnh đủ sáng, rõ nét, không bị che khuất.</li>
-      </ul>
-
-      <p>Chọn ảnh rõ nhất làm ảnh bìa. Tối đa 6 ảnh.</p>
-    </div>
-
-
-      <p id={hintId} className="pet-image-uploader__hint">
-        {IMAGE_RULES.ACCEPTED_LABEL}, tối đa {formatFileSize(IMAGE_RULES.MAX_FILE_SIZE_BYTES)} mỗi ảnh, tối đa{' '}
-        {IMAGE_RULES.MAX_FILES} ảnh.{' '}
-        <span aria-live="polite">
-          Đã chọn {files.length}/{IMAGE_RULES.MAX_FILES} ảnh.
-        </span>
-      </p>
+      <div className="pet-image-uploader__info-row">
+        <p id={hintId} className="pet-image-uploader__hint">
+          {IMAGE_RULES.ACCEPTED_LABEL}, tối đa {formatFileSize(IMAGE_RULES.MAX_FILE_SIZE_BYTES)} mỗi ảnh, tối đa {IMAGE_RULES.MAX_FILES} ảnh.
+          {' '}
+          <span aria-live="polite">Đã chọn {files.length}/{IMAGE_RULES.MAX_FILES} ảnh.</span>
+        </p>
+        <p className="pet-image-uploader__cover-hint">Chọn ảnh rõ nhất làm ảnh bìa.</p>
+      </div>
 
       {error && (
         <p id={errorId} className="pet-image-uploader__error">
