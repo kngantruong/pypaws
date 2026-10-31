@@ -16,6 +16,7 @@ import PetReportPage from './features/pet-report/PetReportPage.jsx'
 const reports = [
   {
     post_id: 1,
+    report_code: 'LOST1',
     post_type: 'LOST',
     species: 'DOG',
     status: 'ACTIVE',
@@ -26,6 +27,7 @@ const reports = [
   },
   {
     post_id: 2,
+    report_code: 'FOUND1',
     post_type: 'FOUND',
     species: 'CAT',
     status: 'ACTIVE',
@@ -36,6 +38,7 @@ const reports = [
   },
   {
     post_id: 3,
+    report_code: 'LOST3',
     post_type: 'LOST',
     species: 'DOG',
     status: 'ACTIVE',
@@ -434,6 +437,7 @@ function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
         notifications={notifications}
+        onOpenNotification={handleOpenNotification}
         initialTab={profileInitialTab}
       />
     ) : currentPage === 'report' ? (
