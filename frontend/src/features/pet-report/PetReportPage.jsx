@@ -1086,7 +1086,7 @@ export default function PetReportPage({
 
           {/* BASIC INFORMATION */}
 
-          <div className="pet-report-grid pet-report-location-grid">
+          <div className="pet-report-grid pet-report-basic-grid">
 
             {/* Post type */}
 
@@ -1267,7 +1267,7 @@ export default function PetReportPage({
 
           {/* EVENT TIME */}
 
-          <div className="pet-report-grid pet-report-grid--three">
+          <div className="pet-report-grid pet-report-location-grid">
 
             <div className="pet-report-field">
 
