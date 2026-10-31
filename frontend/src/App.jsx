@@ -397,7 +397,6 @@ function App() {
           <div className="section-heading">
             <span className="eyebrow">PYPAWS CÙNG BẠN</span>
             <h2>Bạn cần giúp đỡ điều gì?</h2>
-            <p>
           </div>
 
           <div className="tool-grid">
