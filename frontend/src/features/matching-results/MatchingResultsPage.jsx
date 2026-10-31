@@ -13,6 +13,7 @@ function MatchingResultsPage({
 }) {
   const [sortBy, setSortBy] = useState('newest')
   const [selectedMatch, setSelectedMatch] = useState(null)
+  const [contactMatch, setContactMatch] = useState(null)
 
   const eligibleMatches = useMemo(
     () => matches.filter(
@@ -85,7 +86,10 @@ function MatchingResultsPage({
                     setSelectedMatch(item)
                     onViewDetail?.(item)
                   }}
-                  onContact={onContact}
+                  onContact={(item) => {
+                    setContactMatch(item)
+                    onContact?.(item)
+                  }}
                   onReject={onReject}
                 />
               ))}
@@ -112,10 +116,7 @@ function MatchingResultsPage({
               <div><dt>Đặc điểm:</dt><dd>{selectedMatch.description || 'Chưa cung cấp'}</dd></div>
               {selectedMatch.notes && <div><dt>Ghi chú:</dt><dd>{selectedMatch.notes}</dd></div>}
             </dl>
-            <div className="matching-detail-modal-actions">
-              <button type="button" className="matching-contact-button" onClick={() => onContact?.(selectedMatch)}>Liên hệ người đăng</button>
-              <button type="button" className="matching-detail-button" onClick={() => setSelectedMatch(null)}>Đóng</button>
-            </div>
+
           </section>
         </div>
       )}
