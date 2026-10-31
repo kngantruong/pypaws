@@ -20,7 +20,7 @@ function MatchingResultsPage({
     () => matches.filter(
       (item) => item.passed_threshold === true && item.species === lostReport?.species,
     ),
-    [matches],
+    [matches, lostReport?.species],
   )
 
   const filteredMatches = useMemo(() => {
