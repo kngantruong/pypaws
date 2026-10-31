@@ -951,20 +951,21 @@ export default function PetReportPage({
 
           <div aria-live="polite">
 
-            {submitStatus === 'success' && (
-              <div className="pet-report-success-panel">
-                {formData.post_type === 'FOUND' ? (
-                  <div className="pet-report-success-content">
-                    <h3>Cảm ơn bạn đã đăng tin tìm thấy thú cưng!</h3>
-                    <p>Mã báo cáo của bạn:</p>
-                    <strong className="pet-report-success-code">{submittedReportCode || 'FOUND'}</strong>
-                    <p>Thông tin đã được lưu trong dữ liệu demo của PYPAWS.</p>
-                    <button type="button" className="pet-report-button pet-report-button--primary" onClick={onBack}>Về trang chủ</button>
-                  </div>
-                ) : (
-                  <>Tin đã được thêm vào dữ liệu demo của PYPAWS. Đang mở kết quả matching minh họa.</>
-                )}
+            {submitStatus === 'success' && formData.post_type === 'FOUND' && (
+              <div className="pet-report-success-backdrop" role="presentation">
+                <section className="pet-report-success-modal" role="dialog" aria-modal="true" aria-labelledby="pet-report-success-title">
+                  <div className="pet-report-success-icon" aria-hidden="true">✓</div>
+                  <h2 id="pet-report-success-title">Cảm ơn bạn đã đăng tin tìm thấy thú cưng!</h2>
+                  <p>Mã báo cáo của bạn:</p>
+                  <strong className="pet-report-success-code">{submittedReportCode || 'FOUND'}</strong>
+                  <p>Thông tin đã được lưu trong dữ liệu demo của PYPAWS.</p>
+                  <button type="button" className="pet-report-button pet-report-button--primary" onClick={onBack}>Về trang chủ</button>
+                </section>
               </div>
+            )}
+
+            {submitStatus === 'success' && formData.post_type !== 'FOUND' && (
+              <div className="pet-report-notice">Tin đã được thêm vào dữ liệu demo của PYPAWS. Đang mở kết quả matching minh họa.</div>
             )}
 
             {submitStatus === 'not-connected' && (
