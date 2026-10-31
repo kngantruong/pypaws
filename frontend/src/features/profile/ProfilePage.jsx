@@ -5,7 +5,7 @@ import MyReports from './components/MyReports'
 import Notifications from './components/Notifications'
 import './profile.css'
 
-function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info', onOpenLostMatching }) {
+function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info', onOpenLostMatching, onOpenNotification }) {
   const [activeTab, setActiveTab] = useState(initialTab)
 
   return (
@@ -60,7 +60,7 @@ function ProfilePage({ user, reports = [], notifications = [], initialTab = 'inf
             )}
 
             {activeTab === 'notifications' && (
-              <Notifications notifications={notifications} />
+              <Notifications notifications={notifications} onOpenNotification={onOpenNotification} />
             )}
           </section>
         </div>
