@@ -103,6 +103,7 @@ const postTypeLabel = {
 function App() {
   const [user, setUser] = useState(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [profileInitialTab, setProfileInitialTab] = useState('info')
   const [currentPage, setCurrentPage] = useState('home')
   const [initialPostType, setInitialPostType] = useState('LOST')
   const [reportNavSelection, setReportNavSelection] = useState('')
@@ -111,24 +112,8 @@ function App() {
   setInitialPostType('LOST')
   setCurrentPage('report')
   }
-  const notifications = [
-      {
-        id: 1,
-        type: 'MATCH',
-        title: 'Tìm thấy kết quả phù hợp',
-        message: 'Có một tin đăng mới có đặc điểm tương đồng với thú cưng bạn đang tìm.',
-        is_read: false,
-        created_at: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        type: 'SYSTEM',
-        title: 'Chào mừng đến với PyPaws',
-        message: 'Cảm ơn bạn đã tham gia cộng đồng hỗ trợ tìm kiếm thú cưng.',
-        is_read: true,
-        created_at: new Date().toISOString(),
-      },
-    ]
+  // Chưa có API thông báo kết nối từ backend; để rỗng thay vì hiển thị dữ liệu ghép trùng giả.
+  const notifications = []
   const handleReportNavigation = (e) => {
   const value = e.target.value
 
@@ -249,7 +234,24 @@ function App() {
             Đăng nhập <span aria-hidden="true">↗</span>
           </button>
         ) : (
-          <div className="nav-report-dropdown">
+          <div className="nav-user-actions">
+            <button
+              type="button"
+              className="nav-notification-button"
+              aria-label="Xem thông báo"
+              title="Thông báo"
+              onClick={() => {
+                setProfileInitialTab('notifications')
+                setCurrentPage('profile')
+              }}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                <path d="M10 21h4" />
+              </svg>
+            </button>
+
+            <div className="nav-report-dropdown">
               <button
                 type="button"
                 className="nav-report-trigger"
@@ -262,9 +264,12 @@ function App() {
               <div className="nav-report-menu">
                 <button
                   type="button"
-                  onClick={() => setCurrentPage('profile')}
+                  onClick={() => {
+                    setProfileInitialTab('info')
+                    setCurrentPage('profile')
+                  }}
                 >
-                  Profile
+                  Tài khoản cá nhân
                 </button>
 
                 <button
@@ -278,7 +283,8 @@ function App() {
                 </button>
               </div>
             </div>
-            )}
+          </div>
+        )}
         </header>
       )}
      {currentPage === 'all-reports' ? (
@@ -326,6 +332,7 @@ function App() {
         user={user}
         reports={[]}
         notifications={notifications}
+        initialTab={profileInitialTab}
       />
     ) : currentPage === 'report' ? (
       <PetReportPage initialPostType={initialPostType} />
