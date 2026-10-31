@@ -181,14 +181,20 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Bố cục địa điểm theo ảnh tham chiếu: địa chỉ + thời gian,
-   sau đó tỉnh/thành phố + phường/xã. */
+/* Hàng 1: loại báo cáo, loài thú cưng, giới tính. */
+.pet-report-page .pet-report-basic-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+/* Hàng 2: thời gian (40%) + địa chỉ cụ thể (60%).
+   Hàng 3: tỉnh/thành phố + phường/xã (50/50). */
 .pet-report-page .pet-report-location-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   align-items: start;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) {
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) {
@@ -200,27 +206,33 @@
   grid-row: 2;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
-  grid-column: 1;
+  grid-column: 2;
   grid-row: 1;
 }
+.pet-report-page .pet-report-basic-grid .pet-report-input,
 .pet-report-page .pet-report-location-grid .pet-report-input {
+  display: block;
   width: 100%;
   min-width: 0;
-  min-height: 42px;
   height: 42px;
+  min-height: 42px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
 }
 .pet-report-page .pet-report-location-grid .pet-report-address-detail {
   margin: 0;
 }
-@media (max-width: 640px) {
+@media (max-width: 700px) {
+  .pet-report-page .pet-report-basic-grid,
   .pet-report-page .pet-report-location-grid {
     grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) { grid-row: 1; }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) { grid-row: 2; }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) { grid-row: 3; }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) { grid-row: 4; }
-  .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(n) { grid-column: 1; }
+  .pet-report-page .pet-report-basic-grid > .pet-report-field,
+  .pet-report-page .pet-report-location-grid > .pet-report-field {
+    grid-column: 1;
+    grid-row: auto;
+  }
 }
 
 /* Ba trường thời gian, tỉnh/thành và phường/xã nằm cùng một hàng. */
