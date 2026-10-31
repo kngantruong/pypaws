@@ -5,7 +5,7 @@ import MyReports from './components/MyReports'
 import Notifications from './components/Notifications'
 import './profile.css'
 
-function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info' }) {
+function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info', onOpenLostMatching }) {
   const [activeTab, setActiveTab] = useState(initialTab)
 
   return (
@@ -56,7 +56,7 @@ function ProfilePage({ user, reports = [], notifications = [], initialTab = 'inf
             )}
 
             {activeTab === 'reports' && (
-              <MyReports reports={reports} />
+              <MyReports reports={reports} onOpenLostMatching={onOpenLostMatching} />
             )}
 
             {activeTab === 'notifications' && (
