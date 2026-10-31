@@ -181,57 +181,75 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Hàng 1: loại báo cáo, loài thú cưng, giới tính. */
+/* Hàng 1: luôn giữ 3 trường trên cùng một hàng, chia đều. */
 .pet-report-page .pet-report-basic-grid {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
+  gap: 14px;
 }
 
-/* Hàng 2: thời gian (40%) + địa chỉ cụ thể (60%).
-   Hàng 3: tỉnh/thành phố + phường/xã (50/50). */
+/* Hàng 2 + 3: dùng 10 cột để đặt tỷ lệ chính xác.
+   Thời gian 40% + địa chỉ 60%; tỉnh/thành phố 50% + phường/xã 50%. */
 .pet-report-page .pet-report-location-grid {
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   align-items: start;
+  gap: 14px;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(1) {
-  grid-column: 1;
+  grid-column: 1 / span 4;
+  grid-row: 1;
+}
+.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
+  grid-column: 5 / span 6;
   grid-row: 1;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(2) {
-  grid-column: 1;
+  grid-column: 1 / span 5;
   grid-row: 2;
 }
 .pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(3) {
-  grid-column: 2;
+  grid-column: 6 / span 5;
   grid-row: 2;
 }
-.pet-report-page .pet-report-location-grid > .pet-report-field:nth-child(4) {
-  grid-column: 2;
-  grid-row: 1;
+.pet-report-page .pet-report-basic-grid > .pet-report-field,
+.pet-report-page .pet-report-location-grid > .pet-report-field {
+  min-width: 0;
 }
 .pet-report-page .pet-report-basic-grid .pet-report-input,
 .pet-report-page .pet-report-location-grid .pet-report-input {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   height: 42px;
   min-height: 42px;
-  padding: 9px 12px;
+  padding: 9px 10px;
   font-size: 0.875rem;
 }
 .pet-report-page .pet-report-location-grid .pet-report-address-detail {
   margin: 0;
 }
+
+/* Giữ nguyên các hàng ngang ở mọi kích thước; trên màn hình nhỏ
+   cho phép cuộn ngang thay vì tự đẩy trường xuống hàng mới. */
+.pet-report-page .pet-report-basic-grid,
+.pet-report-page .pet-report-location-grid {
+  min-width: 0;
+}
 @media (max-width: 700px) {
   .pet-report-page .pet-report-basic-grid,
   .pet-report-page .pet-report-location-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
-  .pet-report-page .pet-report-basic-grid > .pet-report-field,
-  .pet-report-page .pet-report-location-grid > .pet-report-field {
-    grid-column: 1;
-    grid-row: auto;
+  .pet-report-page .pet-report-basic-grid {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+  .pet-report-page .pet-report-location-grid {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    min-width: 560px;
   }
 }
 
