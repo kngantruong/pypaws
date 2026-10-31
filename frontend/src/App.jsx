@@ -190,7 +190,6 @@ function App() {
       const hasLost = previous.some((item) => String(item.post_id) === lostId)
       const updated = previous.map(updateReport)
       if (!hasLost) updated.unshift({ ...lostReport, status: 'RESOLVED' })
-      if (source === 'PYPAWS' && foundPost && !updated.some((item) => String(item.post_id) === foundId)) updated.unshift({ ...foundPost, post_type: 'FOUND', status: 'RESOLVED' })
       return updated
     })
     setActiveLostReport((previous) => previous && String(previous.post_id) === lostId ? { ...previous, status: 'RESOLVED' } : previous)
