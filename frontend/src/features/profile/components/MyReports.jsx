@@ -57,7 +57,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
                   {getPostTypeLabel(report.post_type)}
                 </span>
 
-                <h3>{`Mã báo cáo: ${report.report_code || report.post_id}`}</h3>
+                <h3>{`Mã báo cáo: ${report.post_id}`}</h3>
 
                 <p className="my-report-card-description">{report.description || 'Chưa có mô tả.'}</p>
 
@@ -76,7 +76,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
         <div className="my-report-modal-backdrop" role="presentation" onClick={() => setSelectedReport(null)}>
           <section className="my-report-modal" role="dialog" aria-modal="true" aria-label="Chi tiết tin đăng" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="my-report-modal-close" onClick={() => setSelectedReport(null)} aria-label="Đóng">×</button>
-            <h2>{`Mã báo cáo: ${selectedReport.report_code || selectedReport.post_id}`}</h2>
+            <h2>{`Mã báo cáo: ${selectedReport.post_id}`}</h2>
             <span className={`my-report-type ${selectedReport.post_type?.toLowerCase()}`}>{getPostTypeLabel(selectedReport.post_type)}</span>
             <div className="my-report-modal-gallery">
               {imagesOf(selectedReport).length ? imagesOf(selectedReport).map((src, index) => <img key={src} src={src} alt={`Ảnh thú cưng ${index + 1}`} />) : <p>Chưa có hình ảnh.</p>}
