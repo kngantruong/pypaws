@@ -27,64 +27,62 @@ function SearchSummary({ report }) {
           year: 'numeric',
         })
       : 'Chưa cập nhật'
+  const fullAddress = [
+    report.address_detail,
+    report.ward,
+    report.province,
+  ].filter(Boolean).join(', ') || report.location_text || 'Chưa cập nhật'
 
   return (
     <section className="matching-summary">
-      <div className="matching-summary-heading">
-        <div>
-          <p className="matching-summary-code">
-            Mã báo cáo: <strong>{report.report_code || 'Đang chờ mã báo cáo từ hệ thống'}</strong>
-          </p>
-        </div>
-      </div>
+      <p className="matching-summary-code">
+        Mã báo cáo: <strong>{report.report_code || 'Đang chờ mã báo cáo từ hệ thống'}</strong>
+      </p>
 
-      {images.length > 0 && (
-        <div className="matching-summary-images" aria-label="Ảnh trong bài LOST">
-          {images.map((image, index) => (
-            <img
-              key={image || index}
-              src={image}
-              alt={`Ảnh ${index + 1} trong báo cáo LOST`}
-            />
-          ))}
-        </div>
-      )}
+      <div className="matching-summary-layout">
+        <div className="matching-summary-details">
+          <section className="matching-summary-panel">
+            <h3>Thông tin thú cưng</h3>
+            <dl>
+              <div><dt>Loài:</dt><dd>{speciesLabel[report.species] || report.species || 'Chưa xác định'}</dd></div>
+              <div><dt>Giới tính:</dt><dd>{genderLabel[report.gender] || 'Chưa xác định'}</dd></div>
+              <div><dt>Thời gian:</dt><dd>{formattedEventTime}</dd></div>
+              <div><dt>Địa chỉ:</dt><dd>{fullAddress}</dd></div>
+              <div><dt>Đặc điểm:</dt><dd>{report.description || 'Chưa cung cấp'}</dd></div>
+              {report.notes && <div><dt>Ghi chú:</dt><dd>{report.notes}</dd></div>}
+            </dl>
+          </section>
 
-      <div className="matching-summary-content">
-        <div className="matching-summary-item">
-          <span>Loài thú cưng</span>
-          <strong>{speciesLabel[report.species] || report.species || 'Chưa xác định'}</strong>
+          <section className="matching-summary-panel">
+            <h3>Thông tin liên hệ</h3>
+            <dl>
+              <div><dt>Họ tên:</dt><dd>{report.contact_name || 'Chưa cung cấp'}</dd></div>
+              <div><dt>Số điện thoại:</dt><dd>{report.contact_phone || 'Chưa cung cấp'}</dd></div>
+              <div><dt>Email:</dt><dd>{report.contact_email || 'Chưa cung cấp'}</dd></div>
+            </dl>
+          </section>
         </div>
-        <div className="matching-summary-item">
-          <span>Loại tin đăng</span>
-          <strong>{report.post_type === 'FOUND' ? 'Tìm thấy' : 'Đang tìm'}</strong>
+
+        <div className="matching-summary-photo">
+          {images.length > 0 ? (
+            <>
+              <img
+                className="matching-summary-main-image"
+                src={images[0]}
+                alt="Ảnh thú cưng trong bài đăng"
+              />
+              {images.length > 1 && (
+                <div className="matching-summary-thumbnails">
+                  {images.slice(1).map((image, index) => (
+                    <img key={image || index} src={image} alt={`Ảnh thú cưng ${index + 2}`} />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="matching-summary-no-image">Chưa có hình ảnh</div>
+          )}
         </div>
-        <div className="matching-summary-item">
-          <span>Giới tính</span>
-          <strong>{genderLabel[report.gender] || 'Chưa xác định'}</strong>
-        </div>
-        <div className="matching-summary-item">
-          <span>Mô tả</span>
-          <strong className="matching-summary-preserve">{report.description ?? 'Chưa cung cấp'}</strong>
-        </div>
-        <div className="matching-summary-item">
-          <span>Thời gian</span>
-          <strong>{formattedEventTime}</strong>
-        </div>
-        <div className="matching-summary-item">
-          <span>Địa chỉ cụ thể</span>
-          <strong className="matching-summary-preserve">{report.address_detail || 'Chưa cung cấp'}</strong>
-        </div>
-        <div className="matching-summary-item">
-          <span>Địa chỉ đầy đủ</span>
-          <strong className="matching-summary-preserve">
-            {[report.address_detail, report.ward, report.province].filter(Boolean).join(', ') || report.location_text || 'Chưa cung cấp'}
-          </strong>
-        </div>
-        <div className="matching-summary-item"><span>Tỉnh/thành phố</span><strong>{report.province || 'Chưa cung cấp'}</strong></div>
-        <div className="matching-summary-item"><span>Người liên hệ</span><strong>{report.contact_name || 'Chưa cung cấp'}</strong></div>
-        <div className="matching-summary-item"><span>Số điện thoại</span><strong>{report.contact_phone || 'Chưa cung cấp'}</strong></div>
-        <div className="matching-summary-item"><span>Email</span><strong>{report.contact_email || 'Chưa cung cấp'}</strong></div>
       </div>
     </section>
   )
