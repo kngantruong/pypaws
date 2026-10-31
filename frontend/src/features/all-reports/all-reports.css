@@ -124,3 +124,22 @@
   .all-report-modal-gallery img { height:145px; }
   .all-report-modal-details dl > div { grid-template-columns:110px minmax(0,1fr); }
 }
+
+
+/* Refined report cards to match the warm PyPaws visual system. */
+.all-reports-content { width: min(1320px, 92%); }
+.all-reports-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.all-report-card { border-radius: 20px; border-color: #f0dfce; box-shadow: 0 8px 24px rgba(75,48,38,.06); }
+.all-report-image { height: 225px; }
+.all-report-image img { transition: transform .3s ease; }
+.all-report-status { border-radius: 999px; padding: 7px 13px; }
+.all-report-status.is-lost { background: #fff0e4; color: #b85f32; }
+.all-report-status.is-found { background: #e7f3e9; color: #39734b; }
+.all-report-info { padding: 20px 21px 22px; }
+.all-report-meta { color: #a16d4e; font-size: 12px; font-weight: 600; }
+.all-report-facts p { font-size: 13px; line-height: 1.7; }
+.all-report-facts strong { color: #9c5b35; }
+.all-report-detail-link { padding: 9px 15px; border: 1px solid #e4b993; border-radius: 999px; background: #fff9f3; color: #a85e32; }
+.all-report-detail-link:hover { background: #fff0e3; }
+@media (max-width: 900px) { .all-reports-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 600px) { .all-reports-grid { grid-template-columns: 1fr; } }
