@@ -1081,3 +1081,17 @@
   width: 100% !important;
   max-width: 100%;
 }
+
+
+/* FOUND success message stays in the page flow (not a popup) */
+.pet-report-page .pet-report-success-panel {
+  margin: 24px 0;
+  padding: 22px 24px;
+  border: 1px solid #b8d9ce;
+  border-left: 5px solid #438b73;
+  border-radius: 12px;
+  background: #f0faf6;
+  color: #315f50;
+}
+.pet-report-page .pet-report-success-content h3 { margin: 0 0 12px; }
+.pet-report-page .pet-report-success-code { display: inline-block; margin: 4px 0 12px; font-size: 24px; letter-spacing: 1px; }
