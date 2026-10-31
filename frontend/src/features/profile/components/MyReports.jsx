@@ -46,6 +46,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
           {myReports.map((report) => (
             <article className="my-report-card" key={report.post_id}>
               <div className="my-report-image">
+                <span className={`my-report-type ${report.post_type?.toLowerCase()}`}>{getPostTypeLabel(report.post_type)}</span>
                 <img
                   src={report.image_url || '/placeholder-pet.png'}
                   alt="Thú cưng"
@@ -53,11 +54,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
               </div>
 
               <div className="my-report-info">
-                <span className={`my-report-type ${report.post_type?.toLowerCase()}`}>
-                  {getPostTypeLabel(report.post_type)}
-                </span>
-
-                <h3>{`Mã báo cáo: ${report.post_id}`}</h3>
+                <h3>{`Mã báo cáo: ${report.report_code || report.post_id}`}</h3>
 
                 <p className="my-report-card-description">{report.description || 'Chưa có mô tả.'}</p>
 
@@ -76,15 +73,13 @@ function MyReports({ reports = [], onOpenLostMatching }) {
         <div className="my-report-modal-backdrop" role="presentation" onClick={() => setSelectedReport(null)}>
           <section className="my-report-modal" role="dialog" aria-modal="true" aria-label="Chi tiết tin đăng" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="my-report-modal-close" onClick={() => setSelectedReport(null)} aria-label="Đóng">×</button>
-            <h2>{`Mã báo cáo: ${selectedReport.post_id}`}</h2>
-            <span className={`my-report-type ${selectedReport.post_type?.toLowerCase()}`}>{getPostTypeLabel(selectedReport.post_type)}</span>
+            <h2>{`Mã báo cáo: ${selectedReport.report_code || selectedReport.post_id}`}</h2>
             <div className="my-report-modal-gallery">
               {imagesOf(selectedReport).length ? imagesOf(selectedReport).map((src, index) => <img key={src} src={src} alt={`Ảnh thú cưng ${index + 1}`} />) : <p>Chưa có hình ảnh.</p>}
             </div>
             <h3>Thông tin thú cưng</h3>
             <dl>
               <div><dt>Tên thú cưng</dt><dd>{selectedReport.pet_name || 'Chưa cập nhật'}</dd></div>
-              <div><dt>Loại tin</dt><dd>{selectedReport.post_type || 'Chưa cập nhật'}</dd></div>
               <div><dt>Loài</dt><dd>{selectedReport.species === 'DOG' ? 'Chó' : selectedReport.species === 'CAT' ? 'Mèo' : 'Chưa cập nhật'}</dd></div>
               <div><dt>Giới tính</dt><dd>{selectedReport.gender === 'MALE' ? 'Đực' : selectedReport.gender === 'FEMALE' ? 'Cái' : 'Chưa cập nhật'}</dd></div>
               <div><dt>Thời gian xảy ra</dt><dd>{displayDate(selectedReport.event_time || selectedReport.lost_time || selectedReport.found_time)}</dd></div>
