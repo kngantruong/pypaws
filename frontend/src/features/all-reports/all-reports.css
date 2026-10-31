@@ -132,8 +132,14 @@
 
 .all-report-status {
   position: absolute;
+  z-index: 2;
   top: 10px;
   right: 10px;
+  display: inline-flex;
+  align-items: center;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
   padding: 6px 12px;
   border-radius: 6px;
   color: white;
