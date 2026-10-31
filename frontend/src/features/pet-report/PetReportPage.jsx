@@ -302,6 +302,7 @@ export default function PetReportPage({
   const [step, setStep] = useState('edit');
 
   const [submitStatus, setSubmitStatus] = useState('idle');
+  const [submittedReportCode, setSubmittedReportCode] = useState('');
 
   const [mapPosition, setMapPosition] = useState(DEFAULT_MAP_POSITION);
   const [mapLocationConfirmed, setMapLocationConfirmed] = useState(false);
@@ -740,13 +741,14 @@ export default function PetReportPage({
     setSubmitStatus('submitting');
 
     try {
-      await submitPetReport(
+      const submittedReport = await submitPetReport(
         buildPetReportPayload(formData),
         images,
         coverIndex,
         onSubmitReport
       );
 
+      setSubmittedReportCode(submittedReport?.report_code || '');
       setSubmitStatus('success');
 
     } catch (error) {
@@ -951,10 +953,17 @@ export default function PetReportPage({
 
             {submitStatus === 'success' && (
               <div className="pet-report-notice">
-                Tin đã được thêm vào dữ liệu demo của PYPAWS.
-                {formData.post_type === 'LOST'
-                  ? ' Đang mở kết quả matching minh họa.'
-                  : ' Bạn có thể quay về trang chủ để xem tin vừa đăng.'}
+                {formData.post_type === 'FOUND' ? (
+                  <div className="pet-report-success-content">
+                    <h3>Cảm ơn bạn đã đăng tin tìm thấy thú cưng!</h3>
+                    <p>Mã báo cáo của bạn:</p>
+                    <strong className="pet-report-success-code">{submittedReportCode || 'FOUND'}</strong>
+                    <p>Thông tin đã được lưu trong dữ liệu demo của PYPAWS.</p>
+                    <button type="button" className="pet-report-button pet-report-button--primary" onClick={onBack}>Về trang chủ</button>
+                  </div>
+                ) : (
+                  <>Tin đã được thêm vào dữ liệu demo của PYPAWS. Đang mở kết quả matching minh họa.</>
+                )}
               </div>
             )}
 
