@@ -262,7 +262,10 @@ function App() {
             <div className="nav-report-menu">
               <button
                 type="button"
-                onClick={() => setCurrentPage('all-reports')}
+                onClick={() => {
+                setCurrentPage('all-reports')
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
               >
                 Tất cả báo cáo
               </button>
@@ -274,7 +277,7 @@ function App() {
                   setCurrentPage('report')
                 }}
               >
-                Đăng báo cáo thất lạc
+                Tạo báo cáo thất lạc
               </button>
 
               <button
@@ -284,7 +287,7 @@ function App() {
                   setCurrentPage('report')
                 }}
               >
-                Đăng báo cáo tìm thấy
+                Tạo báo cáo tìm thấy
               </button>
             </div>
           </div>
@@ -365,7 +368,7 @@ function App() {
                     setCurrentPage('profile')
                   }}
                 >
-                  Tài khoản cá nhân
+                  Tài khoản
                 </button>
 
                 <button
@@ -591,7 +594,7 @@ function App() {
               {userReports.filter((report) => report.status === 'ACTIVE').map((report) => (
                 <article className="report-card" key={report.post_id}>
                   <div className="report-image-wrap">
-                    <img src={mascot} alt="Linh vật PyPaws" />
+                    <img src={report.image_url || report.cover_image_url || mascot} alt={report.pet_name || 'Thú cưng trong báo cáo'} />
 
                     <span
                       className={`status-pill status-${report.post_type.toLowerCase()}`}
