@@ -141,6 +141,7 @@ function App() {
     const newReport = {
       ...payload,
       post_id: Date.now(),
+      report_code: `${payload.post_type}-${Date.now()}`,
       status: 'ACTIVE',
       created_at: new Date().toISOString(),
       image_url: imageUrls[coverIndex] || null,
@@ -357,7 +358,7 @@ function App() {
     ) : currentPage === 'matching-results' ? (
       <MatchingResultsPage
         lostReport={activeLostReport || reports[0]}
-        matches={matchingResults}
+        matches={matchingResults.filter((item) => item.species === (activeLostReport || reports[0]).species)}
         onBackHome={() => setCurrentPage('home')}
         onViewDetail={(match) => {
           console.log('Xem chi tiết thú cưng:', match)
