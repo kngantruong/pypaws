@@ -32,7 +32,7 @@
   flex-direction: column;
   gap: 24px;
   width: 100%;
-  max-width: 1100px;
+  max-width: 1220px;
   margin: 0 auto;
   padding: 24px 18px;
   border: 1px solid var(--pr-border);
@@ -184,7 +184,7 @@
 /* Hàng 1: luôn giữ 3 trường trên cùng một hàng, chia đều. */
 .pet-report-page .pet-report-basic-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(220px, 1.15fr) minmax(220px, 1.15fr) minmax(170px, .9fr);
   align-items: start;
   gap: 14px;
 }
@@ -230,6 +230,17 @@
 }
 .pet-report-page .pet-report-location-grid .pet-report-address-detail {
   margin: 0;
+}
+
+/* Keep the report type and date/time controls readable on one line. */
+.pet-report-page #pet-report-post_type {
+  min-width: 220px;
+  white-space: nowrap;
+}
+.pet-report-page #pet-report-event_time {
+  min-width: 250px;
+  white-space: nowrap;
+  font-size: 0.8125rem;
 }
 
 /* Giữ nguyên các hàng ngang ở mọi kích thước; trên màn hình nhỏ
