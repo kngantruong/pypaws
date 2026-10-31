@@ -135,9 +135,6 @@ function MatchingResultsPage({
               <div><dt>Email</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
             </dl>
             <p className="matching-modal-demo-note">Bạn có thể chủ động trao đổi với người đăng để xác nhận đặc điểm thú cưng và địa điểm tìm thấy.</p>
-            <div className="matching-modal-actions">
-              <button type="button" className="matching-modal-secondary" onClick={() => setContactMatch(null)}>Đóng</button>
-            </div>
           </section>
         </div>
       )}
