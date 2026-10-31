@@ -1983,3 +1983,18 @@ p { line-height: 1.75; }
  .section-wrap { width: min(100% - 36px, 1160px); }
  .report-card, .tool-card, .adoption-card { min-width: 0; }
 }
+
+
+/* Homepage report previews: consistent, roomier PyPaws cards. */
+.reports-section .section-wrap { width: min(1240px, 90%); }
+.report-grid { gap: 26px; }
+.report-card { border-radius: 20px; border-color: #f0dfce; }
+.report-image-wrap { height: 230px; }
+.status-pill { border-radius: 999px; padding: 8px 13px; }
+.status-lost { color: #ad5b32; background: #fff0e4; }
+.status-found { color: #39734b; background: #e7f3e9; }
+.report-body { padding: 22px; }
+.report-body h3 { font-size: 19px; }
+.report-location, .report-description { font-size: 12px; }
+.report-link { padding: 9px 14px; border: 1px solid #e4b993; border-radius: 999px; background: #fff9f3; }
+@media (max-width: 700px) { .report-grid { grid-template-columns: 1fr; } }
