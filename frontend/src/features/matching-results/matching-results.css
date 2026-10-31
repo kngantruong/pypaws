@@ -470,6 +470,10 @@
 
 
 /* LOST report snapshot in matching results */
+.matching-summary-heading { margin-bottom: 14px; }
+.pet-report-contact-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; padding: 20px; border: 1px solid #eee0d2; border-radius: 14px; }
+.pet-report-contact-fields .pet-report-section-title { grid-column: 1 / -1; margin: 0; }
+@media (max-width: 700px) { .pet-report-contact-fields { grid-template-columns: 1fr; } }
 .matching-summary-code {
   margin: 10px 0 0;
   color: #806b5d;
