@@ -952,7 +952,7 @@ export default function PetReportPage({
           <div aria-live="polite">
 
             {submitStatus === 'success' && (
-              <div className="pet-report-notice">
+              <div className="pet-report-success-panel">
                 {formData.post_type === 'FOUND' ? (
                   <div className="pet-report-success-content">
                     <h3>Cảm ơn bạn đã đăng tin tìm thấy thú cưng!</h3>
