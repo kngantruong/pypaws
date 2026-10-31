@@ -852,3 +852,19 @@
 .pet-report-success-modal .pet-report-button { margin-top: 12px; }
 .matching-modal-actions a { display: inline-flex; align-items: center; text-decoration: none; }
 .matching-contact-data { margin-top: 18px; }
+
+/* ===== Resolve LOST report flow ===== */
+.matching-resolution-trigger-wrap{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0 0 34px;padding:18px 22px;border:1px solid #ead9c9;border-radius:14px;background:#fff}
+.matching-resolution-trigger-wrap strong{color:#604536;font-size:15px}
+.matching-resolution-trigger-wrap p{margin:3px 0 0;color:#927d6d;font-size:12px}
+.matching-resolution-trigger{flex-shrink:0;padding:11px 17px;border:1px solid #c17d53;border-radius:9px;background:#c17d53;color:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.matching-resolution-trigger:hover{background:#a96743}
+.matching-resolution-modal{width:min(580px,100%)}
+.matching-resolution-option{display:flex;width:100%;flex-direction:column;gap:5px;margin-top:12px;padding:15px 16px;border:1px solid #ead9c9;border-radius:11px;background:#fffaf5;color:#604536;text-align:left;font:inherit;cursor:pointer}
+.matching-resolution-option:hover,.matching-resolution-option.selected{border-color:#c17d53;background:#fff3e6}
+.matching-resolution-option strong{font-size:13px}
+.matching-resolution-option span{color:#927d6d;font-size:11px;line-height:1.5}
+.matching-resolution-list{max-height:320px;overflow-y:auto;margin-top:12px}
+.matching-resolution-empty{margin-top:18px;padding:18px;border-radius:10px;background:#fff8f0;color:#927d6d;font-size:13px}
+.matching-modal-primary:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:600px){.matching-resolution-trigger-wrap{align-items:stretch;flex-direction:column}.matching-resolution-trigger{width:100%}}
