@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image
 from io import BytesIO
+import numpy as np
 
 from app.core.auth import get_current_user_id
 from app.core.config import get_settings
 from app.core.database import get_supabase
 from app.services.matcher import match_post
+from app.services.pet_embedding import get_embedder
 
 router = APIRouter(prefix="/matching", tags=["AI Matching"])
 
@@ -71,9 +73,7 @@ async def create_image_embedding(
         if int(owner_rows[0]["owner_id"]) != user_id:
             raise HTTPException(403, "Only the post owner can create an embedding.")
         pil_image = Image.open(BytesIO(data)).convert("RGB")
-        embedder = __import__("app.services.pet_embedding", fromlist=["get_embedder"]).get_embedder(
-            get_settings().dinov2_checkpoint
-        )
+        embedder = get_embedder(get_settings().dinov2_checkpoint)
         vector = await run_in_threadpool(embedder.embed, pil_image)
         if vector.shape != (512,):
             raise HTTPException(500, "DINOv2 embedding must have shape (512,).")
