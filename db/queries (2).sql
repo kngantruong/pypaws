@@ -601,3 +601,12 @@ begin
         raise exception 'Only the owner of an ACTIVE post can update its location' using errcode = 'insufficient_privilege';
     end if;
 end $$;
+
+create or replace function get_post_image_owner(p_post_id integer, p_image_id integer)
+returns table (image_id integer, post_id integer, image_path text, owner_id integer)
+language sql stable security definer set search_path = public, pg_temp as $function$
+    select i.image_id, i.post_id, i.image_path::text, p.user_id
+    from post_images i
+    join posts p on p.post_id = i.post_id
+    where i.post_id = p_post_id and i.image_id = p_image_id;
+$function$;
