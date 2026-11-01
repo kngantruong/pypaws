@@ -1,12 +1,11 @@
-"""Application and PostgreSQL health endpoints."""
+"""Application and Supabase health endpoints."""
 from __future__ import annotations
 
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from psycopg import Connection
 
-from app.core.database import connect
+from app.core.database import get_supabase
 
 router = APIRouter(prefix="/api/health", tags=["Health"])
 
@@ -19,96 +18,55 @@ REQUIRED_TABLES = (
     "notifications",
 )
 
-REQUIRED_FUNCTIONS = (
-    "create_user",
-    "get_user_by_email",
-    "create_post",
-    "get_posts",
-    "get_post_detail",
-    "get_post_images",
-    "cancel_post",
-    "get_images_needing_embedding",
-    "save_image_embedding",
-    "get_search_pool",
-    "refresh_candidate_ranks",
-    "clear_candidates",
-    "save_candidate",
-    "get_candidates_for_post",
-    "get_contact_info",
-    "contact_candidate",
-    "reject_candidate",
-    "notify_candidate",
-    "get_notifications",
-    "mark_notification_read",
-    "resolve_lost_post",
-)
-
 
 @router.get("", summary="Application health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "pypaws-backend"}
 
 
-def _inspect_schema(connection: Connection) -> dict[str, Any]:
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT current_database(), current_user, version()")
-        database, user, version = cursor.fetchone()
+def _check_table(client: Any, table_name: str) -> dict[str, Any]:
+    """Check table accessibility through PostgREST.
 
-        cursor.execute(
-            """
-            SELECT table_name, to_regclass('public.' || table_name) IS NOT NULL AS present
-            FROM unnest(%s::text[]) AS required(table_name)
-            """,
-            (list(REQUIRED_TABLES),),
-        )
-        tables = {name: bool(present) for name, present in cursor.fetchall()}
-
-        cursor.execute(
-            """
-            SELECT required.function_name,
-                   EXISTS (
-                       SELECT 1
-                       FROM pg_proc p
-                       JOIN pg_namespace n ON n.oid = p.pronamespace
-                       WHERE n.nspname = 'public'
-                         AND p.proname = required.function_name
-                   ) AS present
-            FROM unnest(%s::text[]) AS required(function_name)
-            """,
-            (list(REQUIRED_FUNCTIONS),),
-        )
-        functions = {name: bool(present) for name, present in cursor.fetchall()}
-
-    return {
-        "status": "ok" if all(tables.values()) and all(functions.values()) else "degraded",
-        "database": database,
-        "user": user,
-        "postgresql_version": version,
-        "tables": tables,
-        "functions": functions,
-    }
+    We intentionally issue a zero-row select. This verifies that the table is
+    exposed to the current Supabase API role without changing data. A 403/401
+    or another PostgREST error is reported as inaccessible, not as evidence that
+    the table does not exist. This distinction matters with RLS.
+    """
+    try:
+        response = client.table(table_name).select("*", count="exact").limit(0).execute()
+        return {
+            "accessible": True,
+            "count": response.count,
+            "error": None,
+        }
+    except Exception as exc:
+        return {
+            "accessible": False,
+            "count": None,
+            "error": str(exc),
+        }
 
 
-@router.get("/db", summary="Check PostgreSQL connection and PyPaws schema")
+@router.get("/db", summary="Check Supabase connection and canonical tables")
 def database_health() -> dict[str, Any]:
     try:
-        connection = connect()
+        client = get_supabase()
     except Exception as exc:
         raise HTTPException(
             status_code=503,
-            detail={"code": "DB_UNAVAILABLE", "message": str(exc)},
+            detail={"code": "SUPABASE_CLIENT_UNAVAILABLE", "message": str(exc)},
         ) from exc
 
-    try:
-        result = _inspect_schema(connection)
-    except Exception as exc:
-        raise HTTPException(
-            status_code=503,
-            detail={"code": "DB_SCHEMA_CHECK_FAILED", "message": str(exc)},
-        ) from exc
-    finally:
-        connection.close()
+    tables = {name: _check_table(client, name) for name in REQUIRED_TABLES}
+    accessible = all(item["accessible"] for item in tables.values())
 
-    if result["status"] != "ok":
-        raise HTTPException(status_code=503, detail=result)
-    return result
+    return {
+        "status": "ok" if accessible else "degraded",
+        "provider": "supabase",
+        "tables": tables,
+        "rls_note": (
+            "Table accessibility is evaluated using the publishable key. "
+            "An inaccessible table may be caused by RLS/API permissions and "
+            "is not treated as proof that the table is absent."
+        ),
+    }
