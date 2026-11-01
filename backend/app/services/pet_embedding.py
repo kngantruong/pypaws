@@ -24,6 +24,8 @@ def get_embedder(checkpoint_path: str | None = None):
             sys.path.insert(0, str(repo_root))
         from ai.dinov2_petface.embedder import PetFaceEmbedder
         path = Path(checkpoint_path or "ai/dinov2_petface/dinov2_petface_ft.pt")
+        if not path.is_absolute():
+            path = repo_root / path
         if not path.exists():
             raise FileNotFoundError(f"DINOv2 checkpoint not found: {path}")
         _embedder = PetFaceEmbedder(str(path))
