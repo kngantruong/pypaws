@@ -141,7 +141,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             "p_image_score": round(image_similarity, 6),
             "p_distance_km": None if distance_km is None else round(distance_km, 3),
             "p_time_gap_hours": None if time_fit is None else round(abs((_as_datetime(query["event_time"]) - _as_datetime(candidate["event_time"])).total_seconds()) / 3600, 3),
-            "p_reason": image_priority(image_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
+            "p_reason": image_priority(image_similarity, settings.match_image_min_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
         }).execute().data
         if final_score >= 0.80 or image_similarity >= settings.match_image_high_similarity:
             try:
@@ -156,7 +156,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             "image_similarity": round(image_similarity, 4),
             "final_score": round(final_score * 100, 2),
             "location_label": "unknown" if distance_km is None else _location_label(distance_km),
-            "image_priority": image_priority(image_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
+            "image_priority": image_priority(image_similarity, settings.match_image_min_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
         })
 
     results.sort(key=lambda x: x["final_score"], reverse=True)
