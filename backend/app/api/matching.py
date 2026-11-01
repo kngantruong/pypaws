@@ -65,13 +65,14 @@ async def create_image_embedding(
     if len(data) > 10 * 1024 * 1024:
         raise HTTPException(413, "Image exceeds the 10 MB limit.")
     try:
-        owner_rows = get_supabase().rpc("get_post_image_owner", {
-            "p_post_id": post_id, "p_image_id": image_id,
-        }).execute().data or []
-        if not owner_rows:
-            raise HTTPException(404, "Image not found.")
-        if int(owner_rows[0]["owner_id"]) != user_id:
+        post_rows = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
+        if not post_rows:
+            raise HTTPException(404, "Post not found.")
+        if int(post_rows[0]["owner_id"]) != user_id:
             raise HTTPException(403, "Only the post owner can create an embedding.")
+        image_rows = get_supabase().rpc("get_post_images", {"p_post_id": post_id}).execute().data or []
+        if not any(int(row["image_id"]) == image_id for row in image_rows):
+            raise HTTPException(404, "Image not found.")
         pil_image = Image.open(BytesIO(data)).convert("RGB")
         embedder = get_embedder(get_settings().dinov2_checkpoint)
         vector = await run_in_threadpool(embedder.embed, pil_image)
