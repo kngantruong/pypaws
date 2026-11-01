@@ -14,9 +14,7 @@ def run_matching(
     radius_km: float = Query(default=None, description="MVP radius: 5, 10 or 20 km"),
     user_id: int = Depends(get_current_user_id),
 ):
-    # The database function is responsible for verifying post ownership.
-    # user_id is intentionally required at the API boundary even though the
-    # matching RPC itself only receives the post id.
+    # Ownership is checked before any candidate search or embedding work.
     if radius_km is not None and radius_km not in (5.0, 10.0, 20.0):
         raise HTTPException(422, "radius_km must be 5, 10 or 20")
     try:
