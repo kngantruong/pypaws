@@ -52,6 +52,15 @@ language sql stable as $$
     where lower(u.email) = lower(p_email);
 $$;
 
+
+-- Lấy hồ sơ người dùng theo id, không trả password.
+create function get_user_by_id(p_user_id integer)
+returns table (user_id integer, email text, full_name text, phone text, user_type text, created_at timestamptz)
+language sql stable as $
+    select u.user_id, u.email::text, u.full_name::text, u.phone::text, u.user_type::text, u.created_at
+    from users u where u.user_id = p_user_id;
+$;
+
 /* =====================================================================
    B. POSTS (khớp form đăng tin)
    ===================================================================== */
