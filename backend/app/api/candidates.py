@@ -39,3 +39,15 @@ def reject(candidate_id: int, user_id: int = Depends(get_current_user_id)):
         "p_requester_id": user_id, "p_candidate_id": candidate_id
     })
     return {"status": "REJECTED"}
+
+
+@router.post("/{candidate_id}/resolve")
+def resolve(candidate_id: int, lost_post_id: int, user_id: int = Depends(get_current_user_id)):
+    """Resolve a LOST/FOUND pair through the canonical database transaction."""
+    rpc("resolve_lost_post", {
+        "p_requester_id": user_id,
+        "p_lost_post_id": lost_post_id,
+        "p_source": None,
+        "p_candidate_id": candidate_id,
+    })
+    return {"status": "RESOLVED", "candidate_id": candidate_id, "lost_post_id": lost_post_id}
