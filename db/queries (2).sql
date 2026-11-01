@@ -17,7 +17,7 @@ begin
         from pg_proc p
         where p.pronamespace = 'public'::regnamespace
           and p.proname = any (array[
-              'create_user','get_user_by_email','create_post','get_posts','get_post_detail','get_post_images',
+              'create_user','get_user_by_email','get_user_by_id','create_post','get_posts','get_post_detail','get_post_images',
               'update_post_status','get_images_needing_embedding','save_image_embedding','get_search_pool',
               'clear_candidates','save_candidate','refresh_candidate_ranks','get_candidates_for_post',
               'create_notification','notify_candidate','get_notifications','mark_notification_read',
@@ -122,7 +122,7 @@ create function get_posts(
                  event_time timestamptz, latitude numeric, longitude numeric, location_text text,
                  status text, created_at timestamptz, owner_id integer, owner_name text,
                  primary_image text, total_count bigint)
-language sql stable as $$
+language sql stable security definer set search_path = public, pg_temp as $
     select p.post_id, p.report_code::text, p.post_type::text, p.species::text, p.gender::text,
            p.breed::text, p.coat_color::text, p.appearance_notes::text, p.description,
            p.event_time, p.latitude, p.longitude, p.location_text::text,
