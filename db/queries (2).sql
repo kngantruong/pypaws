@@ -528,3 +528,49 @@ end $$;
 -- select resolve_lost_post(2, 3, null, 4);                -- user 2 xác nhận tìm thấy nhờ bài FOUND (gợi ý số 4)
 -- select resolve_lost_post(3, 5, 'SELF_FOUND');            -- user 3 xác nhận tìm thấy nhờ nguồn khác
 -- select cancel_post(4, 7);                                -- user 4 hủy bài LOST số 7
+
+
+-- PyPaws matching context: returns the primary embedding and attributes for one post.
+create or replace function get_post_match_context(p_post_id integer)
+returns table (
+    post_id integer, post_type text, species text, gender text, breed text,
+    coat_color text, appearance_notes text, event_time timestamptz,
+    latitude numeric, longitude numeric, embedding bytea, dim smallint, dtype text
+)
+language sql stable security definer set search_path = public, pg_temp as $$
+    select p.post_id, p.post_type::text, p.species::text, p.gender::text, p.breed::text,
+           p.coat_color::text, p.appearance_notes::text, p.event_time,
+           p.latitude, p.longitude, e.embedding, e.dim, e.dtype::text
+    from posts p
+    join post_images i on i.post_id = p.post_id and i.is_primary
+    join image_embeddings e on e.image_id = i.image_id
+    where p.post_id = p_post_id
+    order by e.created_at desc
+    limit 1;
+$$;
+
+-- Matching pool variant intentionally uses SECURITY DEFINER so RLS does not hide
+-- active candidate posts from the server-side matching calculation. It returns
+-- only fields required by the matcher; exact owner/contact data is not exposed.
+create or replace function get_match_pool(p_query_post_id integer, p_model_name text, p_model_version text)
+returns table (
+    post_id integer, post_type text, species text, gender text, breed text,
+    coat_color text, appearance_notes text, event_time timestamptz,
+    latitude numeric, longitude numeric, image_id integer, embedding bytea,
+    dim smallint, dtype text
+)
+language sql stable security definer set search_path = public, pg_temp as $$
+    select p.post_id, p.post_type::text, p.species::text, p.gender::text, p.breed::text,
+           p.coat_color::text, p.appearance_notes::text, p.event_time,
+           p.latitude, p.longitude, i.image_id, e.embedding, e.dim, e.dtype::text
+    from posts q
+    join posts p on p.species = q.species
+                and p.status = 'ACTIVE'
+                and p.post_id <> q.post_id
+                and p.post_type = case q.post_type when 'LOST' then 'FOUND' else 'LOST' end
+    join post_images i on i.post_id = p.post_id and i.is_primary
+    join image_embeddings e on e.image_id = i.image_id
+                           and e.model_name = p_model_name
+                           and e.model_version = p_model_version
+    where q.post_id = p_query_post_id;
+$$;
