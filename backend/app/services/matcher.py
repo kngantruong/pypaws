@@ -59,11 +59,21 @@ def _appearance_score(query: dict[str, Any], candidate: dict[str, Any]) -> float
     return sum(compared) / len(compared) if compared else None
 
 
-def _time_score(query_time: datetime | None, candidate_time: datetime | None) -> float | None:
-    if query_time is None or candidate_time is None:
+def _as_datetime(value: datetime | str | None) -> datetime | None:
+    if value is None:
         return None
-    q = query_time if query_time.tzinfo else query_time.replace(tzinfo=timezone.utc)
-    c = candidate_time if candidate_time.tzinfo else candidate_time.replace(tzinfo=timezone.utc)
+    if isinstance(value, datetime):
+        return value
+    return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+
+
+def _time_score(query_time: datetime | str | None, candidate_time: datetime | str | None) -> float | None:
+    q_value = _as_datetime(query_time)
+    c_value = _as_datetime(candidate_time)
+    if q_value is None or c_value is None:
+        return None
+    q = q_value if q_value.tzinfo else q_value.replace(tzinfo=timezone.utc)
+    c = c_value if c_value.tzinfo else c_value.replace(tzinfo=timezone.utc)
     hours = abs((q - c).total_seconds()) / 3600.0
     if hours <= 24:
         return 1.0
@@ -129,7 +139,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             "p_passed_threshold": True,
             "p_image_score": round(image_similarity, 6),
             "p_distance_km": None if distance_km is None else round(distance_km, 3),
-            "p_time_gap_hours": None if time_fit is None else round(abs((query["event_time"] - candidate["event_time"]).total_seconds()) / 3600, 3),
+            "p_time_gap_hours": None if time_fit is None else round(abs((_as_datetime(query["event_time"]) - _as_datetime(candidate["event_time"])).total_seconds()) / 3600, 3),
             "p_reason": image_priority(image_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
         }).execute().data
         results.append({
