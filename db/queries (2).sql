@@ -154,7 +154,7 @@ returns table (post_id integer, report_code text, post_type text, species text, 
                event_time timestamptz, latitude numeric, longitude numeric, location_text text,
                status text, resolved_at timestamptz, data_source text, created_at timestamptz,
                owner_id integer, owner_name text)
-language sql stable as $$
+language sql stable security definer set search_path = public, pg_temp as $
     select p.post_id, p.report_code::text, p.post_type::text, p.species::text, p.gender::text,
            p.breed::text, p.coat_color::text, p.appearance_notes::text, p.description,
            p.event_time, p.latitude, p.longitude, p.location_text::text,
