@@ -5,9 +5,6 @@
 --   insufficient_privilege (403), no_data_found (404), check_violation (400).
 set client_encoding to 'UTF8';
 
--- Public read RPCs use SECURITY DEFINER so the publishable Supabase key can read safe joined data without exposing users directly.
--- SECURITY DEFINER is intentionally limited to these public-safe functions; contact/auth functions remain permission-sensitive.
-
 /* ---------- Dọn các hàm API cũ (đổi chữ ký/kiểu trả về nên không dùng create or replace được) ---------- */
 do $$
 declare r record;
@@ -17,7 +14,7 @@ begin
         from pg_proc p
         where p.pronamespace = 'public'::regnamespace
           and p.proname = any (array[
-              'create_user','get_user_by_email','get_user_by_id','create_post','get_posts','get_post_detail','get_post_images',
+              'create_user','get_user_by_email','create_post','get_posts','get_post_detail','get_post_images',
               'update_post_status','get_images_needing_embedding','save_image_embedding','get_search_pool',
               'clear_candidates','save_candidate','refresh_candidate_ranks','get_candidates_for_post',
               'create_notification','notify_candidate','get_notifications','mark_notification_read',
@@ -51,15 +48,6 @@ language sql stable as $$
     from users u
     where lower(u.email) = lower(p_email);
 $$;
-
-
--- Lấy hồ sơ người dùng theo id, không trả password.
-create function get_user_by_id(p_user_id integer)
-returns table (user_id integer, email text, full_name text, phone text, user_type text, created_at timestamptz)
-language sql stable as $
-    select u.user_id, u.email::text, u.full_name::text, u.phone::text, u.user_type::text, u.created_at
-    from users u where u.user_id = p_user_id;
-$;
 
 /* =====================================================================
    B. POSTS (khớp form đăng tin)
@@ -122,7 +110,7 @@ create function get_posts(
                  event_time timestamptz, latitude numeric, longitude numeric, location_text text,
                  status text, created_at timestamptz, owner_id integer, owner_name text,
                  primary_image text, total_count bigint)
-language sql stable security definer set search_path = public, pg_temp as $
+language sql stable as $$
     select p.post_id, p.report_code::text, p.post_type::text, p.species::text, p.gender::text,
            p.breed::text, p.coat_color::text, p.appearance_notes::text, p.description,
            p.event_time, p.latitude, p.longitude, p.location_text::text,
@@ -154,7 +142,7 @@ returns table (post_id integer, report_code text, post_type text, species text, 
                event_time timestamptz, latitude numeric, longitude numeric, location_text text,
                status text, resolved_at timestamptz, data_source text, created_at timestamptz,
                owner_id integer, owner_name text)
-language sql stable security definer set search_path = public, pg_temp as $
+language sql stable as $$
     select p.post_id, p.report_code::text, p.post_type::text, p.species::text, p.gender::text,
            p.breed::text, p.coat_color::text, p.appearance_notes::text, p.description,
            p.event_time, p.latitude, p.longitude, p.location_text::text,
@@ -528,85 +516,3 @@ end $$;
 -- select resolve_lost_post(2, 3, null, 4);                -- user 2 xác nhận tìm thấy nhờ bài FOUND (gợi ý số 4)
 -- select resolve_lost_post(3, 5, 'SELF_FOUND');            -- user 3 xác nhận tìm thấy nhờ nguồn khác
 -- select cancel_post(4, 7);                                -- user 4 hủy bài LOST số 7
-
-
--- PyPaws matching context: returns the primary embedding and attributes for one post.
-create or replace function get_post_match_context(
-    p_post_id integer, p_model_name text, p_model_version text
-)
-returns table (
-    post_id integer, post_type text, species text, gender text, breed text,
-    coat_color text, appearance_notes text, event_time timestamptz,
-    latitude numeric, longitude numeric, embedding bytea, dim smallint, dtype text
-)
-language sql stable security definer set search_path = public, pg_temp as $function$
-    select p.post_id, p.post_type::text, p.species::text, p.gender::text, p.breed::text,
-           p.coat_color::text, p.appearance_notes::text, p.event_time,
-           p.latitude, p.longitude, e.embedding, e.dim, e.dtype::text
-    from posts p
-    join post_images i on i.post_id = p.post_id and i.is_primary
-    join image_embeddings e on e.image_id = i.image_id
-                           and e.model_name = p_model_name
-                           and e.model_version = p_model_version
-    where p.post_id = p_post_id
-    order by e.created_at desc
-    limit 1;
-$function$;
-
--- Matching pool variant intentionally uses SECURITY DEFINER so RLS does not hide
--- active candidate posts from the server-side matching calculation. It returns
--- only fields required by the matcher; exact owner/contact data is not exposed.
-create or replace function get_match_pool(p_query_post_id integer, p_model_name text, p_model_version text)
-returns table (
-    post_id integer, post_type text, species text, gender text, breed text,
-    coat_color text, appearance_notes text, event_time timestamptz,
-    latitude numeric, longitude numeric, image_id integer, embedding bytea,
-    dim smallint, dtype text
-)
-language sql stable security definer set search_path = public, pg_temp as $$
-    select p.post_id, p.post_type::text, p.species::text, p.gender::text, p.breed::text,
-           p.coat_color::text, p.appearance_notes::text, p.event_time,
-           p.latitude, p.longitude, i.image_id, e.embedding, e.dim, e.dtype::text
-    from posts q
-    join posts p on p.species = q.species
-                and p.status = 'ACTIVE'
-                and p.post_id <> q.post_id
-                and p.post_type = case q.post_type when 'LOST' then 'FOUND' else 'LOST' end
-    join post_images i on i.post_id = p.post_id and i.is_primary
-    join image_embeddings e on e.image_id = i.image_id
-                           and e.model_name = p_model_name
-                           and e.model_version = p_model_version
-    where q.post_id = p_query_post_id;
-$$;
-
-create or replace function update_post_location(
-    p_requester_id integer, p_post_id integer, p_location_text text,
-    p_latitude numeric default null, p_longitude numeric default null
-) returns void
-language plpgsql security definer set search_path = public, pg_temp as $$
-begin
-    if p_latitude is not null and (p_latitude < -90 or p_latitude > 90) then
-        raise exception 'latitude must be between -90 and 90' using errcode = 'check_violation';
-    end if;
-    if p_longitude is not null and (p_longitude < -180 or p_longitude > 180) then
-        raise exception 'longitude must be between -180 and 180' using errcode = 'check_violation';
-    end if;
-    if (p_latitude is null) <> (p_longitude is null) then
-        raise exception 'latitude and longitude must be provided together' using errcode = 'check_violation';
-    end if;
-    update posts
-       set location_text = p_location_text, latitude = p_latitude, longitude = p_longitude
-     where post_id = p_post_id and user_id = p_requester_id and status = 'ACTIVE';
-    if not found then
-        raise exception 'Only the owner of an ACTIVE post can update its location' using errcode = 'insufficient_privilege';
-    end if;
-end $$;
-
-create or replace function get_post_image_owner(p_post_id integer, p_image_id integer)
-returns table (image_id integer, post_id integer, image_path text, owner_id integer)
-language sql stable security definer set search_path = public, pg_temp as $function$
-    select i.image_id, i.post_id, i.image_path::text, p.user_id
-    from post_images i
-    join posts p on p.post_id = i.post_id
-    where i.post_id = p_post_id and i.image_id = p_image_id;
-$function$;
