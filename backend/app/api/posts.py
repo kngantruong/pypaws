@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field, model_validator
 
 from app.core.database import get_supabase
 from app.core.config import get_settings
@@ -7,6 +8,18 @@ from app.schemas.post import PostCreate, PostDetail, PostListResponse
 from app.services.location import GeocodingError, NominatimGeocoder
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
+
+
+class LocationUpdate(BaseModel):
+    location_text: str = Field(min_length=1, max_length=500)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+
+    @model_validator(mode="after")
+    def validate_pair(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("latitude and longitude must be provided together")
+        return self
 
 
 def _raise_rpc_error(exc: Exception) -> None:
@@ -141,3 +154,29 @@ def get_post_images(post_id: int):
     except Exception as exc:
         _raise_rpc_error(exc)
     return {"items": result.data or []}
+
+
+
+@router.patch("/{post_id}/location")
+def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depends(get_current_user_id)):
+    latitude, longitude = payload.latitude, payload.longitude
+    if latitude is None and longitude is None:
+        settings = get_settings()
+        try:
+            geocoded = NominatimGeocoder(
+                settings.geocoder_base_url, settings.geocoder_user_agent, settings.geocoder_timeout_seconds
+            ).geocode(payload.location_text)
+            if geocoded is not None:
+                latitude, longitude = geocoded.latitude, geocoded.longitude
+        except GeocodingError:
+            pass
+    try:
+        get_supabase().rpc("update_post_location", {
+            "p_requester_id": user_id, "p_post_id": post_id,
+            "p_location_text": payload.location_text,
+            "p_latitude": latitude, "p_longitude": longitude,
+        }).execute()
+    except Exception as exc:
+        _raise_rpc_error(exc)
+    return {"post_id": post_id, "location_text": payload.location_text,
+            "latitude": latitude, "longitude": longitude}
