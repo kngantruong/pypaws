@@ -99,7 +99,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
     if radius not in (5.0, 10.0, 20.0):
         raise ValueError("radius_km must be 5, 10 or 20")
 
-    context_rows = supabase.rpc("get_post_match_context", {"p_post_id": post_id}).execute().data or []
+    context_rows = supabase.rpc("get_post_match_context", {"p_post_id": post_id, "p_model_name": MODEL_NAME, "p_model_version": MODEL_VERSION}).execute().data or []
     if not context_rows:
         raise LookupError("No primary embedding found for this post")
     query = context_rows[0]
