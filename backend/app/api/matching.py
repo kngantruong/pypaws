@@ -23,7 +23,14 @@ def run_matching(
             raise HTTPException(404, "Post not found.")
         if int(owner_rows[0]["owner_id"]) != user_id:
             raise HTTPException(403, "Only the post owner can start matching.")
-        results = match_post(get_supabase(), post_id, radius_km)
+        effective_radius = radius_km or get_settings().match_default_radius_km
+        results = match_post(get_supabase(), post_id, effective_radius)
+        if radius_km is None and effective_radius == 5.0 and not results:
+            results = match_post(get_supabase(), post_id, 10.0)
+            effective_radius = 10.0
+        if radius_km is None and effective_radius == 10.0 and not results:
+            results = match_post(get_supabase(), post_id, 20.0)
+            effective_radius = 20.0
     except LookupError as exc:
         raise HTTPException(409, str(exc)) from exc
     except FileNotFoundError as exc:
@@ -34,6 +41,6 @@ def run_matching(
         raise HTTPException(500, "Matching operation failed.") from exc
     return {
         "post_id": post_id,
-        "radius_km": radius_km or get_settings().match_default_radius_km,
+        "radius_km": effective_radius,
         "items": results,
     }
