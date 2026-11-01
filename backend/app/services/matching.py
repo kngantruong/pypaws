@@ -26,9 +26,9 @@ def passes_image_threshold(cosine_similarity: float, minimum: float = 0.60) -> b
     return float(cosine_similarity) >= minimum
 
 
-def image_priority(cosine_similarity: float, review: float = 0.70, high: float = 0.80) -> str:
+def image_priority(cosine_similarity: float, minimum: float = 0.60, review: float = 0.70, high: float = 0.80) -> str:
     score = float(cosine_similarity)
-    if score < 0.60:
+    if score < minimum:
         return "exclude"
     if score < review:
         return "low"
