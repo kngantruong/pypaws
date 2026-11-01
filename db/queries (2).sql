@@ -578,3 +578,26 @@ language sql stable security definer set search_path = public, pg_temp as $$
                            and e.model_version = p_model_version
     where q.post_id = p_query_post_id;
 $$;
+
+create or replace function update_post_location(
+    p_requester_id integer, p_post_id integer, p_location_text text,
+    p_latitude numeric default null, p_longitude numeric default null
+) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+    if p_latitude is not null and (p_latitude < -90 or p_latitude > 90) then
+        raise exception 'latitude must be between -90 and 90' using errcode = 'check_violation';
+    end if;
+    if p_longitude is not null and (p_longitude < -180 or p_longitude > 180) then
+        raise exception 'longitude must be between -180 and 180' using errcode = 'check_violation';
+    end if;
+    if (p_latitude is null) <> (p_longitude is null) then
+        raise exception 'latitude and longitude must be provided together' using errcode = 'check_violation';
+    end if;
+    update posts
+       set location_text = p_location_text, latitude = p_latitude, longitude = p_longitude
+     where post_id = p_post_id and user_id = p_requester_id and status = 'ACTIVE';
+    if not found then
+        raise exception 'Only the owner of an ACTIVE post can update its location' using errcode = 'insufficient_privilege';
+    end if;
+end $$;
