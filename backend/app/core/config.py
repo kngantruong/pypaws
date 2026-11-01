@@ -26,6 +26,8 @@ class Settings:
     geocoder_user_agent: str
     geocoder_timeout_seconds: float
     dinov2_checkpoint: str
+    match_model_name: str
+    match_model_version: str
     match_image_min_similarity: float
     match_image_review_similarity: float
     match_image_high_similarity: float
@@ -67,6 +69,8 @@ def get_settings() -> Settings:
         geocoder_user_agent=os.getenv("GEOCODER_USER_AGENT", "PyPaws/0.1 (pet-matching-project)").strip(),
         geocoder_timeout_seconds=float(os.getenv("GEOCODER_TIMEOUT_SECONDS", "8")),
         dinov2_checkpoint=os.getenv("DINOV2_CHECKPOINT", "ai/dinov2_petface/dinov2_petface_ft.pt").strip(),
+        match_model_name=os.getenv("MATCH_MODEL_NAME", "dinov2_petface").strip(),
+        match_model_version=os.getenv("MATCH_MODEL_VERSION", "v1").strip(),
         match_image_min_similarity=min_similarity,
         match_image_review_similarity=review_similarity,
         match_image_high_similarity=high_similarity,
