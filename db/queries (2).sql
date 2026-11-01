@@ -539,7 +539,7 @@ returns table (
     coat_color text, appearance_notes text, event_time timestamptz,
     latitude numeric, longitude numeric, embedding bytea, dim smallint, dtype text
 )
-language sql stable security definer set search_path = public, pg_temp as $
+language sql stable security definer set search_path = public, pg_temp as $function$
     select p.post_id, p.post_type::text, p.species::text, p.gender::text, p.breed::text,
            p.coat_color::text, p.appearance_notes::text, p.event_time,
            p.latitude, p.longitude, e.embedding, e.dim, e.dtype::text
