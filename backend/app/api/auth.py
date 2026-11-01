@@ -27,7 +27,9 @@ from app.core.auth import get_current_user_id
 
 @router.get("/me", response_model=UserResponse)
 def me(user_id: int = Depends(get_current_user_id)):
-    result = _rpc("get_user_by_id", {"p_user_id": user_id})
+    result = get_supabase().table("users").select(
+        "user_id,email,full_name,phone,user_type,created_at"
+    ).eq("user_id", user_id).limit(1).execute()
     if not result.data:
         raise HTTPException(404, "User not found.")
     return _user(result.data[0])
