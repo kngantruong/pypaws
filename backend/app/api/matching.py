@@ -95,6 +95,10 @@ async def create_image_embedding(
         }).execute()
     except HTTPException:
         raise
+    except FileNotFoundError as exc:
+        raise HTTPException(503, "DINOv2 checkpoint is not configured on the backend.") from exc
+    except (OSError, ValueError) as exc:
+        raise HTTPException(400, "Invalid image or embedding input.") from exc
     except Exception as exc:
         raise HTTPException(500, "Embedding generation failed.") from exc
     finally:
