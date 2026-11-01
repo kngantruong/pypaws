@@ -551,7 +551,7 @@ language sql stable security definer set search_path = public, pg_temp as $funct
     where p.post_id = p_post_id
     order by e.created_at desc
     limit 1;
-$;
+$function$;
 
 -- Matching pool variant intentionally uses SECURITY DEFINER so RLS does not hide
 -- active candidate posts from the server-side matching calculation. It returns
