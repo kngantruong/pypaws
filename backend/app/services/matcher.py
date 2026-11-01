@@ -12,8 +12,6 @@ from app.services.matching import image_priority, passes_image_threshold, weight
 from app.services.pet_embedding import get_embedder
 
 
-MODEL_NAME = "dinov2_petface"
-MODEL_VERSION = "v1"
 
 
 def _decode_embedding(value: Any, dim: int | None = None) -> np.ndarray:
@@ -95,11 +93,13 @@ def _candidate_is_in_radius(distance_km: float | None, radius_km: float, image_s
 
 def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[dict[str, Any]]:
     settings = get_settings()
+    model_name = settings.match_model_name
+    model_version = settings.match_model_version
     radius = radius_km or settings.match_default_radius_km
     if radius not in (5.0, 10.0, 20.0):
         raise ValueError("radius_km must be 5, 10 or 20")
 
-    context_rows = supabase.rpc("get_post_match_context", {"p_post_id": post_id, "p_model_name": MODEL_NAME, "p_model_version": MODEL_VERSION}).execute().data or []
+    context_rows = supabase.rpc("get_post_match_context", {"p_post_id": post_id, "p_model_name": model_name, "p_model_version": model_version}).execute().data or []
     if not context_rows:
         raise LookupError("No primary embedding found for this post")
     query = context_rows[0]
@@ -107,8 +107,8 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
 
     pool = supabase.rpc("get_match_pool", {
         "p_query_post_id": post_id,
-        "p_model_name": MODEL_NAME,
-        "p_model_version": MODEL_VERSION,
+        "p_model_name": model_name,
+        "p_model_version": model_version,
     }).execute().data or []
 
     embedder = get_embedder(settings.dinov2_checkpoint)
