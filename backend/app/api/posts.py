@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.database import get_supabase
+from app.core.auth import get_current_user_id
 from app.schemas.post import PostCreate, PostDetail, PostListResponse
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -23,11 +24,11 @@ def _raise_rpc_error(exc: Exception) -> None:
 
 
 @router.post("", status_code=201)
-def create_post(payload: PostCreate):
+def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)):
     supabase = get_supabase()
     try:
         result = supabase.rpc("create_post", {
-            "p_user_id": payload.user_id,
+            "p_user_id": user_id,
             "p_post_type": payload.post_type,
             "p_species": payload.species,
             "p_description": payload.description,
@@ -93,3 +94,34 @@ def get_post(post_id: int):
         raise HTTPException(status_code=404, detail="Post not found.")
 
     return rows[0]
+
+
+@router.post("/{post_id}/cancel")
+def cancel_post(post_id: int, user_id: int = Depends(get_current_user_id)):
+    try:
+        get_supabase().rpc("cancel_post", {"p_requester_id": user_id, "p_post_id": post_id}).execute()
+    except Exception as exc:
+        _raise_rpc_error(exc)
+    return {"status": "CANCELLED", "post_id": post_id}
+
+@router.post("/{post_id}/resolve")
+def resolve_post(post_id: int, candidate_id: int | None = None, source: str | None = None,
+                 user_id: int = Depends(get_current_user_id)):
+    try:
+        get_supabase().rpc("resolve_lost_post", {
+            "p_requester_id": user_id,
+            "p_lost_post_id": post_id,
+            "p_source": source,
+            "p_candidate_id": candidate_id,
+        }).execute()
+    except Exception as exc:
+        _raise_rpc_error(exc)
+    return {"status": "RESOLVED", "post_id": post_id}
+
+@router.get("/{post_id}/images")
+def get_post_images(post_id: int):
+    try:
+        result = get_supabase().rpc("get_post_images", {"p_post_id": post_id}).execute()
+    except Exception as exc:
+        _raise_rpc_error(exc)
+    return {"items": result.data or []}
