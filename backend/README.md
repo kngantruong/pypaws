@@ -94,3 +94,70 @@ Milestone 1 deliberately does not modify `feat/pypaws-frontend` or connect React
 
 ## Secrets
 Never commit `.env`, passwords, API keys, uploaded images, virtual environments or AI checkpoints.
+
+## Backend API handoff
+
+The backend layer is the intermediate layer between Website, AI and Database. It uses FastAPI + the Supabase Python SDK and delegates database business rules to the existing Supabase RPCs. The backend does not modify the group's database SQL file.
+
+### Core website APIs
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | /api/auth/register | Register |
+| POST | /api/auth/login | Login and receive backend JWT |
+| GET | /api/auth/me | Current user |
+| POST | /api/posts | Create LOST/FOUND post with 1-6 images |
+| GET | /api/posts | List/filter posts |
+| GET | /api/posts/{post_id} | Post detail |
+| GET | /api/posts/{post_id}/images | Post images |
+| POST | /api/posts/{post_id}/cancel | Cancel own active post |
+| POST | /api/posts/{post_id}/resolve | Resolve a LOST post |
+| POST | /api/matching/posts/{post_id}/images/{image_id}/embedding | Generate/save 512-D DINOv2 embedding |
+| POST | /api/matching/posts/{post_id} | Generate ranked candidates |
+| GET | /api/posts/{post_id}/candidates | Read ranked candidates |
+| POST | /api/candidates/{candidate_id}/contact | Contact candidate |
+| POST | /api/candidates/{candidate_id}/reject | Reject candidate |
+| POST | /api/candidates/{candidate_id}/resolve | Resolve through matched FOUND |
+| GET | /api/notifications | Notifications |
+| POST | /api/notifications/{notification_id}/read | Mark notification read |
+| GET | /api/health | Backend health |
+| GET | /api/health/db | Database accessibility check |
+
+### AI matching flow
+
+1. Website creates a LOST/FOUND post through `POST /api/posts`.
+2. Website uploads an image to the embedding endpoint. The backend initializes DINOv2 once per process, validates a `(512,)` L2-normalized vector, and stores it through the existing `save_image_embedding` RPC.
+3. Website starts matching with `POST /api/matching/posts/{post_id}`. The backend reads the LOST post and its primary embedding, calls the existing `get_search_pool` RPC for opposite-type ACTIVE posts with embeddings, computes image similarity, combines appearance/location/time signals, filters weak image matches, stores candidates through `save_candidate`, and returns ranked results.
+4. Website displays candidates through `GET /api/posts/{post_id}/candidates`. Contact/reject/resolve actions use the existing database workflows.
+
+### Error handling
+
+- `400`: invalid business input or image data
+- `401/403`: authentication/ownership/permission failure
+- `404`: post/image/candidate not found
+- `409`: matching prerequisites are not ready
+- `413`: image over 10 MB
+- `415`: unsupported image type
+- `422`: invalid request fields/radius
+- `503`: DINOv2 checkpoint unavailable
+- `500`: unexpected backend/database failure
+
+### Example matching response
+
+```json
+{
+  "post_id": 101,
+  "radius_km": 10,
+  "items": [
+    {
+      "candidate_id": 42,
+      "post_id": 118,
+      "distance_km": 2.31,
+      "image_similarity": 0.8731,
+      "final_score": 86.42,
+      "location_label": "near",
+      "image_priority": "high"
+    }
+  ]
+}
+```
