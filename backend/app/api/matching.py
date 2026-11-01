@@ -20,6 +20,11 @@ def run_matching(
     if radius_km is not None and radius_km not in (5.0, 10.0, 20.0):
         raise HTTPException(422, "radius_km must be 5, 10 or 20")
     try:
+        owner_rows = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
+        if not owner_rows:
+            raise HTTPException(404, "Post not found.")
+        if int(owner_rows[0]["owner_id"]) != user_id:
+            raise HTTPException(403, "Only the post owner can start matching.")
         results = match_post(get_supabase(), post_id, radius_km)
     except LookupError as exc:
         raise HTTPException(409, str(exc)) from exc
