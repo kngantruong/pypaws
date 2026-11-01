@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from fastapi.concurrency import run_in_threadpool
+from PIL import Image
+from io import BytesIO
 
 from app.core.auth import get_current_user_id
 from app.core.config import get_settings
@@ -43,4 +46,64 @@ def run_matching(
         "post_id": post_id,
         "radius_km": effective_radius,
         "items": results,
+    }
+
+
+
+@router.post("/posts/{post_id}/images/{image_id}/embedding")
+async def create_image_embedding(
+    post_id: int,
+    image_id: int,
+    image: UploadFile = File(...),
+    user_id: int = Depends(get_current_user_id),
+):
+    if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise HTTPException(415, "Only JPEG, PNG and WEBP images are supported.")
+    data = await image.read(10 * 1024 * 1024 + 1)
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(413, "Image exceeds the 10 MB limit.")
+    try:
+        owner_rows = get_supabase().rpc("get_post_image_owner", {
+            "p_post_id": post_id, "p_image_id": image_id,
+        }).execute().data or []
+        if not owner_rows:
+            raise HTTPException(404, "Image not found.")
+        if int(owner_rows[0]["owner_id"]) != user_id:
+            raise HTTPException(403, "Only the post owner can create an embedding.")
+        pil_image = Image.open(BytesIO(data)).convert("RGB")
+        embedder = __import__("app.services.pet_embedding", fromlist=["get_embedder"]).get_embedder(
+            get_settings().dinov2_checkpoint
+        )
+        vector = await run_in_threadpool(embedder.embed, pil_image)
+        if vector.shape != (512,):
+            raise HTTPException(500, "DINOv2 embedding must have shape (512,).")
+        if not np.isfinite(vector).all():
+            raise HTTPException(500, "DINOv2 embedding contains invalid values.")
+        vector = vector.astype("float32", copy=False)
+        norm = float(np.linalg.norm(vector))
+        if not (0.999 <= norm <= 1.001):
+            raise HTTPException(500, "DINOv2 embedding is not L2-normalized.")
+        settings = get_settings()
+        hex_embedding = "\\x" + vector.tobytes().hex()
+        get_supabase().rpc("save_image_embedding", {
+            "p_image_id": image_id,
+            "p_model_name": settings.match_model_name,
+            "p_model_version": settings.match_model_version,
+            "p_embedding": hex_embedding,
+            "p_dim": 512,
+            "p_dtype": "float32",
+        }).execute()
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(500, "Embedding generation failed.") from exc
+    finally:
+        await image.close()
+    return {
+        "image_id": image_id,
+        "model_name": settings.match_model_name,
+        "model_version": settings.match_model_version,
+        "dim": 512,
+        "dtype": "float32",
+        "normalized": True,
     }
