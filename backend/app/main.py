@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.posts import router as posts_router
 from app.core.config import get_settings
 from app.routers import health
 
@@ -24,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(posts_router, prefix="/api")
 
 
 @app.get("/", tags=["Health"])
