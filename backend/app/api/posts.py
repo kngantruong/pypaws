@@ -24,11 +24,6 @@ class LocationUpdate(BaseModel):
 
 def _raise_rpc_error(exc: Exception) -> None:
     message = str(exc)
-    print("=== SUPABASE RPC ERROR ===")
-    print(type(exc).__name__)
-    print(message)
-    print("==========================")
-
     if "check_violation" in message:
         raise HTTPException(status_code=400, detail=message)
     if "insufficient_privilege" in message:
@@ -46,15 +41,13 @@ def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)
         settings = get_settings()
         try:
             geocoded = NominatimGeocoder(
-                settings.geocoder_base_url,
-                settings.geocoder_user_agent,
-                settings.geocoder_timeout_seconds,
+                settings.geocoder_base_url, settings.geocoder_user_agent, settings.geocoder_timeout_seconds
             ).geocode(payload.location_text)
             if geocoded is not None:
                 latitude, longitude = geocoded.latitude, geocoded.longitude
         except GeocodingError:
-            # The address remains valid text even when external geocoding is unavailable.
             pass
+
     try:
         result = supabase.rpc("create_post", {
             "p_user_id": user_id,
@@ -77,8 +70,7 @@ def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)
         _raise_rpc_error(exc)
 
     if not result.data:
-        raise HTTPException(status_code=500, detail="create_post returned no data.")
-
+        raise HTTPException(500, "create_post returned no data.")
     row = result.data[0]
     return {"post_id": row["new_post_id"], "report_code": row["new_report_code"]}
 
@@ -92,15 +84,10 @@ def list_posts(
     page_size: int = Query(default=20, ge=1, le=100),
     after_post_id: int | None = Query(default=None, ge=1),
 ):
-    supabase = get_supabase()
     try:
-        result = supabase.rpc("get_posts", {
-            "p_post_type": post_type,
-            "p_species": species,
-            "p_status": status,
-            "p_page": page,
-            "p_page_size": page_size,
-            "p_after_post_id": after_post_id,
+        result = get_supabase().rpc("get_posts", {
+            "p_post_type": post_type, "p_species": species, "p_status": status,
+            "p_page": page, "p_page_size": page_size, "p_after_post_id": after_post_id,
         }).execute()
     except Exception as exc:
         _raise_rpc_error(exc)
@@ -112,16 +99,13 @@ def list_posts(
 
 @router.get("/{post_id}", response_model=PostDetail)
 def get_post(post_id: int):
-    supabase = get_supabase()
     try:
-        result = supabase.rpc("get_post_detail", {"p_post_id": post_id}).execute()
+        result = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute()
     except Exception as exc:
         _raise_rpc_error(exc)
-
     rows = result.data or []
     if not rows:
-        raise HTTPException(status_code=404, detail="Post not found.")
-
+        raise HTTPException(404, "Post not found.")
     return rows[0]
 
 
@@ -133,19 +117,19 @@ def cancel_post(post_id: int, user_id: int = Depends(get_current_user_id)):
         _raise_rpc_error(exc)
     return {"status": "CANCELLED", "post_id": post_id}
 
+
 @router.post("/{post_id}/resolve")
 def resolve_post(post_id: int, candidate_id: int | None = None, source: str | None = None,
                  user_id: int = Depends(get_current_user_id)):
     try:
         get_supabase().rpc("resolve_lost_post", {
-            "p_requester_id": user_id,
-            "p_lost_post_id": post_id,
-            "p_source": source,
-            "p_candidate_id": candidate_id,
+            "p_requester_id": user_id, "p_lost_post_id": post_id,
+            "p_source": source, "p_candidate_id": candidate_id,
         }).execute()
     except Exception as exc:
         _raise_rpc_error(exc)
     return {"status": "RESOLVED", "post_id": post_id}
+
 
 @router.get("/{post_id}/images")
 def get_post_images(post_id: int):
@@ -156,9 +140,9 @@ def get_post_images(post_id: int):
     return {"items": result.data or []}
 
 
-
 @router.patch("/{post_id}/location")
 def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depends(get_current_user_id)):
+    """Update location through the existing posts table; no new SQL function is required."""
     latitude, longitude = payload.latitude, payload.longitude
     if latitude is None and longitude is None:
         settings = get_settings()
@@ -170,13 +154,25 @@ def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depend
                 latitude, longitude = geocoded.latitude, geocoded.longitude
         except GeocodingError:
             pass
+
     try:
-        get_supabase().rpc("update_post_location", {
-            "p_requester_id": user_id, "p_post_id": post_id,
-            "p_location_text": payload.location_text,
-            "p_latitude": latitude, "p_longitude": longitude,
-        }).execute()
+        detail = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
+        if not detail:
+            raise HTTPException(404, "Post not found.")
+        if int(detail[0]["owner_id"]) != user_id:
+            raise HTTPException(403, "Only the post owner can update location.")
+
+        result = get_supabase().table("posts").update({
+            "location_text": payload.location_text,
+            "latitude": latitude,
+            "longitude": longitude,
+        }).eq("post_id", post_id).execute()
+        if not result.data:
+            raise HTTPException(500, "Location update was not accepted by the database.")
+    except HTTPException:
+        raise
     except Exception as exc:
         _raise_rpc_error(exc)
+
     return {"post_id": post_id, "location_text": payload.location_text,
             "latitude": latitude, "longitude": longitude}
