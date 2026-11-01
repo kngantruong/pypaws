@@ -50,6 +50,11 @@ def get_settings() -> Settings:
     default_radius = float(os.getenv("MATCH_DEFAULT_RADIUS_KM", "5"))
     if default_radius not in (5.0, 10.0, 20.0):
         raise RuntimeError("MATCH_DEFAULT_RADIUS_KM must be 5, 10 or 20")
+    min_similarity = float(os.getenv("MATCH_IMAGE_MIN_SIMILARITY", "0.60"))
+    review_similarity = float(os.getenv("MATCH_IMAGE_REVIEW_SIMILARITY", "0.70"))
+    high_similarity = float(os.getenv("MATCH_IMAGE_HIGH_SIMILARITY", "0.80"))
+    if not (0.0 <= min_similarity < review_similarity < high_similarity <= 1.0):
+        raise RuntimeError("Image similarity thresholds must satisfy 0 <= min < review < high <= 1")
 
     return Settings(
         app_name=os.getenv("APP_NAME", "PyPaws Backend").strip() or "PyPaws Backend",
@@ -62,8 +67,8 @@ def get_settings() -> Settings:
         geocoder_user_agent=os.getenv("GEOCODER_USER_AGENT", "PyPaws/0.1 (pet-matching-project)").strip(),
         geocoder_timeout_seconds=float(os.getenv("GEOCODER_TIMEOUT_SECONDS", "8")),
         dinov2_checkpoint=os.getenv("DINOV2_CHECKPOINT", "ai/dinov2_petface/dinov2_petface_ft.pt").strip(),
-        match_image_min_similarity=float(os.getenv("MATCH_IMAGE_MIN_SIMILARITY", "0.60")),
-        match_image_review_similarity=float(os.getenv("MATCH_IMAGE_REVIEW_SIMILARITY", "0.70")),
-        match_image_high_similarity=float(os.getenv("MATCH_IMAGE_HIGH_SIMILARITY", "0.80")),
+        match_image_min_similarity=min_similarity,
+        match_image_review_similarity=review_similarity,
+        match_image_high_similarity=high_similarity,
         match_default_radius_km=default_radius,
     )
