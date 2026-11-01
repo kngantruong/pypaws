@@ -1,4 +1,4 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,Depends,HTTPException
 from app.core.database import get_supabase
 from app.core.security import create_access_token,hash_password,verify_password
 from app.schemas.auth import AuthResponse,LoginRequest,RegisterRequest,UserResponse
@@ -21,3 +21,13 @@ def login(p:LoginRequest):
     u=_rpc("get_user_by_email",{"p_email":p.email}).data
     if not u or not verify_password(p.password,u[0]["password"]):raise HTTPException(401,"Email or password is incorrect.")
     return AuthResponse(access_token=create_access_token(int(u[0]["user_id"])),user=_user(u[0]))
+
+
+from app.core.auth import get_current_user_id
+
+@router.get("/me", response_model=UserResponse)
+def me(user_id: int = Depends(get_current_user_id)):
+    result = _rpc("get_user_by_id", {"p_user_id": user_id})
+    if not result.data:
+        raise HTTPException(404, "User not found.")
+    return _user(result.data[0])
