@@ -12,6 +12,7 @@ from app.api.auth import router as auth_router
 from app.api.candidates import router as candidates_router, post_candidates_router
 from app.api.notifications import router as notifications_router
 from app.api.location import router as location_router
+from app.api.matching import router as matching_router
 from app.core.config import get_settings
 from app.routers import health
 from app.routers.ai_pet_description import router as ai_pet_description_router
@@ -55,6 +56,7 @@ app.include_router(candidates_router, prefix="/api")
 app.include_router(post_candidates_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(location_router, prefix="/api")
+app.include_router(matching_router, prefix="/api")
 app.include_router(ai_pet_description_router)
 
 
