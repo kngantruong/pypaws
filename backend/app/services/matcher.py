@@ -130,7 +130,8 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         appearance = _appearance_score(query, candidate)
         time_fit = _time_score(query.get("event_time"), candidate.get("event_time"))
         loc_score = location_score(distance_km)
-        image_score = max(0.0, min(1.0, (image_similarity + 1.0) / 2.0))
+        # Business thresholds use raw cosine similarity (0..1 for valid pet matches).
+        image_score = max(0.0, min(1.0, image_similarity))
         final_score = weighted_score(image_score, appearance, loc_score, time_fit)
         candidate_id = supabase.rpc("save_candidate", {
             "p_lost_post_id": post_id if query["post_type"] == "LOST" else candidate["post_id"],
@@ -142,6 +143,12 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             "p_time_gap_hours": None if time_fit is None else round(abs((_as_datetime(query["event_time"]) - _as_datetime(candidate["event_time"])).total_seconds()) / 3600, 3),
             "p_reason": image_priority(image_similarity, settings.match_image_review_similarity, settings.match_image_high_similarity),
         }).execute().data
+        if final_score >= 0.80 or image_similarity >= settings.match_image_high_similarity:
+            try:
+                supabase.rpc("notify_candidate", {"p_candidate_id": candidate_id}).execute()
+            except Exception:
+                # Notification failure must not discard a valid matching result.
+                pass
         results.append({
             "candidate_id": candidate_id,
             "post_id": candidate["post_id"],
