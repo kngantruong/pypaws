@@ -5,6 +5,9 @@
 --   insufficient_privilege (403), no_data_found (404), check_violation (400).
 set client_encoding to 'UTF8';
 
+-- Public read RPCs use SECURITY DEFINER so the publishable Supabase key can read safe joined data without exposing users directly.
+-- SECURITY DEFINER is intentionally limited to these public-safe functions; contact/auth functions remain permission-sensitive.
+
 /* ---------- Dọn các hàm API cũ (đổi chữ ký/kiểu trả về nên không dùng create or replace được) ---------- */
 do $$
 declare r record;
