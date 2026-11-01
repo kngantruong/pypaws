@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 from threading import Lock
 
@@ -18,6 +19,9 @@ def get_embedder(checkpoint_path: str | None = None):
     with _lock:
         if _embedder is not None:
             return _embedder
+        repo_root = Path(__file__).resolve().parents[3]
+        if str(repo_root) not in sys.path:
+            sys.path.insert(0, str(repo_root))
         from ai.dinov2_petface.embedder import PetFaceEmbedder
         path = Path(checkpoint_path or "ai/dinov2_petface/dinov2_petface_ft.pt")
         if not path.exists():
