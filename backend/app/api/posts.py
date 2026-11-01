@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.core.database import get_supabase
+from app.core.config import get_settings
 from app.core.auth import get_current_user_id
 from app.schemas.post import PostCreate, PostDetail, PostListResponse
+from app.services.location import GeocodingError, NominatimGeocoder
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -26,6 +28,20 @@ def _raise_rpc_error(exc: Exception) -> None:
 @router.post("", status_code=201)
 def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)):
     supabase = get_supabase()
+    latitude, longitude = payload.latitude, payload.longitude
+    if latitude is None and longitude is None:
+        settings = get_settings()
+        try:
+            geocoded = NominatimGeocoder(
+                settings.geocoder_base_url,
+                settings.geocoder_user_agent,
+                settings.geocoder_timeout_seconds,
+            ).geocode(payload.location_text)
+            if geocoded is not None:
+                latitude, longitude = geocoded.latitude, geocoded.longitude
+        except GeocodingError:
+            # The address remains valid text even when external geocoding is unavailable.
+            pass
     try:
         result = supabase.rpc("create_post", {
             "p_user_id": user_id,
@@ -39,8 +55,8 @@ def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)
             "p_breed": payload.breed,
             "p_coat_color": payload.coat_color,
             "p_appearance_notes": payload.appearance_notes,
-            "p_latitude": payload.latitude,
-            "p_longitude": payload.longitude,
+            "p_latitude": latitude,
+            "p_longitude": longitude,
             "p_cover_index": payload.cover_index,
             "p_data_source": payload.data_source,
         }).execute()
