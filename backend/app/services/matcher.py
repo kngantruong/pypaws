@@ -1,4 +1,4 @@
-"""Server-side LOST -> FOUND candidate generation using DINOv2 + location/time/appearance.
+"""Server-side LOST -> FOUND candidate generation using DINOv2 + location + time.
 
 The database contract is the existing `get_search_pool` / `save_candidate`
 functions. No new SQL functions are required by the backend.
@@ -43,25 +43,6 @@ def _decode_embedding(value: Any, dim: int | None = None) -> np.ndarray:
     return (vector / norm).astype(np.float32)
 
 
-def _appearance_score(query: dict[str, Any], candidate: dict[str, Any]) -> float | None:
-    compared: list[float] = []
-    for field in ("gender", "breed", "coat_color"):
-        left, right = query.get(field), candidate.get(field)
-        if left is not None and right is not None and str(left).strip() and str(right).strip():
-            compared.append(
-                1.0 if str(left).strip().casefold() == str(right).strip().casefold() else 0.0
-            )
-
-    q_notes, c_notes = query.get("appearance_notes"), candidate.get("appearance_notes")
-    if q_notes and c_notes:
-        q_tokens = {x.strip().casefold() for x in str(q_notes).replace(",", " ").split() if x.strip()}
-        c_tokens = {x.strip().casefold() for x in str(c_notes).replace(",", " ").split() if x.strip()}
-        if q_tokens and c_tokens:
-            compared.append(len(q_tokens & c_tokens) / len(q_tokens | c_tokens))
-
-    return sum(compared) / len(compared) if compared else None
-
-
 def _as_datetime(value: datetime | str | None) -> datetime | None:
     if value is None:
         return None
@@ -93,8 +74,8 @@ def _candidate_is_in_radius(
 ) -> bool:
     if distance_km is None:
         return True
-    # A very strong image match is retained even when the simulated location is farther away.
-    return distance_km <= radius_km or image_similarity >= 0.80
+    # Geographic radius is a hard filter; image similarity cannot bypass it.
+    return distance_km <= radius_km
 
 
 def _rpc_scalar_id(data: Any) -> int:
@@ -210,11 +191,10 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         if not _candidate_is_in_radius(distance_km, radius, image_similarity):
             continue
 
-        appearance = _appearance_score(query, candidate)
         time_fit = _time_score(query.get("event_time"), candidate.get("event_time"))
         loc_score = location_score(distance_km)
         image_score = max(0.0, min(1.0, image_similarity))
-        final_score = weighted_score(image_score, appearance, loc_score, time_fit)
+        final_score = weighted_score(image_score, loc_score, time_fit)
 
         time_gap_hours = None
         q_dt, c_dt = _as_datetime(query.get("event_time")), _as_datetime(candidate.get("event_time"))
