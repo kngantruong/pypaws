@@ -18,8 +18,13 @@ class MatchingWeights:
 
 
 def normalize_image_score(cosine_similarity: float) -> float:
-    """Map cosine similarity [-1,1] to a bounded business score [0,1]."""
-    return max(0.0, min(1.0, (float(cosine_similarity) + 1.0) / 2.0))
+    """Use the normalized cosine similarity directly as the business image score.
+
+    The DINOv2 embeddings are L2-normalized, so their dot product is the
+    cosine similarity. The PyPaws thresholds (0.60/0.70/0.80) are defined
+    directly on that similarity and must not be remapped with (x + 1) / 2.
+    """
+    return max(0.0, min(1.0, float(cosine_similarity)))
 
 
 def passes_image_threshold(cosine_similarity: float, minimum: float = 0.60) -> bool:
