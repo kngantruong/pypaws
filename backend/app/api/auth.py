@@ -13,7 +13,7 @@ def _user(row):return UserResponse(user_id=row["user_id"],email=row["email"],ful
 def register(p:RegisterRequest):
     r=_rpc("create_user",{"p_email":p.email,"p_password_hash":hash_password(p.password),"p_full_name":p.full_name,"p_phone":p.phone})
     if not r.data:raise HTTPException(500,"Registration returned no user.")
-    uid=int(r.data[0]); u=_rpc("get_user_by_email",{"p_email":p.email}).data
+    uid=int(r.data); u=_rpc("get_user_by_email",{"p_email":p.email}).data
     if not u:raise HTTPException(500,"User lookup failed.")
     return AuthResponse(access_token=create_access_token(uid),user=_user(u[0]))
 @router.post("/login",response_model=AuthResponse)
