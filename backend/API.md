@@ -6,7 +6,7 @@ Quỳnh phụ trách lớp trung gian giữa Website, AI và Database:
 
 **Website -> FastAPI -> Supabase -> FastAPI -> Website**
 
-AI matching uses the group's DINOv2 PetFace embedder. The backend does not add or modify database schema/functions; it calls the existing database functions from `db/queries (2).sql` and uses the existing `posts` / `image_embeddings` tables where needed.
+AI matching uses the group's DINOv2 PetFace embedder. The backend does not add or modify database schema/functions; it calls the existing Supabase RPCs and uses the existing `posts` / `image_embeddings` tables.
 
 ## Run
 
@@ -54,7 +54,7 @@ Authorization: Bearer <access_token>
 | GET | `/api/notifications` | Read notifications |
 | POST | `/api/notifications/{notification_id}/read` | Mark notification read |
 | GET | `/api/health` | Backend health |
-| GET | `/api/health/db` | Supabase/PostgREST health |
+| GET | `/api/health/db` | Supabase/PostgREST health |\n| GET | `/api/health/ai` | DINOv2 checkpoint/model readiness |
 
 ## Create post example
 
@@ -111,7 +111,7 @@ Example response:
 ```json
 {
   "image_id": 501,
-  "model_name": "dinov2_petface",
+  "model_name": "dinov2_finetuned",
   "model_version": "v1",
   "dim": 512,
   "dtype": "float32",
@@ -143,9 +143,9 @@ The backend:
 3. calls existing `get_search_pool` to obtain active opposite-type posts with embeddings;
 4. computes DINOv2 cosine similarity;
 5. applies the image threshold;
-6. combines image, appearance, location and time signals;
+6. applies the image hard threshold of 0.252, then ranks eligible candidates with Image 0.60 + Geo 0.25 + Time 0.15; Geo uses a 20 km score scale and Time uses a 7-day half-life;
 7. saves ranked candidates through `save_candidate`;
-8. sends a notification for a high-confidence result.
+8. persists at most the five highest-ranked eligible candidates and sends a notification for a high-confidence result.
 
 Example:
 
@@ -202,4 +202,4 @@ For the planned demo, use the images and IDs from `verification.csv` as ground t
 - location and event time are simulated separately from image identity;
 - the expected result is that the correct individual ranks above different individuals when the image signal is sufficiently strong.
 
-The backend does not fabricate the ground truth. Test data should be created from the actual verification file and its existing rules.
+The backend does not fabricate the ground truth. Test data should be created from the actual verification file and its existing rules. The model was trained on cropped pet-face images; full-body user photos should be face-cropped before embedding or separately validated because the reported verification metrics may not transfer directly.
