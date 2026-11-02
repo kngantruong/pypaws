@@ -29,10 +29,8 @@ class GeocodedLocation:
 
 
 def validate_coordinates(latitude: float | None, longitude: float | None) -> None:
-    if latitude is None and longitude is None:
-        return
     if latitude is None or longitude is None:
-        raise ValueError("latitude and longitude must be provided together")
+        raise ValueError("latitude and longitude are required")
     if not -90.0 <= float(latitude) <= 90.0:
         raise ValueError("latitude must be between -90 and 90")
     if not -180.0 <= float(longitude) <= 180.0:

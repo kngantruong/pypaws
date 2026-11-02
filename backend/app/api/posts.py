@@ -1,26 +1,18 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 from app.core.database import get_supabase
-from app.core.config import get_settings
 from app.core.auth import get_current_user_id
 from app.schemas.post import PostCreate, PostDetail, PostListResponse
-from app.services.location import GeocodingError, NominatimGeocoder
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
 
 class LocationUpdate(BaseModel):
     location_text: str = Field(min_length=1, max_length=500)
-    latitude: float | None = Field(default=None, ge=-90, le=90)
-    longitude: float | None = Field(default=None, ge=-180, le=180)
-
-    @model_validator(mode="after")
-    def validate_pair(self):
-        if (self.latitude is None) != (self.longitude is None):
-            raise ValueError("latitude and longitude must be provided together")
-        return self
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
 
 
 def _raise_rpc_error(exc: Exception) -> None:
@@ -38,18 +30,8 @@ def _raise_rpc_error(exc: Exception) -> None:
 @router.post("", status_code=201)
 def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)):
     supabase = get_supabase()
-    latitude = float(payload.latitude) if payload.latitude is not None else None
-    longitude = float(payload.longitude) if payload.longitude is not None else None
-    if latitude is None and longitude is None:
-        settings = get_settings()
-        try:
-            geocoded = NominatimGeocoder(
-                settings.geocoder_base_url, settings.geocoder_user_agent, settings.geocoder_timeout_seconds
-            ).geocode(payload.location_text)
-            if geocoded is not None:
-                latitude, longitude = geocoded.latitude, geocoded.longitude
-        except GeocodingError:
-            pass
+    latitude = float(payload.latitude)
+    longitude = float(payload.longitude)
 
     try:
         result = supabase.rpc("create_post", {
@@ -147,16 +129,6 @@ def get_post_images(post_id: int):
 def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depends(get_current_user_id)):
     """Update location through the existing posts table; no new SQL function is required."""
     latitude, longitude = payload.latitude, payload.longitude
-    if latitude is None and longitude is None:
-        settings = get_settings()
-        try:
-            geocoded = NominatimGeocoder(
-                settings.geocoder_base_url, settings.geocoder_user_agent, settings.geocoder_timeout_seconds
-            ).geocode(payload.location_text)
-            if geocoded is not None:
-                latitude, longitude = geocoded.latitude, geocoded.longitude
-        except GeocodingError:
-            pass
 
     try:
         detail = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []

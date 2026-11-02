@@ -29,6 +29,11 @@ def test_partial_coordinates_rejected():
         validate_coordinates(10, None)
 
 
+def test_missing_coordinates_rejected():
+    with pytest.raises(ValueError, match="required"):
+        validate_coordinates(None, None)
+
+
 def test_distance_labels_and_scores():
     assert distance_label(0.5) == "very_near"
     assert distance_label(2) == "near"
@@ -55,13 +60,26 @@ def test_missing_optional_signals_do_not_destroy_image_score():
     assert weighted_score(0.9, None, None) == pytest.approx(0.9)
 
 
-def test_post_create_rejects_partial_coordinates():
-    with pytest.raises(ValueError):
-        PostCreate(
-            post_type="LOST", species="DOG", description="x",
-            event_time="2026-11-01T10:00:00Z", location_text="District 1",
-            image_paths=["x.jpg"], latitude=10.0,
-        )
+def test_post_create_requires_both_coordinates():
+    base = dict(
+        post_type="LOST", species="DOG", description="x",
+        event_time="2026-11-01T10:00:00Z", location_text="District 1",
+        image_paths=["x.jpg"],
+    )
+    with pytest.raises(Exception):
+        PostCreate(**base)
+    with pytest.raises(Exception):
+        PostCreate(**base, latitude=10.0)
+    valid = PostCreate(**base, latitude=10.0, longitude=106.0)
+    assert float(valid.latitude) == 10.0
+    assert float(valid.longitude) == 106.0
+
+
+def test_missing_distance_never_passes_radius():
+    from app.services.matcher import _candidate_is_in_radius
+    assert not _candidate_is_in_radius(None, 5.0, 1.0)
+    assert _candidate_is_in_radius(4.9, 5.0, 0.3)
+    assert not _candidate_is_in_radius(5.1, 5.0, 1.0)
 
 
 def test_geocoder_returns_none_when_address_not_found(monkeypatch):

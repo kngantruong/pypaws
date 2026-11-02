@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PostCreate(BaseModel):
@@ -16,15 +16,9 @@ class PostCreate(BaseModel):
     breed: str | None = None
     coat_color: str | None = None
     appearance_notes: str | None = None
-    latitude: Decimal | None = Field(default=None, ge=-90, le=90)
-    longitude: Decimal | None = Field(default=None, ge=-180, le=180)
+    latitude: Decimal = Field(ge=-90, le=90)
+    longitude: Decimal = Field(ge=-180, le=180)
     data_source: str = "USER"
-
-    @model_validator(mode="after")
-    def validate_coordinate_pair(self):
-        if (self.latitude is None) != (self.longitude is None):
-            raise ValueError("latitude and longitude must be provided together")
-        return self
 
 
 class PostSummary(BaseModel):

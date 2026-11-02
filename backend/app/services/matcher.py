@@ -12,7 +12,7 @@ from typing import Any
 import numpy as np
 
 from app.core.config import get_settings
-from app.services.location import haversine_km, location_score
+from app.services.location import haversine_km, location_score, validate_coordinates
 from app.services.matching import image_priority, passes_image_threshold, select_top_k, weighted_score
 
 
@@ -70,7 +70,7 @@ def _candidate_is_in_radius(
     distance_km: float | None, radius_km: float, image_similarity: float
 ) -> bool:
     if distance_km is None:
-        return True
+        return False
     # Geographic radius is a hard filter; image similarity cannot bypass it.
     return distance_km <= radius_km
 
@@ -134,15 +134,34 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
     settings = get_settings()
     model_name = settings.match_model_name
     model_version = settings.match_model_version
-    radius = radius_km or settings.match_default_radius_km
+    radius = settings.match_default_radius_km if radius_km is None else radius_km
     if radius not in (5.0, 10.0, 20.0):
         raise ValueError("radius_km must be 5, 10 or 20")
 
     query = _get_query_context(supabase, post_id, model_name, model_version)
+    validate_coordinates(query.get("latitude"), query.get("longitude"))
     query_vector = _decode_embedding(query["embedding"], query.get("dim"))
 
-    # Re-running matching refreshes only still-pending suggestions.
-    supabase.rpc("clear_candidates", {"p_lost_post_id": post_id}).execute()
+    # Keep candidate IDs stable across reruns. This preserves notification
+    # references and lets us distinguish genuinely new LOST-FOUND pairs.
+    existing_rows = (
+        supabase.table("candidates")
+        .select("candidate_id,candidate_post_id,status")
+        .eq("query_post_id", post_id)
+        .execute()
+        .data
+        or []
+    )
+    existing_pairs = {int(row["candidate_post_id"]) for row in existing_rows}
+    # Hide old pending suggestions before re-enabling the current top-k below.
+    # save_candidate sets passed_threshold=True for each newly ranked result.
+    (
+        supabase.table("candidates")
+        .update({"passed_threshold": False})
+        .eq("query_post_id", post_id)
+        .eq("status", "PENDING")
+        .execute()
+    )
 
     pool = (
         supabase.rpc(
@@ -170,19 +189,17 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         if not passes_image_threshold(image_similarity, settings.match_image_min_similarity):
             continue
 
-        distance_km = None
-        if (
-            query.get("latitude") is not None
-            and query.get("longitude") is not None
-            and candidate.get("latitude") is not None
-            and candidate.get("longitude") is not None
-        ):
-            distance_km = haversine_km(
-                float(query["latitude"]),
-                float(query["longitude"]),
-                float(candidate["latitude"]),
-                float(candidate["longitude"]),
-            )
+        # Coordinates are mandatory for both sides; missing candidate location
+        # must never be treated as an unrestricted geographic match.
+        if candidate.get("latitude") is None or candidate.get("longitude") is None:
+            continue
+        validate_coordinates(candidate.get("latitude"), candidate.get("longitude"))
+        distance_km = haversine_km(
+            float(query["latitude"]),
+            float(query["longitude"]),
+            float(candidate["latitude"]),
+            float(candidate["longitude"]),
+        )
 
         if not _candidate_is_in_radius(distance_km, radius, image_similarity):
             continue
@@ -227,6 +244,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         final_score = ranked["final_score"]
         candidate = ranked["_candidate"]
 
+        is_new_pair = int(candidate["post_id"]) not in existing_pairs
         candidate_id = _rpc_scalar_id(
             supabase.rpc(
                 "save_candidate",
@@ -248,7 +266,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             ).execute().data
         )
 
-        if final_score / 100 >= 0.80 or image_similarity >= settings.match_image_high_similarity:
+        if is_new_pair and (final_score / 100 >= 0.80 or image_similarity >= settings.match_image_high_similarity):
             try:
                 supabase.rpc("notify_candidate", {"p_candidate_id": candidate_id}).execute()
             except Exception:
