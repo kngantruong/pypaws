@@ -54,6 +54,7 @@ def run_matching(
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
     except Exception as exc:
+        logging.exception("AI matching failed for post_id=%s", post_id)
         raise HTTPException(500, "Matching operation failed.") from exc
 
     return {
