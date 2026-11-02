@@ -6,6 +6,7 @@ functions. No new SQL functions are required by the backend.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import math
 from typing import Any
 
 import numpy as np
@@ -14,6 +15,10 @@ from app.core.config import get_settings
 from app.services.location import haversine_km, location_score
 from app.services.matching import image_priority, passes_image_threshold, weighted_score
 from app.services.pet_embedding import get_embedder
+
+
+TIME_HALF_LIFE_DAYS = 7.0
+TIME_DECAY_LAMBDA_PER_DAY = math.log(2.0) / TIME_HALF_LIFE_DAYS
 
 
 def _decode_embedding(value: Any, dim: int | None = None) -> np.ndarray:
@@ -52,21 +57,14 @@ def _as_datetime(value: datetime | str | None) -> datetime | None:
 
 
 def _time_score(query_time: datetime | str | None, candidate_time: datetime | str | None) -> float | None:
+    """Exponential time-decay score with a 7-day half-life."""
     q_value, c_value = _as_datetime(query_time), _as_datetime(candidate_time)
     if q_value is None or c_value is None:
         return None
     q = q_value if q_value.tzinfo else q_value.replace(tzinfo=timezone.utc)
     c = c_value if c_value.tzinfo else c_value.replace(tzinfo=timezone.utc)
-    hours = abs((q - c).total_seconds()) / 3600.0
-    if hours <= 24:
-        return 1.0
-    if hours <= 72:
-        return 0.8
-    if hours <= 168:
-        return 0.6
-    if hours <= 720:
-        return 0.35
-    return 0.1
+    delta_t_days = abs((q - c).total_seconds()) / 86400.0
+    return math.exp(-TIME_DECAY_LAMBDA_PER_DAY * delta_t_days)
 
 
 def _candidate_is_in_radius(
