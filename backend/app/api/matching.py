@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image
@@ -122,6 +123,7 @@ async def create_image_embedding(
     except (OSError, ValueError) as exc:
         raise HTTPException(400, "Invalid image or embedding input.") from exc
     except Exception as exc:
+        logging.exception("DINOv2 embedding generation failed")
         raise HTTPException(500, "Embedding generation failed.") from exc
     finally:
         await image.close()

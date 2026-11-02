@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, model_validator
 
@@ -23,6 +24,7 @@ class LocationUpdate(BaseModel):
 
 
 def _raise_rpc_error(exc: Exception) -> None:
+    logging.exception("Supabase RPC/database operation failed")
     message = str(exc)
     if "check_violation" in message:
         raise HTTPException(status_code=400, detail=message)
@@ -36,7 +38,8 @@ def _raise_rpc_error(exc: Exception) -> None:
 @router.post("", status_code=201)
 def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)):
     supabase = get_supabase()
-    latitude, longitude = payload.latitude, payload.longitude
+    latitude = float(payload.latitude) if payload.latitude is not None else None
+    longitude = float(payload.longitude) if payload.longitude is not None else None
     if latitude is None and longitude is None:
         settings = get_settings()
         try:
