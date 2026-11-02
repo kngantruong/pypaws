@@ -7,7 +7,7 @@ import numpy as np
 
 from app.core.auth import get_current_user_id
 from app.core.config import get_settings
-from app.core.database import get_supabase
+from app.core.database import get_supabase, get_supabase_admin
 from app.services.matcher import match_post
 from app.services.pet_embedding import get_embedder
 
@@ -34,13 +34,15 @@ def run_matching(
             raise HTTPException(422, "AI matching must be started from a LOST post.")
 
         effective_radius = radius_km or get_settings().match_default_radius_km
-        results = match_post(get_supabase(), post_id, effective_radius)
+        # Use the server-only client only after authenticating the caller and verifying post ownership.
+        matching_db = get_supabase_admin()
+        results = match_post(matching_db, post_id, effective_radius)
 
         if radius_km is None and effective_radius == 5.0 and not results:
-            results = match_post(get_supabase(), post_id, 10.0)
+            results = match_post(matching_db, post_id, 10.0)
             effective_radius = 10.0
         if radius_km is None and effective_radius == 10.0 and not results:
-            results = match_post(get_supabase(), post_id, 20.0)
+            results = match_post(matching_db, post_id, 20.0)
             effective_radius = 20.0
 
     except HTTPException:
