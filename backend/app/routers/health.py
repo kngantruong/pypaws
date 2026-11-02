@@ -5,7 +5,9 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
+from app.core.config import get_settings
 from app.core.database import get_supabase
+from app.services.pet_embedding import is_loaded
 
 router = APIRouter(prefix="/api/health", tags=["Health"])
 
@@ -69,4 +71,19 @@ def database_health() -> dict[str, Any]:
             "An inaccessible table may be caused by RLS/API permissions and "
             "is not treated as proof that the table is absent."
         ),
+    }
+
+
+@router.get("/ai", summary="Check DINOv2 model readiness")
+def ai_health() -> dict[str, Any]:
+    """Report whether the DINOv2 checkpoint was loaded successfully at startup."""
+    settings = get_settings()
+    loaded = is_loaded()
+    return {
+        "status": "ok" if loaded else "degraded",
+        "provider": "dinov2",
+        "model_name": settings.match_model_name,
+        "model_version": settings.match_model_version,
+        "embedding_dim": 512,
+        "checkpoint_loaded": loaded,
     }
