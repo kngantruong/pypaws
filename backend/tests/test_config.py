@@ -37,13 +37,13 @@ def test_settings_read_supabase_credentials(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 
-def test_settings_default_top_k_is_ten(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_settings_default_top_k_is_five(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
     monkeypatch.setenv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test")
     monkeypatch.delenv("MATCH_TOP_K", raising=False)
     get_settings.cache_clear()
 
-    assert get_settings().match_top_k == 10
+    assert get_settings().match_top_k == 5
 
 
 def test_settings_reject_non_positive_top_k(monkeypatch: pytest.MonkeyPatch) -> None:
