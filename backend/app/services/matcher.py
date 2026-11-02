@@ -13,10 +13,11 @@ import numpy as np
 
 from app.core.config import get_settings
 from app.services.location import haversine_km, location_score
-from app.services.matching import image_priority, passes_image_threshold, weighted_score
+from app.services.matching import image_priority, passes_image_threshold, select_top_k, weighted_score
 from app.services.pet_embedding import get_embedder
 
 
+MATCH_TOP_K = 5
 TIME_HALF_LIFE_DAYS = 7.0
 TIME_DECAY_LAMBDA_PER_DAY = math.log(2.0) / TIME_HALF_LIFE_DAYS
 
@@ -162,8 +163,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
     if not pool:
         return []
 
-    embedder = get_embedder(settings.dinov2_checkpoint)
-    results: list[dict[str, Any]] = []
+    ranked_candidates: list[dict[str, Any]] = []
 
     for candidate in pool:
         candidate_vector = _decode_embedding(candidate["embedding"], candidate.get("dim"))
@@ -199,13 +199,43 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         if q_dt is not None and c_dt is not None:
             time_gap_hours = abs((q_dt - c_dt).total_seconds()) / 3600.0
 
+        ranked_candidates.append(
+            {
+                "_candidate": candidate,
+                "_image_similarity": image_similarity,
+                "_distance_km": distance_km,
+                "_time_gap_hours": time_gap_hours,
+                "final_score": round(final_score * 100, 2),
+                "post_id": int(candidate["post_id"]),
+                "distance_km": None if distance_km is None else round(distance_km, 3),
+                "image_similarity": round(image_similarity, 4),
+                "location_label": "unknown" if distance_km is None else _location_label(distance_km),
+                "image_priority": image_priority(
+                    image_similarity,
+                    settings.match_image_min_similarity,
+                    settings.match_image_review_similarity,
+                    settings.match_image_high_similarity,
+                ),
+            }
+        )
+
+    # Persist and notify only the five highest-ranked eligible candidates.
+    top_candidates = select_top_k(ranked_candidates, MATCH_TOP_K)
+    results: list[dict[str, Any]] = []
+    for ranked in top_candidates:
+        image_similarity = ranked["_image_similarity"]
+        distance_km = ranked["_distance_km"]
+        time_gap_hours = ranked["_time_gap_hours"]
+        final_score = ranked["final_score"]
+        candidate = ranked["_candidate"]
+
         candidate_id = _rpc_scalar_id(
             supabase.rpc(
                 "save_candidate",
                 {
                     "p_lost_post_id": post_id,
                     "p_found_post_id": int(candidate["post_id"]),
-                    "p_final_score": round(final_score * 100, 4),
+                    "p_final_score": round(final_score, 4),
                     "p_passed_threshold": True,
                     "p_image_score": round(image_similarity, 6),
                     "p_distance_km": None if distance_km is None else round(distance_km, 3),
@@ -220,7 +250,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             ).execute().data
         )
 
-        if final_score >= 0.80 or image_similarity >= settings.match_image_high_similarity:
+        if final_score / 100 >= 0.80 or image_similarity >= settings.match_image_high_similarity:
             try:
                 supabase.rpc("notify_candidate", {"p_candidate_id": candidate_id}).execute()
             except Exception:
@@ -230,21 +260,15 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         results.append(
             {
                 "candidate_id": candidate_id,
-                "post_id": int(candidate["post_id"]),
-                "distance_km": None if distance_km is None else round(distance_km, 3),
-                "image_similarity": round(image_similarity, 4),
-                "final_score": round(final_score * 100, 2),
-                "location_label": "unknown" if distance_km is None else _location_label(distance_km),
-                "image_priority": image_priority(
-                    image_similarity,
-                    settings.match_image_min_similarity,
-                    settings.match_image_review_similarity,
-                    settings.match_image_high_similarity,
-                ),
+                "post_id": ranked["post_id"],
+                "distance_km": ranked["distance_km"],
+                "image_similarity": ranked["image_similarity"],
+                "final_score": final_score,
+                "location_label": ranked["location_label"],
+                "image_priority": ranked["image_priority"],
             }
         )
 
-    results.sort(key=lambda x: x["final_score"], reverse=True)
     return results
 
 
