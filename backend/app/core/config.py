@@ -43,6 +43,7 @@ class Settings:
     match_default_radius_km: float
     match_top_k: int
     supabase_service_role_key: str | None = None
+    supabase_storage_bucket: str = "pet-images"
 
 
 @lru_cache(maxsize=1)
@@ -99,4 +100,5 @@ def get_settings() -> Settings:
         match_default_radius_km=default_radius,
         match_top_k=match_top_k,
         supabase_service_role_key=supabase_service_role_key,
+        supabase_storage_bucket=os.getenv("SUPABASE_STORAGE_BUCKET", "pet-images").strip() or "pet-images",
     )

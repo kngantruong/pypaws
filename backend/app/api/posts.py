@@ -1,3 +1,4 @@
+import io
 import logging
 import os
 from pathlib import Path
@@ -14,6 +15,7 @@ from app.core.database import get_supabase, get_supabase_admin
 from app.schemas.post import PostCreate, PostDetail, PostListResponse
 from app.services.matcher import match_post
 from app.services.pet_embedding import get_embedder
+from app.services.storage import load_image_bytes, upload_pet_image
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/posts", tags=["Posts"])
@@ -39,27 +41,17 @@ def _raise_rpc_error(exc: Exception) -> None:
 
 @router.post("/upload-image")
 async def upload_image(image: UploadFile = File(...)):
-    """Upload pet photo to local server and return static URL and relative path."""
+    """Upload pet photo to Supabase Storage with local cache fallback."""
     if not (image.content_type and image.content_type.startswith("image/")):
         raise HTTPException(415, "Only image files (JPEG, PNG, WEBP) are allowed.")
 
-    settings = get_settings()
-    upload_dir = Path(settings.upload_dir)
-    upload_dir.mkdir(parents=True, exist_ok=True)
-
-    ext = os.path.splitext(image.filename or "")[1].lower() or ".jpg"
-    filename = f"{uuid4().hex}{ext}"
-    target_path = upload_dir / filename
-
     content = await image.read()
-    with open(target_path, "wb") as f:
-        f.write(content)
-
-    return {
-        "file_path": f"/uploads/{filename}",
-        "url": f"/uploads/{filename}",
-        "filename": filename,
-    }
+    res = upload_pet_image(
+        file_bytes=content,
+        original_filename=image.filename or "pet.jpg",
+        content_type=image.content_type,
+    )
+    return res
 
 
 def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) -> None:
@@ -78,25 +70,16 @@ def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) 
         image_id = int(primary["image_id"])
         image_rel_path = primary.get("image_path") or ""
 
-        # 2. Locate image on disk
-        candidates_to_check = [
-            Path(settings.upload_dir) / os.path.basename(image_rel_path),
-            Path(__file__).resolve().parents[3] / image_rel_path.lstrip("/\\"),
-            Path(image_rel_path),
-        ]
-        image_file: Path | None = None
-        for p in candidates_to_check:
-            if p.exists() and p.is_file():
-                image_file = p
-                break
-
-        if not image_file:
-            logger.warning("Auto-embed: image file not found on disk for post %s: %s", post_id, image_rel_path)
+        # 2. Resolve image bytes (local cache or Supabase Storage URL)
+        try:
+            img_bytes = load_image_bytes(image_rel_path)
+            pil_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        except Exception as exc:
+            logger.warning("Auto-embed: could not load image for post %s (%s): %s", post_id, image_rel_path, exc)
             return
 
         # 3. Generate 512D DINOv2 embedding
         embedder = get_embedder(settings.dinov2_checkpoint)
-        pil_img = Image.open(image_file).convert("RGB")
         vector = embedder.embed(pil_img)
 
         if vector.shape != (512,):
