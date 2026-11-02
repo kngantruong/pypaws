@@ -15,21 +15,19 @@ def register(p:RegisterRequest):
     if not r.data:raise HTTPException(500,"Registration returned no user.")
     uid=int(r.data); u=_rpc("get_user_by_email",{"p_email":p.email}).data
     if not u:raise HTTPException(500,"User lookup failed.")
-    return AuthResponse(access_token=create_access_token(uid),user=_user(u[0]))
+    return AuthResponse(access_token=create_access_token(uid,p.email),user=_user(u[0]))
 @router.post("/login",response_model=AuthResponse)
 def login(p:LoginRequest):
     u=_rpc("get_user_by_email",{"p_email":p.email}).data
     if not u or not verify_password(p.password,u[0]["password"]):raise HTTPException(401,"Email or password is incorrect.")
-    return AuthResponse(access_token=create_access_token(int(u[0]["user_id"])),user=_user(u[0]))
+    return AuthResponse(access_token=create_access_token(int(u[0]["user_id"]),u[0]["email"]),user=_user(u[0]))
 
+from app.core.auth import get_current_user_claims
 
-from app.core.auth import get_current_user_id
-
-@router.get("/me", response_model=UserResponse)
-def me(user_id: int = Depends(get_current_user_id)):
-    result = get_supabase().table("users").select(
-        "user_id,email,full_name,phone,user_type,created_at"
-    ).eq("user_id", user_id).limit(1).execute()
-    if not result.data:
-        raise HTTPException(404, "User not found.")
-    return _user(result.data[0])
+@router.get("/me",response_model=UserResponse)
+def me(claims:dict=Depends(get_current_user_claims)):
+    email=claims.get("email")
+    if not email: raise HTTPException(401,"Access token does not contain user email; please login again.")
+    u=_rpc("get_user_by_email",{"p_email":email}).data
+    if not u: raise HTTPException(404,"User not found.")
+    return _user(u[0])
