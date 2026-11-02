@@ -14,10 +14,8 @@ import numpy as np
 from app.core.config import get_settings
 from app.services.location import haversine_km, location_score
 from app.services.matching import image_priority, passes_image_threshold, select_top_k, weighted_score
-from app.services.pet_embedding import get_embedder
 
 
-MATCH_TOP_K = 5
 TIME_HALF_LIFE_DAYS = 7.0
 TIME_DECAY_LAMBDA_PER_DAY = math.log(2.0) / TIME_HALF_LIFE_DAYS
 
@@ -220,7 +218,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         )
 
     # Persist and notify only the five highest-ranked eligible candidates.
-    top_candidates = select_top_k(ranked_candidates, MATCH_TOP_K)
+    top_candidates = select_top_k(ranked_candidates, settings.match_top_k)
     results: list[dict[str, Any]] = []
     for ranked in top_candidates:
         image_similarity = ranked["_image_similarity"]
