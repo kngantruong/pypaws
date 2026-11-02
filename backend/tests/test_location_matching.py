@@ -7,7 +7,7 @@ from app.schemas.post import PostCreate
 from app.services.location import GeocodingError, NominatimGeocoder
 
 from app.services.location import distance_label, haversine_km, location_score, validate_coordinates
-from app.services.matching import image_priority, passes_image_threshold, weighted_score
+from app.services.matching import image_priority, passes_image_threshold, select_top_k, weighted_score
 
 
 def test_haversine_zero_distance():
@@ -84,3 +84,27 @@ def test_geocoder_raises_on_rate_limit(monkeypatch):
     monkeypatch.setattr(httpx, "get", lambda *args, **kwargs: Response())
     with pytest.raises(GeocodingError):
         NominatimGeocoder("https://example.test", "PyPaws/test").geocode("rate limited")
+
+
+
+def test_select_top_k_returns_highest_scores_in_descending_order():
+    candidates = [
+        {"post_id": 1, "final_score": 42.0},
+        {"post_id": 2, "final_score": 91.0},
+        {"post_id": 3, "final_score": 67.0},
+        {"post_id": 4, "final_score": 83.0},
+        {"post_id": 5, "final_score": 55.0},
+        {"post_id": 6, "final_score": 78.0},
+    ]
+    selected = select_top_k(candidates, 5)
+    assert [item["post_id"] for item in selected] == [2, 4, 6, 3, 5]
+
+
+def test_select_top_k_returns_available_candidates_when_fewer_than_k():
+    candidates = [{"post_id": 1, "final_score": 42.0}, {"post_id": 2, "final_score": 91.0}]
+    assert [item["post_id"] for item in select_top_k(candidates, 5)] == [2, 1]
+
+
+def test_select_top_k_rejects_non_positive_k():
+    with pytest.raises(ValueError, match="k must be at least 1"):
+        select_top_k([], 0)
