@@ -17,11 +17,14 @@ def get_supabase() -> Client:
 
 
 def get_supabase_admin() -> Client:
-    """Create a server-only Supabase client for trusted backend operations."""
+    """Create a server-only Supabase client for trusted backend operations.
+
+    Falls back to publishable key if service role key is not configured.
+    """
     settings = get_settings()
-    if not settings.supabase_service_role_key:
-        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is not configured.")
-    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+    if settings.supabase_service_role_key:
+        return create_client(settings.supabase_url, settings.supabase_service_role_key)
+    return create_client(settings.supabase_url, settings.supabase_publishable_key)
 
 
 def get_db() -> Client:

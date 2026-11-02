@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class PostCreate(BaseModel):
+    user_id: int | None = None
     post_type: str = Field(pattern="^(LOST|FOUND)$")
     species: str = Field(pattern="^(DOG|CAT)$")
     description: str = Field(min_length=1)

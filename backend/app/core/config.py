@@ -5,9 +5,16 @@ import os
 from dataclasses import dataclass
 from functools import lru_cache
 
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+_backend_env = Path(__file__).resolve().parents[2] / '.env'
+if _backend_env.exists():
+    load_dotenv(_backend_env)
+_repo_env = Path(__file__).resolve().parents[3] / '.env'
+if _repo_env.exists():
+    load_dotenv(_repo_env)
 
 ALLOWED_MATCH_MODEL_NAMES = {"dinov2_pretrained", "dinov2_finetuned"}
 

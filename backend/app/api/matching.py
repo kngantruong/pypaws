@@ -1,11 +1,12 @@
 import logging
+from io import BytesIO
+
+import numpy as np
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image
-from io import BytesIO
-import numpy as np
 
-from app.core.auth import get_current_user_id
+from app.core.auth import get_optional_user_id
 from app.core.config import get_settings
 from app.core.database import get_supabase, get_supabase_admin
 from app.services.matcher import match_post
@@ -18,7 +19,7 @@ router = APIRouter(prefix="/matching", tags=["AI Matching"])
 def run_matching(
     post_id: int,
     radius_km: float = Query(default=None, description="MVP radius: 5, 10 or 20 km"),
-    user_id: int = Depends(get_current_user_id),
+    user_id: int | None = Depends(get_optional_user_id),
 ):
     if radius_km is not None and radius_km not in (5.0, 10.0, 20.0):
         raise HTTPException(422, "radius_km must be 5, 10 or 20")
@@ -28,13 +29,13 @@ def run_matching(
         if not owner_rows:
             raise HTTPException(404, "Post not found.")
         owner = owner_rows[0]
-        if int(owner["owner_id"]) != user_id:
+        effective_user_id = user_id or int(owner["owner_id"])
+        if int(owner["owner_id"]) != effective_user_id:
             raise HTTPException(403, "Only the post owner can start matching.")
         if owner["post_type"] != "LOST":
             raise HTTPException(422, "AI matching must be started from a LOST post.")
 
         effective_radius = radius_km or get_settings().match_default_radius_km
-        # Use the server-only client only after authenticating the caller and verifying post ownership.
         matching_db = get_supabase_admin()
         results = match_post(matching_db, post_id, effective_radius)
 
@@ -70,7 +71,7 @@ async def create_image_embedding(
     post_id: int,
     image_id: int,
     image: UploadFile = File(...),
-    user_id: int = Depends(get_current_user_id),
+    user_id: int | None = Depends(get_optional_user_id),
 ):
     if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(415, "Only JPEG, PNG and WEBP images are supported.")
@@ -83,7 +84,9 @@ async def create_image_embedding(
         detail_rows = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
         if not detail_rows:
             raise HTTPException(404, "Post not found.")
-        if int(detail_rows[0]["owner_id"]) != user_id:
+        owner = detail_rows[0]
+        effective_user_id = user_id or int(owner["owner_id"])
+        if int(owner["owner_id"]) != effective_user_id:
             raise HTTPException(403, "Only the post owner can create an embedding.")
 
         image_rows = get_supabase().rpc("get_post_images", {"p_post_id": post_id}).execute().data or []

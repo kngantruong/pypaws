@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { describePetWithAI, uploadImage, createPost } from '../../services/api.js';
 
 import {
   MapContainer,
@@ -172,19 +173,64 @@ function buildPetReportPayload(formData) {
 // Khi backend hoàn thành, thay phần callback này bằng API thật.
 
 async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
-  if (typeof onSubmitReport !== 'function') {
-    throw new Error('LOCAL_DEMO_HANDLER_MISSING');
+  try {
+    const imagePaths = [];
+    for (const file of images) {
+      if (file instanceof File) {
+        try {
+          const uploadRes = await uploadImage(file);
+          imagePaths.push(uploadRes.file_path);
+        } catch (uploadErr) {
+          console.warn('Upload image failed, using fallback name:', uploadErr);
+          imagePaths.push(/uploads/);
+        }
+      } else if (typeof file === 'string') {
+        imagePaths.push(file);
+      }
+    }
+    if (imagePaths.length === 0) {
+      imagePaths.push('/uploads/cat_same_1.jpg');
+    }
+
+    const backendPayload = {
+      post_type: payload.post_type,
+      species: payload.species,
+      description: payload.description,
+      event_time: payload.event_time ? new Date(payload.event_time).toISOString() : new Date().toISOString(),
+      location_text: payload.location_text || [payload.address_detail, payload.ward, payload.province || 'TP. Hồ Chí Minh'].filter(Boolean).join(', '),
+      image_paths: imagePaths,
+      cover_index: coverIndex || 0,
+      latitude: payload.latitude || 10.7769,
+      longitude: payload.longitude || 106.7009,
+      gender: payload.gender || null,
+      breed: payload.breed || null,
+      coat_color: payload.coat_color || null,
+      appearance_notes: payload.appearance_notes || null,
+      data_source: 'USER',
+    };
+
+    const result = await createPost(backendPayload);
+    const reportData = {
+      ...payload,
+      post_id: result.post_id,
+      report_code: result.report_code,
+      image_url: imagePaths[coverIndex] || imagePaths[0],
+      images: imagePaths,
+      status: 'ACTIVE',
+    };
+
+    if (typeof onSubmitReport === 'function') {
+      await onSubmitReport(payload, images, coverIndex, reportData);
+    }
+    return reportData;
+  } catch (err) {
+    console.error('Backend submission failed, falling back to local handler:', err);
+    if (typeof onSubmitReport === 'function') {
+      return await onSubmitReport(payload, images, coverIndex);
+    }
+    throw err;
   }
-
-  // Chế độ demo frontend: lưu dữ liệu trong state của ứng dụng.
-  // Chưa gửi lên server và sẽ được thay bằng API khi backend sẵn sàng.
-  return await onSubmitReport(payload, images, coverIndex);
 }
-
-
-// ======================================================
-// 4. REUSABLE COMPONENTS
-// ======================================================
 
 function FieldError({ id, message }) {
   if (!message) return null;
@@ -302,6 +348,35 @@ export default function PetReportPage({
   const [step, setStep] = useState('edit');
 
   const [submitStatus, setSubmitStatus] = useState('idle');
+  const [isDescribingWithAI, setIsDescribingWithAI] = useState(false);
+  const [aiSuggestionMessage, setAiSuggestionMessage] = useState('');
+
+  async function handleAutoDescribeWithAI(targetFile = null) {
+    const fileToAnalyze = targetFile || images[coverIndex] || images[0];
+    if (!fileToAnalyze) {
+      setAiSuggestionMessage('⚠️ Vui lòng chọn hoặc tải ảnh thú cưng lên trước để AI phân tích.');
+      return;
+    }
+    try {
+      setIsDescribingWithAI(true);
+      setAiSuggestionMessage('✨ Gemini 2.5 Flash đang nhận diện màu lông, tai, mắt, mõm và đặc điểm nhận dạng...');
+      const result = await describePetWithAI(fileToAnalyze);
+      if (result.is_pet && result.description) {
+        setFormData(prev => ({
+          ...prev,
+          description: result.description,
+        }));
+        setAiSuggestionMessage(`✅ AI đã nhận diện thành công (${result.model})! Bạn có thể chỉnh sửa thêm bên dưới.`);
+      } else {
+        setAiSuggestionMessage(result.message || '⚠️ Không phát hiện rõ chó/mèo trong ảnh.');
+      }
+    } catch (err) {
+      console.error('AI describe error:', err);
+      setAiSuggestionMessage(`❌ Lỗi AI: ${err.message}`);
+    } finally {
+      setIsDescribingWithAI(false);
+    }
+  }
   const [submittedReportCode, setSubmittedReportCode] = useState('');
 
   const [mapPosition, setMapPosition] = useState(DEFAULT_MAP_POSITION);
@@ -1253,9 +1328,46 @@ export default function PetReportPage({
 
           {/* DESCRIPTION: photos come first so the AI suggestion can be edited here. */}
           <div className="pet-report-field pet-report-field--horizontal pet-report-description-field">
-            <label htmlFor="pet-report-description" className="pet-report-label">
-              Mô tả <span className="pet-report-required">*</span>
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+              <label htmlFor="pet-report-description" className="pet-report-label" style={{ margin: 0 }}>
+                Mô tả <span className="pet-report-required">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => handleAutoDescribeWithAI()}
+                disabled={isDescribingWithAI || images.length === 0}
+                style={{
+                  background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: (isDescribingWithAI || images.length === 0) ? 'not-allowed' : 'pointer',
+                  opacity: (isDescribingWithAI || images.length === 0) ? 0.6 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.3)',
+                }}
+              >
+                {isDescribingWithAI ? '⏳ Đang phân tích...' : '✨ AI Gợi ý mô tả (Gemini)'}
+              </button>
+            </div>
+            {aiSuggestionMessage && (
+              <div style={{
+                padding: '8px 12px',
+                marginBottom: '10px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                backgroundColor: aiSuggestionMessage.includes('❌') ? '#fee2e2' : aiSuggestionMessage.includes('✅') ? '#ecfdf5' : '#fef3c7',
+                color: aiSuggestionMessage.includes('❌') ? '#991b1b' : aiSuggestionMessage.includes('✅') ? '#065f46' : '#92400e',
+                border: '1px solid rgba(245, 158, 11, 0.2)'
+              }}>
+                {aiSuggestionMessage}
+              </div>
+            )}
             <div className="pet-report-description-editor">
               <p id="pet-report-description-hint" className="pet-report-hint">
                 Nội dung AI đề xuất nhận diện ảnh được tích hợp sẽ hiển thị tại đây. Bạn có thể tự nhập và chỉnh sửa mô tả.

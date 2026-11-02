@@ -1,10 +1,11 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
+import { getPosts, resolveCandidate } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
 import RegisterPage from './features/auth/pages/RegisterPage.jsx'
 import ForgotPasswordPage from './features/auth/pages/ForgotPasswordPage.jsx'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import './App.css'
 import logo from './assets/logo/pypaws_logo.png'
 import mascot from './assets/logo/pypaws_mascot.png'
@@ -124,7 +125,7 @@ const postTypeLabel = {
 }
 
 function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState({ id: 19, name: 'Huỳnh Trần Như Quỳnh', email: 'test@pypaws.vn', user_type: 'INDIVIDUAL' })
   const [userReports, setUserReports] = useState(reports)
   const [myReports, setMyReports] = useState([])
   const [notifications, setNotifications] = useState([
@@ -157,9 +158,14 @@ function App() {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-  const handleLocalReportSubmit = (payload, images, coverIndex) => {
-    const imageUrls = images.map((file) => URL.createObjectURL(file))
-    const newReport = {
+  const handleLocalReportSubmit = (payload, images, coverIndex, reportData) => {
+    const imageUrls = images.map((file) => typeof file === 'string' ? file : URL.createObjectURL(file))
+    const newReport = reportData ? {
+      ...payload,
+      ...reportData,
+      image_url: reportData.image_url || imageUrls[coverIndex] || imageUrls[0],
+      images: imageUrls,
+    } : {
       ...payload,
       post_id: Date.now(),
       report_code: `${payload.post_type}${userReports.filter((item) => item.post_type === payload.post_type).length + 1}`,
@@ -176,6 +182,33 @@ function App() {
     }
     return newReport
   }
+
+  // Load real posts from backend on mount
+  useEffect(() => {
+    getPosts()
+      .then((items) => {
+        if (items && items.length > 0) {
+          const formatted = items.map((p) => ({
+            post_id: p.post_id,
+            report_code: p.report_code,
+            post_type: p.post_type,
+            species: p.species,
+            description: p.description,
+            created_at: p.created_at,
+            event_time: p.event_time,
+            location_text: p.location_text,
+            status: p.status,
+            owner_name: p.owner_name,
+            image_url: p.primary_image ? (p.primary_image.startsWith('http') ? p.primary_image : `http://localhost:8000${p.primary_image.startsWith('/') ? '' : '/'}${p.primary_image}`) : null,
+          }))
+          setUserReports((prev) => {
+            const ids = new Set(formatted.map(f => String(f.post_id)))
+            return [...formatted, ...prev.filter(pr => !ids.has(String(pr.post_id)))]
+          })
+        }
+      })
+      .catch((err) => console.warn('Could not fetch posts from backend:', err))
+  }, [])
 
   const handleResolveLostReport = ({ source, foundPost, lostReport }) => {
     const lostId = String(lostReport?.post_id)

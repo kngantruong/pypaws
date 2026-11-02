@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { getCandidates, runMatching, contactCandidate, rejectCandidate, resolveCandidate } from '../../services/api'
 import SearchSummary from './components/SearchSummary'
 import MatchCard from './components/MatchCard'
 import './matching-results.css'
@@ -21,11 +22,75 @@ function MatchingResultsPage({
   const [selectedFoundPost, setSelectedFoundPost] = useState(null)
   const [resolutionSource, setResolutionSource] = useState(null)
   const [showResolution, setShowResolution] = useState(false)
+  const [liveCandidates, setLiveCandidates] = useState([])
+  const [isLoadingCandidates, setIsLoadingCandidates] = useState(false)
+  const [contactInfo, setContactInfo] = useState(null)
+  const [currentRadius, setCurrentRadius] = useState(5)
+
+  useEffect(() => {
+    if (lostReport?.post_id) {
+      setIsLoadingCandidates(true)
+      getCandidates(lostReport.post_id)
+        .then((items) => {
+          if (items && items.length > 0) {
+            setLiveCandidates(items)
+          } else {
+            return runMatching(lostReport.post_id, 5).then((res) => {
+              setLiveCandidates(res.items || [])
+            })
+          }
+        })
+        .catch((err) => console.warn('Could not fetch live candidates:', err))
+        .finally(() => setIsLoadingCandidates(false))
+    }
+  }, [lostReport?.post_id])
+
+  const handleExpandRadius = async (newRadius) => {
+    if (!lostReport?.post_id) return
+    setIsLoadingCandidates(true)
+    setCurrentRadius(newRadius)
+    try {
+      const res = await runMatching(lostReport.post_id, newRadius)
+      setLiveCandidates(res.items || [])
+    } catch (err) {
+      console.error('Expand radius error:', err)
+    } finally {
+      setIsLoadingCandidates(false)
+    }
+  }
+
+  const handleContactClick = async (match) => {
+    setContactMatch(match)
+    setContactInfo(null)
+    if (match.candidate_id) {
+      try {
+        const info = await contactCandidate(match.candidate_id)
+        setContactInfo(info)
+      } catch (err) {
+        console.warn('Contact API error:', err)
+      }
+    }
+  }
+
+  const handleRejectClick = async (match) => {
+    const id = match.candidate_id || match.post_id
+    setRejectedIds((prev) => [...prev, id])
+    if (match.candidate_id) {
+      try {
+        await rejectCandidate(match.candidate_id)
+      } catch (err) {
+        console.warn('Reject API error:', err)
+      }
+    }
+  }
 
   const eligibleMatches = useMemo(
-    () => matches.filter(
-      (item) => item.passed_threshold === true && item.species === lostReport?.species && !rejectedIds.includes(item.candidate_id || item.post_id),
-    ),
+    () => {
+      const sourceList = liveCandidates.length > 0 ? liveCandidates : matches
+      return sourceList.filter(
+        (item) => !rejectedIds.includes(item.candidate_id || item.post_id),
+      )
+    },
     [matches, lostReport?.species, rejectedIds],
   )
 
@@ -81,7 +146,34 @@ function MatchingResultsPage({
 
         <section className="matching-results-section">
           <div className="matching-section-heading">
-            <div><h2>Các bài đăng có thể liên quan</h2></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <h2>Các bài đăng có thể liên quan</h2>
+                {isLoadingCandidates && <span style={{ fontSize: '14px', color: '#f59e0b', marginLeft: '10px' }}>⏳ Đang tìm kiếm ứng viên...</span>}
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: '#6b7280' }}>Bán kính:</span>
+                {[5, 10, 20].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => handleExpandRadius(r)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      border: currentRadius === r ? '2px solid #f59e0b' : '1px solid #d1d5db',
+                      background: currentRadius === r ? '#fef3c7' : '#fff',
+                      color: currentRadius === r ? '#b45309' : '#374151',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {r} km
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="matching-filters">
             <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sắp xếp kết quả">
@@ -148,9 +240,9 @@ function MatchingResultsPage({
             <h2 id="matching-contact-title">Thông tin người đăng tin FOUND</h2>
             <p className="matching-modal-demo-note">Thông tin minh họa để kiểm thử giao diện, chưa phải dữ liệu người dùng thật.</p>
             <dl className="matching-detail-data matching-contact-data">
-              <div><dt>Họ và tên</dt><dd>{contactMatch.contact_name || 'Nguyễn Minh Anh (DEMO)'}</dd></div>
-              <div><dt>Số điện thoại</dt><dd>{contactMatch.contact_phone || '0901 234 567'}</dd></div>
-              <div><dt>Email</dt><dd>{contactMatch.contact_email || 'minhanh.demo@example.com'}</dd></div>
+              <div><dt>Họ và tên</dt><dd>{contactInfo?.contact_name || contactMatch.contact_name || 'Người tìm thấy thú cưng'}</dd></div>
+              <div><dt>Số điện thoại</dt><dd>{contactInfo?.phone || contactMatch.contact_phone || '0908 123 456'}</dd></div>
+              <div><dt>Email</dt><dd>{contactInfo?.email || contactMatch.contact_email || 'finder@pypaws.vn'}</dd></div>
             </dl>
             <p className="matching-modal-demo-note">Bạn có thể chủ động trao đổi với người đăng để xác nhận đặc điểm thú cưng và địa điểm tìm thấy.</p>
           </section>
