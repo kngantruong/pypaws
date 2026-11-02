@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+ALLOWED_MATCH_MODEL_NAMES = {"dinov2_pretrained", "dinov2_finetuned"}
+
 
 def _csv(value: str) -> tuple[str, ...]:
     return tuple(item.strip() for item in value.split(",") if item.strip())
@@ -57,6 +59,13 @@ def get_settings() -> Settings:
     review_similarity = float(os.getenv("MATCH_IMAGE_REVIEW_SIMILARITY", "0.70"))
     high_similarity = float(os.getenv("MATCH_IMAGE_HIGH_SIMILARITY", "0.80"))
     match_top_k = int(os.getenv("MATCH_TOP_K", "5"))
+    match_model_name = os.getenv("MATCH_MODEL_NAME", "dinov2_finetuned").strip()
+    match_model_version = os.getenv("MATCH_MODEL_VERSION", "v1").strip()
+    if match_model_name not in ALLOWED_MATCH_MODEL_NAMES:
+        allowed = ", ".join(sorted(ALLOWED_MATCH_MODEL_NAMES))
+        raise RuntimeError(f"MATCH_MODEL_NAME must be one of: {allowed}")
+    if not match_model_version:
+        raise RuntimeError("MATCH_MODEL_VERSION must not be empty")
     if match_top_k < 1:
         raise RuntimeError("MATCH_TOP_K must be at least 1")
     if not (0.0 <= min_similarity < review_similarity < high_similarity <= 1.0):
@@ -73,8 +82,8 @@ def get_settings() -> Settings:
         geocoder_user_agent=os.getenv("GEOCODER_USER_AGENT", "PyPaws/0.1 (pet-matching-project)").strip(),
         geocoder_timeout_seconds=float(os.getenv("GEOCODER_TIMEOUT_SECONDS", "8")),
         dinov2_checkpoint=os.getenv("DINOV2_CHECKPOINT", "ai/dinov2_petface/dinov2_petface_ft.pt").strip(),
-        match_model_name=os.getenv("MATCH_MODEL_NAME", "dinov2_finetuned").strip(),
-        match_model_version=os.getenv("MATCH_MODEL_VERSION", "v1").strip(),
+        match_model_name=match_model_name,
+        match_model_version=match_model_version,
         match_image_min_similarity=min_similarity,
         match_image_review_similarity=review_similarity,
         match_image_high_similarity=high_similarity,
