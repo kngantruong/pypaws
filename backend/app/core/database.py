@@ -16,6 +16,14 @@ def get_supabase() -> Client:
     return create_client(settings.supabase_url, settings.supabase_publishable_key)
 
 
+def get_supabase_admin() -> Client:
+    """Create a server-only Supabase client for trusted backend operations."""
+    settings = get_settings()
+    if not settings.supabase_service_role_key:
+        raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY is not configured.")
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)
+
+
 def get_db() -> Client:
     """FastAPI dependency alias used by data-access layers."""
     return get_supabase()
