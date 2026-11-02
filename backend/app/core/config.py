@@ -56,7 +56,7 @@ def get_settings() -> Settings:
     min_similarity = float(os.getenv("MATCH_IMAGE_MIN_SIMILARITY", "0.252"))
     review_similarity = float(os.getenv("MATCH_IMAGE_REVIEW_SIMILARITY", "0.70"))
     high_similarity = float(os.getenv("MATCH_IMAGE_HIGH_SIMILARITY", "0.80"))
-    match_top_k = int(os.getenv("MATCH_TOP_K", "10"))
+    match_top_k = int(os.getenv("MATCH_TOP_K", "5"))
     if match_top_k < 1:
         raise RuntimeError("MATCH_TOP_K must be at least 1")
     if not (0.0 <= min_similarity < review_similarity < high_similarity <= 1.0):
