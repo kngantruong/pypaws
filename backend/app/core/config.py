@@ -52,7 +52,7 @@ def get_settings() -> Settings:
     default_radius = float(os.getenv("MATCH_DEFAULT_RADIUS_KM", "5"))
     if default_radius not in (5.0, 10.0, 20.0):
         raise RuntimeError("MATCH_DEFAULT_RADIUS_KM must be 5, 10 or 20")
-    min_similarity = float(os.getenv("MATCH_IMAGE_MIN_SIMILARITY", "0.60"))
+    min_similarity = float(os.getenv("MATCH_IMAGE_MIN_SIMILARITY", "0.252"))
     review_similarity = float(os.getenv("MATCH_IMAGE_REVIEW_SIMILARITY", "0.70"))
     high_similarity = float(os.getenv("MATCH_IMAGE_HIGH_SIMILARITY", "0.80"))
     if not (0.0 <= min_similarity < review_similarity < high_similarity <= 1.0):
