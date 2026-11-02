@@ -217,7 +217,7 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
             }
         )
 
-    # Persist and notify only the five highest-ranked eligible candidates.
+    # Persist and notify only the configured number of highest-ranked eligible candidates.
     top_candidates = select_top_k(ranked_candidates, settings.match_top_k)
     results: list[dict[str, Any]] = []
     for ranked in top_candidates:
