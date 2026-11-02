@@ -14,14 +14,17 @@ def verify_password(password: str, encoded: str) -> bool:
         return hmac.compare_digest(actual,base64.urlsafe_b64decode(digest))
     except (ValueError,TypeError): return False
 def _secret() -> bytes: return os.getenv("AUTH_SECRET_KEY","pypaws-development-secret-change-me").encode()
-def create_access_token(user_id:int) -> str:
+def create_access_token(user_id:int,email:str|None=None) -> str:
     payload={"sub":str(user_id),"exp":int(time.time())+86400}
+    if email: payload["email"]=email
     raw=base64.urlsafe_b64encode(json.dumps(payload,separators=(",",":")).encode()).decode().rstrip("=")
     sig=hmac.new(_secret(),raw.encode(),hashlib.sha256).hexdigest()
     return raw+"."+sig
-def decode_access_token(token:str) -> int:
+def decode_access_token_claims(token:str) -> dict:
     raw,sig=token.split(".",1); expected=hmac.new(_secret(),raw.encode(),hashlib.sha256).hexdigest()
     if not hmac.compare_digest(sig,expected): raise ValueError("Invalid token")
     payload=json.loads(base64.urlsafe_b64decode(raw+"="*((4-len(raw)%4)%4)))
     if int(payload["exp"])<int(time.time()): raise ValueError("Token expired")
-    return int(payload["sub"])
+    return payload
+def decode_access_token(token:str) -> int:
+    return int(decode_access_token_claims(token)["sub"])
