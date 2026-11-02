@@ -68,6 +68,13 @@ def weighted_score(
     return sum(float(usable[key]) * weight_map[key] for key in usable) / total_weight
 
 
+
+def select_top_k(candidates: list[dict], k: int = 5) -> list[dict]:
+    """Return at most k candidates ordered by descending final score."""
+    if k < 1:
+        raise ValueError("k must be at least 1")
+    return sorted(candidates, key=lambda item: item["final_score"], reverse=True)[:k]
+
 def radius_sequence(default_km: float = 5.0) -> tuple[float, ...]:
     if default_km not in (5.0, 10.0, 20.0):
         raise ValueError("MVP radius must be 5, 10 or 20 km")
