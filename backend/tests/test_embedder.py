@@ -6,13 +6,25 @@ import numpy as np
 import pytest
 from PIL import Image
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-AI_DIR = BASE_DIR / "ai" / "dinov2_petface"
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+REPO_DIR = BACKEND_DIR.parent
+AI_DIR = REPO_DIR / "ai" / "dinov2_petface"
 MODEL_PATH = AI_DIR / "dinov2_petface_ft.pt"
-IMAGE_PATH = BASE_DIR / "test_images" / "cat_same_1.jpg"
+
+TEST_IMAGE_CANDIDATES = (
+    BACKEND_DIR / "test_images" / "cat_same_1.jpg",
+    REPO_DIR / "test_images" / "cat_same_1.jpg",
+)
 
 sys.path.insert(0, str(AI_DIR))
 from embedder import PetFaceEmbedder  # noqa: E402
+
+
+def _get_test_image_path() -> Path:
+    for path in TEST_IMAGE_CANDIDATES:
+        if path.exists():
+            return path
+    return TEST_IMAGE_CANDIDATES[0]
 
 
 @pytest.fixture(scope="module")
@@ -23,10 +35,11 @@ def embedder():
 
 
 def test_petface_embedder_returns_normalized_512d_vector(embedder):
-    if not IMAGE_PATH.exists():
-        pytest.skip(f"Test image is not present: {IMAGE_PATH}")
+    image_path = _get_test_image_path()
+    if not image_path.exists():
+        pytest.skip(f"Test image is not present: {image_path}")
 
-    with Image.open(IMAGE_PATH) as image:
+    with Image.open(image_path) as image:
         vector = embedder.embed(image.convert("RGB"))
 
     assert vector.shape == (512,)
@@ -36,10 +49,11 @@ def test_petface_embedder_returns_normalized_512d_vector(embedder):
 
 
 def test_petface_embedder_is_deterministic_for_same_image(embedder):
-    if not IMAGE_PATH.exists():
-        pytest.skip(f"Test image is not present: {IMAGE_PATH}")
+    image_path = _get_test_image_path()
+    if not image_path.exists():
+        pytest.skip(f"Test image is not present: {image_path}")
 
-    with Image.open(IMAGE_PATH) as image:
+    with Image.open(image_path) as image:
         image = image.convert("RGB")
         first = embedder.embed(image)
         second = embedder.embed(image)
