@@ -528,3 +528,28 @@ end $$;
 -- select resolve_lost_post(2, 3, null, 4);
 -- select resolve_lost_post(3, 5, 'SELF_FOUND');
 -- select cancel_post(4, 7);
+
+/* =====================================================================
+   CHO PHÉP BACKEND GỌI HÀM QUA PUBLISHABLE KEY (vượt RLS có kiểm soát)
+   Hàm chạy bằng quyền chủ hàm (security definer), search_path cố định.
+   Phải nằm CUỐI file để áp dụng lên các hàm vừa tạo ở trên.
+   ===================================================================== */
+do $$
+declare r record;
+begin
+    for r in
+        select p.oid::regprocedure::text as sig
+        from pg_proc p
+        where p.pronamespace = 'public'::regnamespace
+          and p.proname = any (array[
+              'create_user','get_user_by_email','create_post','get_posts','get_post_detail',
+              'get_post_images','get_images_needing_embedding','save_image_embedding',
+              'get_search_pool','get_post_match_context','get_match_pool','get_post_image_owner',
+              'update_post_location','clear_candidates','save_candidate','refresh_candidate_ranks',
+              'get_candidates_for_post','notify_candidate','get_notifications',
+              'mark_notification_read','get_contact_info','contact_candidate',
+              'reject_candidate','cancel_post','resolve_lost_post'])
+    loop
+        execute 'alter function ' || r.sig || ' security definer set search_path = public';
+    end loop;
+end $$;
