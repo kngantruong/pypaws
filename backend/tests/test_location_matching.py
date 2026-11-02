@@ -38,21 +38,21 @@ def test_distance_labels_and_scores():
     assert location_score(None) is None
 
 
-def test_business_image_thresholds():
-    assert not passes_image_threshold(0.599)
-    assert passes_image_threshold(0.60)
+def test_finetuned_image_thresholds():
+    assert not passes_image_threshold(0.2519)
+    assert passes_image_threshold(0.252)
     assert image_priority(0.65) == "low"
     assert image_priority(0.75) == "review"
     assert image_priority(0.85) == "high"
 
 
 def test_missing_location_is_renormalized_not_zero():
-    score = weighted_score(0.8, 0.8, None, 0.8)
+    score = weighted_score(0.8, 0.8, None)
     assert score == pytest.approx(0.8)
 
 
 def test_missing_optional_signals_do_not_destroy_image_score():
-    assert weighted_score(0.9, None, None, None) == pytest.approx(0.9)
+    assert weighted_score(0.9, None, None) == pytest.approx(0.9)
 
 
 def test_post_create_rejects_partial_coordinates():
