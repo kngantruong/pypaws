@@ -35,12 +35,14 @@ class Settings:
     match_image_high_similarity: float
     match_default_radius_km: float
     match_top_k: int
+    supabase_service_role_key: str | None = None
 
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     supabase_url = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
     supabase_key = os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+    supabase_service_role_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip() or None
     if not supabase_url:
         raise RuntimeError("SUPABASE_URL is not configured.")
     if not supabase_key:
@@ -89,4 +91,5 @@ def get_settings() -> Settings:
         match_image_high_similarity=high_similarity,
         match_default_radius_km=default_radius,
         match_top_k=match_top_k,
+        supabase_service_role_key=supabase_service_role_key,
     )
