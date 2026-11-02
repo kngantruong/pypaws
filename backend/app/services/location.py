@@ -9,6 +9,7 @@ import httpx
 
 
 EARTH_RADIUS_KM = 6371.0088
+GEO_MAX_DISTANCE_KM = 20.0
 
 
 class LocationError(Exception):
@@ -63,20 +64,10 @@ def distance_label(distance_km: float | None) -> str:
 
 
 def location_score(distance_km: float | None) -> float | None:
-    """Return a 0..1 proximity score without treating missing data as zero."""
+    """Linear proximity score: max(0, 1 - distance_km / 20 km)."""
     if distance_km is None:
         return None
-    if distance_km <= 1:
-        return 1.0
-    if distance_km <= 3:
-        return 0.9
-    if distance_km <= 5:
-        return 0.8
-    if distance_km <= 10:
-        return 0.6
-    if distance_km <= 20:
-        return 0.35
-    return 0.1
+    return max(0.0, 1.0 - float(distance_km) / GEO_MAX_DISTANCE_KM)
 
 
 class NominatimGeocoder:
