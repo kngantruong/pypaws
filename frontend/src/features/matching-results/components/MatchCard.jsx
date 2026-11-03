@@ -1,4 +1,4 @@
-import { API_BASE } from '../../../services/api'
+import { API_BASE, resolveImageUrl } from '../../../services/api'
 
 function MatchCard({ match, onViewDetail, onContact, onReject }) {
   const speciesLabel = { DOG: 'Chó', CAT: 'Mèo' }
@@ -24,9 +24,7 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
     match.primary_image ||
     (typeof imageList[0] === 'string' ? imageList[0] : imageList[0]?.url || imageList[0]?.image_url)
 
-  const coverImage = rawCover
-    ? (rawCover.startsWith('http') || rawCover.startsWith('blob:') ? rawCover : `${API_BASE}${rawCover.startsWith('/') ? '' : '/'}${rawCover}`)
-    : `${API_BASE}/uploads/cat_same_2.jpg`
+  const coverImage = resolveImageUrl(rawCover) || `${API_BASE}/uploads/cat_same_2.jpg`
 
   const provinceName = match.province || match.location_text || 'Chưa cập nhật tỉnh/thành'
 
