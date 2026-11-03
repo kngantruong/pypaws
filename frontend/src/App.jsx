@@ -465,6 +465,7 @@ function App() {
      ) : currentPage === 'matching-results' && activeLostReport ? (
       <MatchingResultsPage
         lostReport={activeLostReport}
+        currentUser={user}
         matches={[]}
         onResolve={handleResolveLostReport}
         onBackHome={() => setCurrentPage('home')}
