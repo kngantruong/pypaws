@@ -254,8 +254,8 @@ def resolve_post(
 
 
 @router.patch("/{post_id}/location")
-def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depends(get_optional_user_id)):
-    effective_user_id = user_id or 19
+def update_location(post_id: int, payload: LocationUpdate, user_id: int = Depends(get_current_user_id)):
+    effective_user_id = user_id
     try:
         detail = get_supabase().rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
         if not detail:
