@@ -211,7 +211,7 @@ function MatchingResultsPage({
                     onViewDetail?.(item)
                   }}
                   onContact={(item) => {
-                    setContactMatch(item)
+                    handleContactClick(item)
                     onContact?.(item)
                   }}
                   onReject={(item) => setRejectMatch(item)}
