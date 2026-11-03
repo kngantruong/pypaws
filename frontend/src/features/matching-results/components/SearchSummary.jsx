@@ -31,7 +31,15 @@ function SearchSummary({ report, currentUser }) {
   const contactName = report.contact_name || (isOwnReport ? currentUser?.full_name : null) || report.owner_name
   const contactPhone = report.contact_phone || (isOwnReport ? currentUser?.phone : null)
   const contactEmail = report.contact_email || (isOwnReport ? currentUser?.email : null)
-  const descriptionParts = String(report.description || '').split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/).map((part) => part.trim()).filter(Boolean)
+  const descriptionParts = String(report.description || '')
+    .split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .flatMap((part) => {
+      const pieces = part.split(/\s+-\s+/).map((piece) => piece.trim()).filter(Boolean)
+      if (pieces.length <= 1) return pieces
+      return [pieces[0], ...pieces.slice(1).map((piece) => '- ' + piece)]
+    })
 
   return (
     <section className="matching-summary">
