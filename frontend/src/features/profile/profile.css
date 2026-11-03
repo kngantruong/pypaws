@@ -490,3 +490,16 @@
 .my-report-modal h3 { color: #a9572e; font-size: 16px; font-weight: 800; }
 .my-report-modal dt { color: #766256; font-size: 13px; font-weight: 700; }
 .my-report-modal dd, .my-report-modal-description { color: #49352c; font-size: 14px; line-height: 1.7; }
+
+
+/* Keep enough report context visible while preserving compact cards. */
+.my-report-info .my-report-card-description {
+  display: -webkit-box;
+  min-height: 0;
+  max-height: 4.95em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  text-overflow: ellipsis;
+  line-height: 1.65;
+}
