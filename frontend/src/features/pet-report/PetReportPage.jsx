@@ -893,14 +893,6 @@ export default function PetReportPage({
 
           {/* Notice */}
 
-          <div
-            className="pet-report-notice"
-            role="note"
-          >
-            Tin đăng sẽ được gửi lên máy chủ và xử lý matching bằng dữ liệu thật.
-            Nếu máy chủ hoặc AI gặp lỗi, tin sẽ không được giả lập thành công.
-          </div>
-
 
           {/* Review content */}
 
