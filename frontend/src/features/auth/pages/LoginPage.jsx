@@ -2,13 +2,15 @@ import { useState } from 'react'
 import AuthLayout from '../components/AuthLayout'
 import AuthInput from '../components/AuthInput'
 import PasswordInput from '../components/PasswordInput'
+import { login } from '../../../services/api.js'
 
 function LoginPage({ onNavigate, onBackHome, onLoginSuccess }) {  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
   event.preventDefault()
 
   if (!identifier.trim() || !password.trim()) {
@@ -16,14 +18,16 @@ function LoginPage({ onNavigate, onBackHome, onLoginSuccess }) {  const [identif
     return
   }
 
-  // Đăng nhập giả lập để kiểm tra giao diện
-  const mockUser = {
-    id: 1,
-    full_name: 'Ngân Lê',
-    email: identifier,
+  setIsSubmitting(true)
+  setMessage('')
+  try {
+    const data = await login(identifier.trim(), password)
+    onLoginSuccess(data.user)
+  } catch (error) {
+    setMessage(error.message || 'Email hoặc mật khẩu không chính xác.')
+  } finally {
+    setIsSubmitting(false)
   }
-
-  onLoginSuccess(mockUser)
     }
 
   return (
@@ -69,8 +73,8 @@ function LoginPage({ onNavigate, onBackHome, onLoginSuccess }) {  const [identif
           </button>
         </div>
 
-        <button type="submit" className="auth-submit-button">
-          Đăng nhập
+        <button type="submit" className="auth-submit-button" disabled={isSubmitting}>
+          {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
 
         {message && (
