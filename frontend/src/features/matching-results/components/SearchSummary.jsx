@@ -13,7 +13,7 @@ function SearchSummary({ report }) {
     UNKNOWN: 'Chưa xác định',
   }
   const rawImages = report.images || report.image_urls || report.photos || []
-  const images = [resolveImageUrl(report.image_url || report.cover_image_url), ...rawImages.map((image) => resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url))].filter((image, index, all) => image && all.indexOf(image) === index)
+  const images = [resolveImageUrl(report.image_url || report.cover_image_url || report.primary_image), ...rawImages.map((image) => resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url))].filter((image, index, all) => image && all.indexOf(image) === index)
   const eventDate = report.event_time ? new Date(report.event_time) : null
   const formattedEventTime =
     eventDate && !Number.isNaN(eventDate.getTime())
