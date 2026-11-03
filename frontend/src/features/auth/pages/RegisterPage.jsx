@@ -17,6 +17,11 @@ function RegisterPage({ onNavigate, onBackHome }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    if (!fullName.trim() || !email.trim()) {
+      setMessage('Vui lòng nhập họ tên và email.');
+      return;
+    }
+
     if (password.length < 8) {
       setMessage('Mật khẩu cần có ít nhất 8 ký tự.')
       return
