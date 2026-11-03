@@ -1,12 +1,13 @@
 
 import { useState } from 'react'
+import { resolveImageUrl } from '../../../services/api'
 
 function MyReports({ reports = [], onOpenLostMatching }) {
   const myReports = reports
   const [selectedReport, setSelectedReport] = useState(null)
   const imagesOf = (report) => {
     const list = report.images || report.image_urls || report.photos || []
-    return [report.image_url || report.cover_image_url, ...list.map((image) => typeof image === 'string' ? image : image?.url || image?.image_url)].filter((src, index, all) => src && all.indexOf(src) === index)
+    return [resolveImageUrl(report.image_url || report.cover_image_url), ...list.map((image) => resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url))].filter((src, index, all) => src && all.indexOf(src) === index)
   }
   const displayDate = (value) => {
     if (!value) return 'Chưa cập nhật'
@@ -48,7 +49,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
               <div className="my-report-image">
                 <span className={`my-report-type ${report.post_type?.toLowerCase()}`}>{getPostTypeLabel(report.post_type)}</span>
                 <img
-                  src={report.image_url || '/placeholder-pet.png'}
+                  src={resolveImageUrl(report.image_url) || '/placeholder-pet.png'}
                   alt="Thú cưng"
                 />
               </div>
