@@ -106,10 +106,40 @@ def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) 
         ).execute()
         logger.info("Auto-embed: generated and saved DINOv2 512D embedding for post %s, image %s", post_id, image_id)
 
-        # 5. If LOST post, run matching against existing search pool
+        # 5. Run matching after either direction is posted.
+        # LOST -> match against existing FOUND posts.
         if post_type == "LOST":
             match_results = match_post(supabase, post_id)
-            logger.info("Auto-embed: matching run for post %s returned %d candidates", post_id, len(match_results))
+            logger.info("Auto-embed: matching LOST post %s returned %d candidates", post_id, len(match_results))
+        else:
+            # FOUND -> refresh matching for existing active LOST posts of the same species.
+            lost_rows = (
+                supabase.rpc(
+                    "get_posts",
+                    {
+                        "p_post_type": "LOST",
+                        "p_species": None,
+                        "p_status": "ACTIVE",
+                        "p_page": 1,
+                        "p_page_size": 100,
+                        "p_after_post_id": None,
+                    },
+                ).execute().data
+                or []
+            )
+            matched_count = 0
+            # Fetch the new FOUND post's species once and only refresh same-species LOST posts.
+            found_detail = supabase.rpc("get_post_detail", {"p_post_id": post_id}).execute().data or []
+            found_species = found_detail[0].get("species") if found_detail else None
+            for lost_post in lost_rows:
+                if found_species and lost_post.get("species") != found_species:
+                    continue
+                try:
+                    match_results = match_post(supabase, int(lost_post["post_id"]))
+                    matched_count += len(match_results)
+                except Exception:
+                    logger.exception("Auto-embed: matching LOST post %s against FOUND %s failed", lost_post.get("post_id"), post_id)
+            logger.info("Auto-embed: refreshed %d candidate(s) for FOUND post %s", matched_count, post_id)
 
     except Exception:
         logger.exception("Auto-embed and match encountered an error for post %s (non-fatal)", post_id)
