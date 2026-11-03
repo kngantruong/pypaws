@@ -180,7 +180,13 @@ export async function contactCandidate(candidateId) {
     throw new Error('Failed to get contact information');
   }
 
-  return await res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    phone: data.phone ?? data.contact_phone ?? null,
+    email: data.email ?? data.contact_email ?? null,
+    name: data.name ?? data.contact_name ?? null,
+  };
 }
 
 /**
