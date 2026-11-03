@@ -816,8 +816,8 @@ export default function PetReportPage({
 
     } catch (error) {
       console.error('Lỗi gửi tin:', error);
-
-      setSubmitStatus('not-connected');
+      setSubmitStatus('error');
+      setLocationSearchError(error.message || 'Không thể gửi tin. Vui lòng thử lại.');
     }
   }
 
@@ -1030,11 +1030,9 @@ export default function PetReportPage({
               <div className="pet-report-notice">Tin đã được lưu thành công. PyPaws đang tải kết quả matching thực tế.</div>
             )}
 
-            {submitStatus === 'not-connected' && (
-              <div className="pet-report-notice pet-report-notice--warning">
-                Chức năng gửi tin chưa được kết nối với máy chủ,
-                nên tin <strong>chưa được gửi</strong>.
-                Dữ liệu của bạn vẫn được giữ nguyên trên trang này.
+            {submitStatus === 'error' && (
+              <div className="pet-report-notice pet-report-notice--warning" role="alert">
+                Không thể gửi tin lên máy chủ. {locationSearchError || 'Vui lòng kiểm tra kết nối và thử lại.'}
               </div>
             )}
 
