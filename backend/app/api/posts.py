@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from PIL import Image
 from pydantic import BaseModel, Field
 
-from app.core.auth import get_optional_user_id
+from app.core.auth import get_current_user_id
 from app.core.config import get_settings
 from app.core.database import get_supabase, get_supabase_admin
 from app.schemas.post import PostCreate, PostDetail, PostListResponse
@@ -116,9 +116,9 @@ def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) 
 
 
 @router.post("", status_code=201)
-def create_post(payload: PostCreate, user_id: int | None = Depends(get_optional_user_id)):
+def create_post(payload: PostCreate, user_id: int = Depends(get_current_user_id)):
     supabase = get_supabase()
-    effective_user_id = payload.user_id or user_id or 19  # Default to demo user if unauthenticated
+    effective_user_id = user_id
 
     latitude = float(payload.latitude)
     longitude = float(payload.longitude)
@@ -221,8 +221,8 @@ def get_post_images(post_id: int):
 
 
 @router.post("/{post_id}/cancel")
-def cancel_post(post_id: int, user_id: int = Depends(get_optional_user_id)):
-    effective_user_id = user_id or 19
+def cancel_post(post_id: int, user_id: int = Depends(get_current_user_id)):
+    effective_user_id = user_id
     try:
         get_supabase().rpc("cancel_post", {"p_requester_id": effective_user_id, "p_post_id": post_id}).execute()
     except Exception as exc:
@@ -235,9 +235,9 @@ def resolve_post(
     post_id: int,
     candidate_id: int | None = None,
     source: str | None = None,
-    user_id: int = Depends(get_optional_user_id),
+    user_id: int = Depends(get_current_user_id),
 ):
-    effective_user_id = user_id or 19
+    effective_user_id = user_id
     try:
         get_supabase().rpc(
             "resolve_lost_post",
