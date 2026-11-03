@@ -119,7 +119,15 @@ function MatchingResultsPage({
       ].filter((image, index, all) => image && all.indexOf(image) === index)
     : []
 
-  const formatDescription = (value) => String(value || '').split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/).map((part) => part.trim()).filter(Boolean)
+  const formatDescription = (value) => String(value || '')
+    .split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .flatMap((part) => {
+      const pieces = part.split(/\s+-\s+/).map((piece) => piece.trim()).filter(Boolean)
+      if (pieces.length <= 1) return pieces
+      return [pieces[0], ...pieces.slice(1).map((piece) => `- ${piece}`)]
+    })
 
   const formatDateTime = (value) => {
     if (!value) return 'Chưa cập nhật'
