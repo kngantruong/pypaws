@@ -261,8 +261,9 @@ export async function getMe() {
     throw error;
   }
   const data = await res.json();
-  cacheUser(data);
-  return { ...data, user: normalizeUser(data.user) };
+  const normalizedUser = normalizeUser(data);
+  cacheUser(normalizedUser);
+  return normalizedUser;
 }
 
 /**
