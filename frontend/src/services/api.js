@@ -5,19 +5,47 @@
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
 
-let _token = localStorage.getItem('pypaws_token') || '';
+let _token = localStorage.getItem('pypaws_token') || sessionStorage.getItem('pypaws_token') || '';
+
+function extractErrorMessage(errorData, fallback) {
+  const detail = errorData?.detail;
+  if (typeof detail === 'string' && detail.trim()) return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail.map((item) => item?.msg || item?.message).filter(Boolean);
+    if (messages.length) return messages.join('; ');
+  }
+  if (detail && typeof detail === 'object') {
+    if (typeof detail.message === 'string') return detail.message;
+    if (typeof detail.msg === 'string') return detail.msg;
+  }
+  if (typeof errorData?.message === 'string' && errorData.message.trim()) return errorData.message;
+  return fallback;
+}
+
+function cacheUser(user) {
+  if (user) localStorage.setItem('pypaws_user', JSON.stringify(user));
+  else localStorage.removeItem('pypaws_user');
+}
+
+export function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem('pypaws_user') || 'null');
+  } catch {
+    return null;
+  }
+}
 
 export function getAuthToken() {
   return _token;
 }
 
-export function setAuthToken(token) {
-  _token = token;
-  if (token) {
-    localStorage.setItem('pypaws_token', token);
-  } else {
-    localStorage.removeItem('pypaws_token');
-  }
+export function setAuthToken(token, { persist = true, user = undefined } = {}) {
+  _token = token || '';
+  localStorage.removeItem('pypaws_token');
+  sessionStorage.removeItem('pypaws_token');
+  if (_token) (persist ? localStorage : sessionStorage).setItem('pypaws_token', _token);
+  if (user !== undefined) cacheUser(user);
+  if (!_token) cacheUser(null);
 }
 
 function getHeaders(isJson = true) {
@@ -83,7 +111,7 @@ export async function createPost(payload) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Failed to create post (${res.status})`);
+    throw new Error(extractErrorMessage(err, `Failed to create post (${res.status})`));
   }
 
   return await res.json();
@@ -204,10 +232,12 @@ export async function register(fullName, email, phone, password) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Registration failed');
+    const error = new Error(extractErrorMessage(err, 'Không thể tạo tài khoản.'));
+    error.status = res.status;
+    throw error;
   }
   const data = await res.json();
-  setAuthToken(data.access_token);
+  setAuthToken(data.access_token, { persist: true, user: data.user });
   return data;
 }
 
@@ -219,15 +249,20 @@ export async function getMe() {
   if (!res.ok) {
     setAuthToken('');
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Authentication expired');
+    const error = new Error(extractErrorMessage(err, res.status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : 'Không thể xác thực tài khoản lúc này.'));
+    error.status = res.status;
+    if (res.status === 401) setAuthToken('');
+    throw error;
   }
-  return await res.json();
+  const data = await res.json();
+  cacheUser(data);
+  return data;
 }
 
 /**
  * Auth login.
  */
-export async function login(email, password) {
+export async function login(email, password, rememberMe = true) {
   const res = await fetch(`${API_BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -236,11 +271,13 @@ export async function login(email, password) {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Login failed');
+    const error = new Error(extractErrorMessage(err, 'Email hoặc mật khẩu không chính xác.'));
+    error.status = res.status;
+    throw error;
   }
 
   const data = await res.json();
-  setAuthToken(data.access_token);
+  setAuthToken(data.access_token, { persist: rememberMe, user: data.user });
   return data;
 }
 
@@ -279,4 +316,13 @@ export async function markNotificationRead(notificationId) {
     throw new Error(err.detail || 'Failed to mark notification as read');
   }
   return await res.json();
+}
+
+
+export function resolveImageUrl(value) {
+  if (!value || typeof value !== 'string') return '';
+  const url = value.trim();
+  if (!url) return '';
+  if (/^(https?:|blob:|data:)/i.test(url)) return url;
+  return `${API_BASE}/${url.replace(/^\/+/, '')}`;
 }
