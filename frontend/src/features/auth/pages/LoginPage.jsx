@@ -40,10 +40,10 @@ function LoginPage({ onNavigate, onBackHome, onLoginSuccess }) {  const [identif
       <form className="auth-form" onSubmit={handleSubmit}>
         <AuthInput
           id="identifier"
-          label="Email hoặc số điện thoại"
+          label="Email"
           value={identifier}
           onChange={(event) => setIdentifier(event.target.value)}
-          placeholder="Nhập email hoặc số điện thoại"
+          placeholder="Nhập email"
           autoComplete="username"
         />
 
