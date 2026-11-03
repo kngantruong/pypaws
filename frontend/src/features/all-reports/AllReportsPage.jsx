@@ -32,8 +32,17 @@ function AllReportsPage({ reports = [], onBackHome }) {
     if (reportType !== 'ALL') result = result.filter((report) => report.post_type === reportType)
     if (species !== 'ALL') result = result.filter((report) => report.species === species)
 
-    if (province) result = result.filter((report) => report.province === province)
-    if (ward) result = result.filter((report) => report.ward === ward)
+    // get_posts returns the canonical location_text, not separate province/ward columns.
+    // Keep the web filters useful by matching the selected administrative names
+    // against that stored address string.
+    if (province) {
+      const needle = province.toLocaleLowerCase('vi-VN')
+      result = result.filter((report) => String(report.province || report.location_text || '').toLocaleLowerCase('vi-VN').includes(needle))
+    }
+    if (ward) {
+      const needle = ward.toLocaleLowerCase('vi-VN')
+      result = result.filter((report) => String(report.ward || report.location_text || '').toLocaleLowerCase('vi-VN').includes(needle))
+    }
     if (period !== 'all') {
       const cutoff = Date.now() - Number(period) * 24 * 60 * 60 * 1000
       result = result.filter((report) => report.created_at && new Date(report.created_at).getTime() >= cutoff)
