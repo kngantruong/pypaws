@@ -14,14 +14,14 @@ function LoginPage({ onNavigate, onBackHome, onLoginSuccess }) {  const [identif
   event.preventDefault()
 
   if (!identifier.trim() || !password.trim()) {
-    setMessage('Vui lòng nhập email/số điện thoại và mật khẩu.')
+    setMessage('Vui lòng nhập email và mật khẩu.')
     return
   }
 
   setIsSubmitting(true)
   setMessage('')
   try {
-    const data = await login(identifier.trim(), password)
+    const data = await login(identifier.trim(), password, rememberMe)
     onLoginSuccess(data.user)
   } catch (error) {
     setMessage(error.message || 'Email hoặc mật khẩu không chính xác.')
