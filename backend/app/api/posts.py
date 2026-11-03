@@ -108,9 +108,21 @@ def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) 
 
         # 5. Run matching after either direction is posted.
         # LOST -> match against existing FOUND posts.
+        # Keep automatic matching consistent with the manual web flow:
+        # try the default radius first, then expand only when no candidate passes.
+        radii = (5.0, 10.0, 20.0)
         if post_type == "LOST":
-            match_results = match_post(supabase, post_id)
-            logger.info("Auto-embed: matching LOST post %s returned %d candidates", post_id, len(match_results))
+            total_results = []
+            for radius_km in radii:
+                total_results = match_post(supabase, post_id, radius_km)
+                if total_results:
+                    break
+            logger.info(
+                "Auto-embed: matching LOST post %s returned %d candidates at radius %.1f km",
+                post_id,
+                len(total_results),
+                radius_km,
+            )
         else:
             # FOUND -> refresh matching for existing active LOST posts of the same species.
             lost_rows = (
@@ -135,10 +147,19 @@ def _auto_embed_and_match(post_id: int, post_type: str, image_paths: list[str]) 
                 if found_species and lost_post.get("species") != found_species:
                     continue
                 try:
-                    match_results = match_post(supabase, int(lost_post["post_id"]))
+                    lost_id = int(lost_post["post_id"])
+                    match_results = []
+                    for radius_km in radii:
+                        match_results = match_post(supabase, lost_id, radius_km)
+                        if match_results:
+                            break
                     matched_count += len(match_results)
                 except Exception:
-                    logger.exception("Auto-embed: matching LOST post %s against FOUND %s failed", lost_post.get("post_id"), post_id)
+                    logger.exception(
+                        "Auto-embed: matching LOST post %s against FOUND %s failed",
+                        lost_post.get("post_id"),
+                        post_id,
+                    )
             logger.info("Auto-embed: refreshed %d candidate(s) for FOUND post %s", matched_count, post_id)
 
     except Exception:
