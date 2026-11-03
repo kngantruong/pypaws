@@ -182,9 +182,9 @@ function AllReportsPage({ reports = [], onBackHome }) {
                 <div className="all-report-info">
                   <h3 className="all-report-species">{speciesLabel(report.species)}</h3>
                   <div className="all-report-quick-info">
-                    <span>📍 {addressOf(report)}</span>
-                    <span>🕒 {formatDateTime(report.event_time || report.lost_time || report.found_time)}</span>
-                    <span>⚧ {genderLabel(report.gender || report.sex)}</span>
+                    <span className="report-meta-location">📍 {addressOf(report)}</span>
+                    <span className="report-meta-item">🕒 {formatDateTime(report.event_time || report.lost_time || report.found_time)}</span>
+                    <span className="report-meta-item">⚧ {genderLabel(report.gender || report.sex)}</span>
                   </div>
                   <p className="all-report-description">{report.description || report.notes || 'Chưa có mô tả.'}</p>
                   <button type="button" className="all-report-detail-link" onClick={(event) => { event.stopPropagation(); setSelectedReport(report) }}>
