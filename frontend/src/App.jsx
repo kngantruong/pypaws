@@ -56,21 +56,51 @@ function App() {
       return
     }
 
-    Promise.all([
-      getNotifications(false),
-      getPosts({ status: 'ACTIVE', page_size: 100 }),
-      getPosts({ status: 'RESOLVED', page_size: 100 }),
-      getPosts({ status: 'CANCELLED', page_size: 100 }),
-    ]).then(([notificationItems, ...postLists]) => {
-      setNotifications(notificationItems)
-      const allPosts = postLists.flatMap((response) => response || [])
-      const ownPosts = allPosts.filter((post) => String(post.owner_id ?? post.user_id) === String(user.id))
-      setMyReports(ownPosts)
-    }).catch((error) => {
-      console.warn('Could not load account data:', error)
-      setNotifications([])
-      setMyReports([])
-    })
+    let cancelled = false
+
+    const loadAccountData = async () => {
+      try {
+        const [notificationItems, ...postLists] = await Promise.all([
+          getNotifications(false),
+          getPosts({ status: 'ACTIVE', page_size: 100 }),
+          getPosts({ status: 'RESOLVED', page_size: 100 }),
+          getPosts({ status: 'CANCELLED', page_size: 100 }),
+        ])
+
+        if (cancelled) return
+        setNotifications(notificationItems)
+
+        const allPosts = postLists.flatMap((response) => response || [])
+        const ownPosts = allPosts.filter(
+          (post) => String(post.owner_id ?? post.user_id) === String(user.id),
+        )
+        setMyReports(ownPosts)
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('Could not load account data:', error)
+          setNotifications([])
+          setMyReports([])
+        }
+      }
+    }
+
+    loadAccountData()
+
+    // A candidate can be created by another user's FOUND post.
+    // Poll notifications so the LOST owner sees the match promptly.
+    const notificationTimer = window.setInterval(async () => {
+      try {
+        const notificationItems = await getNotifications(false)
+        if (!cancelled) setNotifications(notificationItems)
+      } catch (error) {
+        if (!cancelled) console.warn('Could not refresh notifications:', error)
+      }
+    }, 10000)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(notificationTimer)
+    }
   }, [user?.id])
   const handleCreateReport = () => {
     if (!user) {
@@ -128,9 +158,14 @@ function App() {
 
   // Load real posts from backend on mount
   useEffect(() => {
-    getPosts()
-      .then((items) => {
-        if (items && items.length > 0) {
+    Promise.all([
+      getPosts({ status: 'ACTIVE', page_size: 100 }),
+      getPosts({ status: 'RESOLVED', page_size: 100 }),
+      getPosts({ status: 'CANCELLED', page_size: 100 }),
+    ])
+      .then((lists) => {
+        const items = lists.flatMap((list) => list || [])
+        if (items.length > 0) {
           const formatted = items.map((p) => ({
             post_id: p.post_id,
             report_code: p.report_code,
