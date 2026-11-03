@@ -2,6 +2,7 @@ import { useState } from 'react'
 import AuthLayout from '../components/AuthLayout'
 import AuthInput from '../components/AuthInput'
 import PasswordInput from '../components/PasswordInput'
+import { register } from '../../../services/api.js'
 
 function RegisterPage({ onNavigate, onBackHome }) {
   const [fullName, setFullName] = useState('')
@@ -11,8 +12,9 @@ function RegisterPage({ onNavigate, onBackHome }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (password.length < 8) {
@@ -30,9 +32,17 @@ function RegisterPage({ onNavigate, onBackHome }) {
       return
     }
 
-    setMessage(
-      'Thông tin hợp lệ. Cần kết nối backend để tạo tài khoản thật.'
-    )
+    setIsSubmitting(true)
+    setMessage('')
+    try {
+      await register(fullName.trim(), email.trim(), phone.trim(), password)
+      setMessage('Tạo tài khoản thành công. Đang chuyển đến trang đăng nhập...')
+      setTimeout(() => onNavigate('login'), 700)
+    } catch (error) {
+      setMessage(error.message || 'Không thể tạo tài khoản. Vui lòng thử lại.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -97,8 +107,8 @@ function RegisterPage({ onNavigate, onBackHome }) {
           <span>Tôi đồng ý với điều khoản sử dụng của PyPaws.</span>
         </label>
 
-        <button type="submit" className="auth-submit-button">
-          Tạo tài khoản
+        <button type="submit" className="auth-submit-button" disabled={isSubmitting}>
+          {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
         </button>
 
         {message && (
