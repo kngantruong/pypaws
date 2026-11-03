@@ -553,3 +553,35 @@ begin
         execute 'alter function ' || r.sig || ' security definer set search_path = public';
     end loop;
 end $$;
+
+-- Contact lookup with email.
+-- Kept separate from get_contact_info() so the existing DB function
+-- and its return type remain unchanged.
+create or replace function public.get_contact_info_with_email(
+    p_requester_id integer,
+    p_candidate_id integer
+)
+returns table (
+    contact_name text,
+    contact_phone text,
+    contact_email text
+)
+language sql
+stable
+security definer
+set search_path to 'public'
+as $function$
+    select
+        u.full_name::text,
+        u.phone::text,
+        u.email::text
+    from candidates c
+    join posts lp on lp.post_id = c.query_post_id
+                 and lp.user_id = p_requester_id
+                 and lp.status = 'ACTIVE'
+    join posts fp on fp.post_id = c.candidate_post_id
+                 and fp.status = 'ACTIVE'
+    join users u on u.user_id = fp.user_id
+    where c.candidate_id = p_candidate_id
+      and c.status in ('PENDING', 'CONTACTED');
+$function$;
