@@ -1,5 +1,5 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
-import { getPosts, resolveCandidate } from './services/api.js'
+import { getPosts, resolveCandidate, getMe, getAuthToken, setAuthToken } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
@@ -125,7 +125,7 @@ const postTypeLabel = {
 }
 
 function App() {
-  const [user, setUser] = useState({ id: 19, name: 'Huỳnh Trần Như Quỳnh', email: 'test@pypaws.vn', user_type: 'INDIVIDUAL' })
+  const [user, setUser] = useState(null)
   const [userReports, setUserReports] = useState(reports)
   const [myReports, setMyReports] = useState([])
   const [notifications, setNotifications] = useState([
@@ -141,6 +141,11 @@ function App() {
   const [initialPostType, setInitialPostType] = useState('LOST')
   const [reportNavSelection, setReportNavSelection] = useState('')
   const [authPage, setAuthPage] = useState('login')
+
+  useEffect(() => {
+    if (!getAuthToken()) return
+    getMe().then(setUser).catch(() => setUser(null))
+  }, [])
   const handleCreateReport = () => {
   setInitialPostType('LOST')
   setCurrentPage('report')
@@ -406,6 +411,7 @@ function App() {
                 <button
                   type="button"
                   onClick={() => {
+                    setAuthToken('')
                     setUser(null)
                     setCurrentPage('home')
                   }}
