@@ -2033,3 +2033,126 @@ p { line-height: 1.75; }
 .report-link:hover { background: #fff0e3; }
 @media (max-width: 900px) { .report-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 700px) { .report-grid { grid-template-columns: 1fr; } .report-image-wrap { height: 225px; } }
+
+
+/* Home report detail modal */
+.home-report-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(55, 39, 31, 0.48);
+  backdrop-filter: blur(5px);
+}
+.home-report-modal {
+  width: min(900px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  background: var(--white);
+  border: 1px solid #ead9c8;
+  border-radius: 22px;
+  box-shadow: 0 28px 80px rgba(55, 39, 31, 0.2);
+  position: relative;
+}
+.home-report-modal-close {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  color: var(--brown);
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 5px 16px rgba(55,39,31,.12);
+}
+.home-report-modal-image {
+  min-height: 420px;
+  position: relative;
+  overflow: hidden;
+  background: #f3e6d9;
+}
+.home-report-modal-image > img {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  object-fit: cover;
+}
+.home-report-modal-content {
+  padding: 44px 38px 34px;
+}
+.home-report-modal-eyebrow {
+  color: var(--orange-dark);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+.home-report-modal-content h2 {
+  margin-top: 8px;
+  color: var(--brown);
+  font-size: 32px;
+}
+.home-report-modal-content h3 {
+  margin-top: 25px;
+  color: var(--brown);
+  font-size: 14px;
+}
+.home-report-modal-meta {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  color: #806e61;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.home-report-modal-content > p {
+  margin-top: 10px;
+  color: #806e61;
+  font-size: 12px;
+  line-height: 1.9;
+  white-space: pre-line;
+}
+.home-report-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.home-report-modal-primary,
+.home-report-modal-secondary {
+  border-radius: 10px;
+  padding: 11px 15px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.home-report-modal-primary {
+  border: 1px solid var(--orange-dark);
+  background: var(--orange-dark);
+  color: white;
+}
+.home-report-modal-secondary {
+  border: 1px solid #e3d5c7;
+  background: white;
+  color: var(--brown);
+}
+@media (max-width: 760px) {
+  .home-report-modal {
+    grid-template-columns: 1fr;
+  }
+  .home-report-modal-image,
+  .home-report-modal-image > img {
+    min-height: 280px;
+    height: 280px;
+  }
+  .home-report-modal-content {
+    padding: 30px 24px 26px;
+  }
+}
