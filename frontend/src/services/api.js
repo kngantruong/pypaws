@@ -308,7 +308,12 @@ export async function getNotifications(unreadOnly = false) {
     throw new Error(err.detail || 'Failed to fetch notifications');
   }
   const data = await res.json();
-  return data.items || [];
+  return (data.items || []).map((item) => ({
+    ...item,
+    id: item.id ?? item.notification_id,
+    type: item.type ?? (item.notification_type === 'CANDIDATE_FOUND' ? 'MATCH' : item.notification_type),
+    post_id: item.post_id ?? null,
+  }));
 }
 
 /**
