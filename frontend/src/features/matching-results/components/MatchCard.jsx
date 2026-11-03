@@ -78,14 +78,17 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
           </p>
         )}
 
-        {match.final_score !== undefined && match.final_score !== null && (
-          <div className="matching-score">
-            ✨ Điểm tương đồng <strong>{(match.final_score > 1 ? match.final_score : match.final_score * 100).toFixed(1)}%</strong>
-            {match.image_similarity && (
-              <span style={{ fontSize: '12px', marginLeft: '8px', color: '#6b7280' }}>
-                (AI DINOv2: {(match.image_similarity * 100).toFixed(1)}% {match.distance_km !== null && match.distance_km !== undefined ? `· Cách ${match.distance_km}km` : ''})
-              </span>
-            )}
+        {score !== null && (
+          <div className="matching-score-panel">
+            <div className="matching-score-main">
+              <span>✨ Điểm tương đồng</span>
+              <strong>{score.toFixed(1)}%</strong>
+            </div>
+            <div className="matching-score-breakdown">
+              {imageScore !== null && <span>Ảnh AI {imageScore.toFixed(1)}%</span>}
+              {match.distance_km !== null && match.distance_km !== undefined && <span>{Number(match.distance_km).toFixed(1)} km</span>}
+              {match.time_gap_hours !== null && match.time_gap_hours !== undefined && <span>Chênh lệch {Number(match.time_gap_hours).toFixed(1)} giờ</span>}
+            </div>
           </div>
         )}
 
