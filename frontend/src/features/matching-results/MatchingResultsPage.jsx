@@ -12,6 +12,7 @@ function MatchingResultsPage({
   onReject,
   onBackHome,
   onResolve,
+  currentUser,
 }) {
   const [sortBy, setSortBy] = useState('newest')
   const [selectedMatch, setSelectedMatch] = useState(null)
@@ -136,7 +137,7 @@ function MatchingResultsPage({
           <h1>Kết quả tìm kiếm của bạn</h1>
         </section>
 
-        <SearchSummary report={lostReport} />
+        <SearchSummary report={lostReport} currentUser={currentUser} />
 
         {lostReport?.status !== 'RESOLVED' && lostReport?.status !== 'CANCELLED' && (
           <div className="matching-resolution-trigger-wrap">
