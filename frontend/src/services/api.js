@@ -245,3 +245,38 @@ export async function login(email, password) {
 }
 
 export { API_BASE };
+
+
+/**
+ * Fetch notifications for the authenticated user.
+ */
+export async function getNotifications(unreadOnly = false) {
+  const params = new URLSearchParams({
+    unread_only: String(unreadOnly),
+    limit: '100',
+  });
+  const res = await fetch(`${API_BASE}/api/notifications?${params.toString()}`, {
+    headers: getHeaders(false),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch notifications');
+  }
+  const data = await res.json();
+  return data.items || [];
+}
+
+/**
+ * Mark one notification as read.
+ */
+export async function markNotificationRead(notificationId) {
+  const res = await fetch(`${API_BASE}/api/notifications/${notificationId}/read`, {
+    method: 'POST',
+    headers: getHeaders(false),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to mark notification as read');
+  }
+  return await res.json();
+}
