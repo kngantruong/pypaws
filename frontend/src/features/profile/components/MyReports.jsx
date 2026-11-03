@@ -49,7 +49,7 @@ function MyReports({ reports = [], onOpenLostMatching }) {
               <div className="my-report-image">
                 <span className={`my-report-type ${report.post_type?.toLowerCase()}`}>{getPostTypeLabel(report.post_type)}</span>
                 <img
-                  src={resolveImageUrl(report.image_url) || '/placeholder-pet.png'}
+                  src={resolveImageUrl(report.image_url || report.cover_image_url || report.primary_image) || '/placeholder-pet.png'}
                   alt="Thú cưng"
                 />
               </div>
