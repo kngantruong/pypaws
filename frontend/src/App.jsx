@@ -1,5 +1,5 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
-import { getPosts, resolveCandidate, getMe, getAuthToken, setAuthToken, API_BASE } from './services/api.js'
+import { getPosts, getNotifications, markNotificationRead, getMe, getAuthToken, setAuthToken, API_BASE } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
@@ -11,108 +11,6 @@ import logo from './assets/logo/pypaws_logo.png'
 import mascot from './assets/logo/pypaws_mascot.png'
 import PetReportPage from './features/pet-report/PetReportPage.jsx'
 
-
-// Dữ liệu minh họa theo bảng SQL: posts
-// Khi có API backend, thay dữ liệu mẫu bằng dữ liệu trả về từ SQL Server.
-const reports = [
-  {
-    post_id: 1,
-    report_code: 'LOST1',
-    post_type: 'LOST',
-    species: 'DOG',
-    status: 'ACTIVE',
-    location_text: 'TP. Hồ Chí Minh',
-    created_at: null,
-    description:
-      'Chó nhà bị thất lạc. Hãy kiểm tra đặc điểm và liên hệ người đăng khi có thông tin phù hợp.',
-  },
-  {
-    post_id: 2,
-    report_code: 'FOUND1',
-    post_type: 'FOUND',
-    species: 'CAT',
-    status: 'ACTIVE',
-    location_text: 'Bình Dương',
-    created_at: null,
-    description:
-      'Một bé mèo được cộng đồng phát hiện. Hãy chia sẻ thông tin để hỗ trợ bé tìm lại gia đình.',
-  },
-  {
-    post_id: 3,
-    report_code: 'LOST3',
-    post_type: 'LOST',
-    species: 'DOG',
-    status: 'ACTIVE',
-    location_text: 'TP. Hồ Chí Minh',
-    created_at: null,
-    description:
-      'Kiểm tra các thông tin nhận dạng và cung cấp thông tin nếu bạn nhận ra bé.',
-  },
-]
-const matchingResults = [
-  {
-    post_id: 101,
-    pet_name: 'Milo',
-    species: 'DOG',
-    age: '8 tháng',
-    location_text: 'TP. Hồ Chí Minh',
-    created_at: '2026-10-28T09:00:00',
-    description: 'Chó lông vàng, thân thiện, được tìm thấy gần khu dân cư.',
-    image_url: null,
-    passed_threshold: true,
-    final_score: 0.91,
-    image_score: 0.94,
-    location_score: 0.88,
-    time_score: 0.90,
-  },
-  {
-    post_id: 102,
-    pet_name: 'Bông',
-    species: 'DOG',
-    age: '1 tuổi',
-    location_text: 'Bình Dương',
-    created_at: '2026-10-27T14:30:00',
-    description: 'Bé chó lông trắng, có đeo vòng cổ màu đỏ.',
-    image_url: null,
-    passed_threshold: true,
-    final_score: 0.91,
-    image_score: 0.94,
-    location_score: 0.88,
-    time_score: 0.90,
-  },
-  {
-    post_id: 103,
-    pet_name: 'Miu',
-    species: 'CAT',
-    age: '6 tháng',
-    location_text: 'TP. Hồ Chí Minh',
-    created_at: '2026-10-26T10:00:00',
-    description: 'Mèo tam thể, khá dạn người và sạch sẽ.',
-    image_url: null,
-    passed_threshold: true,
-    final_score: 0.91,
-    image_score: 0.94,
-    location_score: 0.88,
-    time_score: 0.90,
-  },
-  {
-    post_id: 104,
-    pet_name: 'Đốm',
-    species: 'DOG',
-    age: '2 tuổi',
-    location_text: 'Đồng Nai',
-    created_at: '2026-10-25T08:00:00',
-    description: 'Chó có bộ lông đốm nâu trắng, tính cách hiền.',
-    image_url: null,
-    passed_threshold: true,
-    final_score: 0.91,
-    image_score: 0.94,
-    location_score: 0.88,
-    time_score: 0.90,
-  },
-]
-
-// Dữ liệu minh họa theo bảng SQL: adopt_pets
 
 const speciesLabel = {
   DOG: 'Chó',
@@ -126,14 +24,10 @@ const postTypeLabel = {
 
 function App() {
   const [user, setUser] = useState(null)
-  const [userReports, setUserReports] = useState(reports)
+  const [userReports, setUserReports] = useState([])
   const [myReports, setMyReports] = useState([])
-  const [notifications, setNotifications] = useState([
-    { id: 'demo-match-1', type: 'MATCH', title: 'Tìm thấy bài đăng có thể phù hợp', message: 'PYPAWS AI phát hiện một bài FOUND có đặc điểm tương đồng với tin LOST của bạn. Nhấn để xem kết quả matching.', created_at: '2026-10-31T19:45:00+07:00', is_read: false, post_id: 1 },
-    { id: 'demo-match-2', type: 'MATCH', title: 'Có thêm kết quả matching mới', message: 'Một bài đăng FOUND mới có thể liên quan đến bé cún bạn đang tìm.', created_at: '2026-10-31T18:20:00+07:00', is_read: false, post_id: 3 },
-    { id: 'demo-system-1', type: 'SYSTEM', title: 'Tin LOST đang được hiển thị', message: 'Tin tìm thú cưng của bạn đã được đăng thành công trên PYPAWS.', created_at: '2026-10-31T16:10:00+07:00', is_read: true, post_id: 1 },
-  ])
-  const [activeLostReport, setActiveLostReport] = useState(reports[0])
+  const [notifications, setNotifications] = useState([])
+  const [activeLostReport, setActiveLostReport] = useState(null)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
   const [profileInitialTab, setProfileInitialTab] = useState('info')
@@ -146,13 +40,45 @@ function App() {
     if (!getAuthToken()) return
     getMe().then(setUser).catch(() => setUser(null))
   }, [])
+  useEffect(() => {
+    if (!user?.id) {
+      setNotifications([])
+      setMyReports([])
+      return
+    }
+
+    Promise.all([
+      getNotifications(false),
+      getPosts(),
+    ]).then(([notificationItems, postItems]) => {
+      setNotifications(notificationItems)
+      const ownPosts = (postItems || []).filter((post) => String(post.owner_id ?? post.user_id) === String(user.id))
+      setMyReports(ownPosts)
+    }).catch((error) => {
+      console.warn('Could not load account data:', error)
+      setNotifications([])
+      setMyReports([])
+    })
+  }, [user?.id])
   const handleCreateReport = () => {
-  setInitialPostType('LOST')
-  setCurrentPage('report')
+    if (!user) {
+      setAuthPage('login')
+      setCurrentPage('auth')
+      return
+    }
+    setInitialPostType('LOST')
+    setCurrentPage('report')
   }
   const unreadNotificationCount = notifications.filter((item) => !item.is_read).length
-  const handleOpenNotification = (notification) => {
-    setNotifications((previous) => previous.map((item) => item.id === notification.id ? { ...item, is_read: true } : item))
+  const handleOpenNotification = async (notification) => {
+    if (!notification.is_read) {
+      try {
+        await markNotificationRead(notification.id)
+        setNotifications((previous) => previous.map((item) => item.id === notification.id ? { ...item, is_read: true } : item))
+      } catch (error) {
+        console.warn('Could not mark notification as read:', error)
+      }
+    }
     const relatedReport = userReports.find((item) => String(item.post_id) === String(notification.post_id)) || reports.find((item) => String(item.post_id) === String(notification.post_id))
     if (relatedReport?.post_type === 'LOST') {
       setActiveLostReport(relatedReport)
@@ -310,6 +236,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!user) { setAuthPage('login'); setCurrentPage('auth'); return }
                   setInitialPostType('LOST')
                   setCurrentPage('report')
                 }}
@@ -320,6 +247,7 @@ function App() {
               <button
                 type="button"
                 onClick={() => {
+                  if (!user) { setAuthPage('login'); setCurrentPage('auth'); return }
                   setInitialPostType('FOUND')
                   setCurrentPage('report')
                 }}
@@ -454,10 +382,10 @@ function App() {
       }}
     />
   )
-    ) : currentPage === 'matching-results' ? (
+     ) : currentPage === 'matching-results' && activeLostReport ? (
       <MatchingResultsPage
-        lostReport={activeLostReport || reports[0]}
-        matches={matchingResults.filter((item) => item.species === (activeLostReport || reports[0]).species)}
+        lostReport={activeLostReport}
+        matches={[]}
         onResolve={handleResolveLostReport}
         onBackHome={() => setCurrentPage('home')}
         onViewDetail={(match) => {
@@ -557,6 +485,7 @@ function App() {
                href="#reports"
                onClick={(e) => {
                 e.preventDefault()
+                if (!user) { setAuthPage('login'); setCurrentPage('auth'); return }
                 setInitialPostType('LOST')
                 setCurrentPage('report')
           }}
@@ -578,6 +507,7 @@ function App() {
                 href="#reports"
                 onClick={(e) => {
                     e.preventDefault()
+                    if (!user) { setAuthPage('login'); setCurrentPage('auth'); return }
                     setInitialPostType('FOUND')
                     setCurrentPage('report')
             }}
