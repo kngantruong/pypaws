@@ -8,8 +8,6 @@ function PersonalInfo({ user }) {
     phone: user?.phone || '',
   })
 
-  const [message, setMessage] = useState('')
-
   useEffect(() => {
     setFormData({
       full_name: user?.full_name || '',
@@ -18,23 +16,6 @@ function PersonalInfo({ user }) {
     })
   }, [user])
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-
-    setMessage('')
-  }
-
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    setMessage('Thông tin đã được cập nhật trên giao diện.')
-  }
-
   return (
     <div className="personal-info">
       <div className="profile-section-heading">
@@ -42,7 +23,7 @@ function PersonalInfo({ user }) {
         <p>Quản lý thông tin tài khoản PyPaws của bạn.</p>
       </div>
 
-      <form className="personal-info-form" onSubmit={handleSubmit}>
+      <div className="personal-info-form">
         <div className="profile-form-group">
           <label htmlFor="profile-full-name">Họ và tên</label>
           <input
@@ -50,7 +31,7 @@ function PersonalInfo({ user }) {
             name="full_name"
             type="text"
             value={formData.full_name}
-            onChange={handleChange}
+            readOnly
             placeholder="Nhập họ và tên"
           />
         </div>
@@ -62,7 +43,7 @@ function PersonalInfo({ user }) {
             name="email"
             type="email"
             value={formData.email}
-            onChange={handleChange}
+            readOnly
             placeholder="Nhập email"
           />
         </div>
@@ -74,21 +55,13 @@ function PersonalInfo({ user }) {
             name="phone"
             type="tel"
             value={formData.phone}
-            onChange={handleChange}
+            readOnly
             placeholder="Nhập số điện thoại"
           />
         </div>
 
-        <button type="submit" className="profile-save-button">
-          Lưu thay đổi
-        </button>
-
-        {message && (
-          <p className="profile-success-message" role="status">
-            {message}
-          </p>
-        )}
-      </form>
+        <p className="profile-readonly-note">Thông tin tài khoản hiện được hiển thị từ dữ liệu đăng ký. Chỉnh sửa thông tin sẽ được bổ sung khi backend hỗ trợ cập nhật hồ sơ.</p>
+      </div>
     </div>
   )
 }
