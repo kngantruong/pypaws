@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import mascot from '../../assets/logo/pypaws_mascot.png'
+import { resolveImageUrl } from '../../services/api'
 import { getProvinces, getWards } from '../pet-report/data/vietnamAddress.js'
 import './all-reports.css'
 
@@ -75,8 +76,8 @@ function AllReportsPage({ reports = [], onBackHome }) {
   const imagesOf = (report) => {
     const images = report.images || report.image_urls || report.photos || []
     return [
-      report.image_url || report.cover_image_url,
-      ...images.map((image) => typeof image === 'string' ? image : image?.url || image?.image_url),
+      resolveImageUrl(report.image_url || report.cover_image_url),
+      ...images.map((image) => resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url)),
     ].filter((src, index, all) => src && all.indexOf(src) === index)
   }
 
@@ -164,7 +165,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
             {filteredReports.map((report) => (
               <article className="all-report-card" key={report.post_id} onClick={() => setSelectedReport(report)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedReport(report) }}>
                 <div className="all-report-image">
-                  <img src={report.image_url || report.cover_image_url || mascot} alt={speciesLabel(report.species)} />
+                  <img src={resolveImageUrl(report.image_url || report.cover_image_url) || mascot alt={speciesLabel(report.species)} />
                   <span className={`all-report-status ${report.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>
                     {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
                   </span>
