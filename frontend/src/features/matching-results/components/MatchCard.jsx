@@ -26,7 +26,20 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
 
   const coverImage = resolveImageUrl(rawCover) || `${API_BASE}/uploads/cat_same_2.jpg`
 
-  const provinceName = match.province || match.location_text || 'Chưa cập nhật tỉnh/thành'
+  const truncate = (value, length = 150) => {
+    const text = String(value || '').replace(/\s+/g, ' ').trim()
+    return text.length > length ? text.slice(0, length).trimEnd() + '…' : text
+  }
+
+  const address = match.province || match.location_text || 'Chưa cập nhật địa điểm'
+  const score = match.final_score !== undefined && match.final_score !== null
+    ? (match.final_score > 1 ? match.final_score : match.final_score * 100)
+    : null
+  const imageScore = match.image_similarity !== undefined && match.image_similarity !== null
+    ? match.image_similarity * 100
+    : match.image_score !== undefined && match.image_score !== null
+      ? match.image_score * 100
+      : null
 
   return (
     <article className="matching-card">
@@ -39,16 +52,20 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
           }}
         />
         <span className="matching-card-status">🟢 FOUND</span>
+        {score !== null && <span className="matching-card-score-badge">{score.toFixed(1)}%</span>}
       </div>
 
       <div className="matching-card-content">
         <div className="matching-card-title">
-          <h3>{match.pet_name || match.report_code || 'Bé được tìm thấy'}</h3>
-          <span>{speciesLabel[match.species] || 'Chó/Mèo'}</span>
+          <div>
+            <h3>{match.pet_name || 'Bé được tìm thấy'}</h3>
+            <span className="matching-card-code">{match.report_code || ('FOUND-' + (match.post_id || ''))}</span>
+          </div>
+          <span className="matching-card-species">{speciesLabel[match.species] || 'Chó/Mèo'}</span>
         </div>
 
         <div className="matching-card-quick-info">
-          <span>📍 {provinceName}</span>
+          <span>📍 {address}</span>
           <i>•</i>
           <span>🕒 {formatDateTime(match.event_time || match.created_at)}</span>
           <i>•</i>
@@ -56,8 +73,8 @@ function MatchCard({ match, onViewDetail, onContact, onReject }) {
         </div>
 
         {(match.description || match.notes) && (
-          <p className="matching-card-description">
-            {[match.description, match.notes].filter(Boolean).join(' · ')}
+          <p className="matching-card-description" title={[match.description, match.notes].filter(Boolean).join(' · ')}>
+            {truncate([match.description, match.notes].filter(Boolean).join(' · '))}
           </p>
         )}
 
