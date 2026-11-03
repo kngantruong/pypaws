@@ -22,8 +22,14 @@ function extractErrorMessage(errorData, fallback) {
   return fallback;
 }
 
+function normalizeUser(user) {
+  if (!user) return null;
+  return { ...user, id: user.id ?? user.user_id };
+}
+
 function cacheUser(user) {
-  if (user) localStorage.setItem('pypaws_user', JSON.stringify(user));
+  const normalized = normalizeUser(user);
+  if (normalized) localStorage.setItem('pypaws_user', JSON.stringify(normalized));
   else localStorage.removeItem('pypaws_user');
 }
 
@@ -237,8 +243,9 @@ export async function register(fullName, email, phone, password) {
     throw error;
   }
   const data = await res.json();
-  setAuthToken(data.access_token, { persist: true, user: data.user });
-  return data;
+  const normalizedData = { ...data, user: normalizeUser(data.user) };
+  setAuthToken(normalizedData.access_token, { persist: true, user: normalizedData.user });
+  return normalizedData;
 }
 
 /**
@@ -256,7 +263,7 @@ export async function getMe() {
   }
   const data = await res.json();
   cacheUser(data);
-  return data;
+  return { ...data, user: normalizeUser(data.user) };
 }
 
 /**
@@ -277,8 +284,9 @@ export async function login(email, password, rememberMe = true) {
   }
 
   const data = await res.json();
-  setAuthToken(data.access_token, { persist: rememberMe, user: data.user });
-  return data;
+  const normalizedData = { ...data, user: normalizeUser(data.user) };
+  setAuthToken(normalizedData.access_token, { persist: rememberMe, user: normalizedData.user });
+  return normalizedData;
 }
 
 export { API_BASE };
