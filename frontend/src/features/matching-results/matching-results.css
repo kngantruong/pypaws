@@ -1182,3 +1182,75 @@
   .matching-card-score-badge { right: 10px; bottom: 10px; }
   .matching-card-title h3 { font-size: 18px; }
 }
+
+
+/* Matching result details: readable AI description without changing stored text. */
+.matching-summary-description {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.matching-summary-description span {
+  display: block;
+}
+.matching-summary-description span + span {
+  padding-top: 6px;
+  border-top: 1px dashed #eee0d2;
+}
+
+/* Three candidate actions: shared rounded shape and warm palette. */
+.matching-card-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, .72fr);
+  gap: 8px;
+  margin-top: auto;
+}
+.matching-card-actions button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+.matching-card-actions button:hover {
+  transform: translateY(-1px);
+}
+.matching-button-primary {
+  border-color: #df874c !important;
+  background: #df874c !important;
+  color: #fff !important;
+}
+.matching-button-primary:hover {
+  border-color: #c96f37 !important;
+  background: #c96f37 !important;
+}
+.matching-button-secondary {
+  border-color: #e4b993 !important;
+  background: #fff9f3 !important;
+  color: #a85e32 !important;
+}
+.matching-button-secondary:hover {
+  border-color: #df9a67 !important;
+  background: #fff0e3 !important;
+}
+.matching-button-ghost {
+  border-color: #ead9c9 !important;
+  background: #fff !important;
+  color: #806b5d !important;
+}
+.matching-button-ghost:hover {
+  border-color: #d7b99f !important;
+  background: #fff8f1 !important;
+  color: #604536 !important;
+}
+@media (max-width: 520px) {
+  .matching-card-actions {
+    grid-template-columns: 1fr;
+  }
+}
