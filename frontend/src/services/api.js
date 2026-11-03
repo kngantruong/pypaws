@@ -254,7 +254,6 @@ export async function register(fullName, email, phone, password) {
 export async function getMe() {
   const res = await fetch(`${API_BASE}/api/auth/me`, { headers: getHeaders(false) });
   if (!res.ok) {
-    setAuthToken('');
     const err = await res.json().catch(() => ({}));
     const error = new Error(extractErrorMessage(err, res.status === 401 ? 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' : 'Không thể xác thực tài khoản lúc này.'));
     error.status = res.status;
