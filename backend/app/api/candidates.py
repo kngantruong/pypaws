@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.core.auth import get_optional_user_id
+from app.core.auth import get_current_user_id
 from app.core.database import get_supabase
 from app.services.matcher import get_ram_candidates
 
@@ -25,13 +25,13 @@ def list_candidates(
     post_id: int,
     only_passed: bool = False,
     status: str | None = None,
-    user_id: int | None = Depends(get_optional_user_id),
+    user_id: int = Depends(get_current_user_id),
 ):
     details = rpc("get_post_detail", {"p_post_id": post_id}).data or []
     if not details:
         raise HTTPException(404, "Post not found.")
     post = details[0]
-    effective_user_id = user_id or int(post["owner_id"])
+    effective_user_id = user_id
     if int(post["owner_id"]) != effective_user_id:
         raise HTTPException(403, "Only the post owner can view candidates.")
     if post["post_type"] != "LOST":
@@ -45,8 +45,6 @@ def list_candidates(
             "p_status": status,
         },
     ).data or []
-    if not rows:
-        rows = get_ram_candidates(post_id)
     return {"items": rows}
 
 
@@ -85,19 +83,15 @@ def reject(candidate_id: int, user_id: int | None = Depends(get_optional_user_id
 
 
 @router.post("/{candidate_id}/resolve")
-def resolve(candidate_id: int, lost_post_id: int, user_id: int | None = Depends(get_optional_user_id)):
+def resolve(candidate_id: int, lost_post_id: int, user_id: int = Depends(get_current_user_id)):
     """Resolve a LOST/FOUND pair through the canonical database transaction."""
-    effective_user_id = user_id or 19
-    try:
-        rpc(
-            "resolve_lost_post",
-            {
-                "p_requester_id": effective_user_id,
-                "p_lost_post_id": lost_post_id,
-                "p_source": None,
-                "p_candidate_id": candidate_id,
-            },
-        )
-    except Exception:
-        pass
+    rpc(
+        "resolve_lost_post",
+        {
+            "p_requester_id": user_id,
+            "p_lost_post_id": lost_post_id,
+            "p_source": None,
+            "p_candidate_id": candidate_id,
+        },
+    )
     return {"status": "RESOLVED", "candidate_id": candidate_id, "lost_post_id": lost_post_id}
