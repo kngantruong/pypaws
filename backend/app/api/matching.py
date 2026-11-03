@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from PIL import Image
 
-from app.core.auth import get_optional_user_id
+from app.core.auth import get_current_user_id
 from app.core.config import get_settings
 from app.core.database import get_supabase, get_supabase_admin
 from app.services.matcher import match_post
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/matching", tags=["AI Matching"])
 def run_matching(
     post_id: int,
     radius_km: float = Query(default=None, description="MVP radius: 5, 10 or 20 km"),
-    user_id: int | None = Depends(get_optional_user_id),
+    user_id: int = Depends(get_current_user_id),
 ):
     if radius_km is not None and radius_km not in (5.0, 10.0, 20.0):
         raise HTTPException(422, "radius_km must be 5, 10 or 20")
@@ -29,8 +29,7 @@ def run_matching(
         if not owner_rows:
             raise HTTPException(404, "Post not found.")
         owner = owner_rows[0]
-        effective_user_id = user_id or int(owner["owner_id"])
-        if int(owner["owner_id"]) != effective_user_id:
+        if int(owner["owner_id"]) != user_id:
             raise HTTPException(403, "Only the post owner can start matching.")
         if owner["post_type"] != "LOST":
             raise HTTPException(422, "AI matching must be started from a LOST post.")
