@@ -70,7 +70,7 @@ async def create_image_embedding(
     post_id: int,
     image_id: int,
     image: UploadFile = File(...),
-    user_id: int | None = Depends(get_optional_user_id),
+    user_id: int = Depends(get_current_user_id),
 ):
     if image.content_type not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(415, "Only JPEG, PNG and WEBP images are supported.")
@@ -84,8 +84,7 @@ async def create_image_embedding(
         if not detail_rows:
             raise HTTPException(404, "Post not found.")
         owner = detail_rows[0]
-        effective_user_id = user_id or int(owner["owner_id"])
-        if int(owner["owner_id"]) != effective_user_id:
+        if int(owner["owner_id"]) != user_id:
             raise HTTPException(403, "Only the post owner can create an embedding.")
 
         image_rows = get_supabase().rpc("get_post_images", {"p_post_id": post_id}).execute().data or []
