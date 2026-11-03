@@ -174,6 +174,10 @@ function App() {
             report_code: p.report_code,
             post_type: p.post_type,
             species: p.species,
+            gender: p.gender,
+            breed: p.breed,
+            coat_color: p.coat_color,
+            appearance_notes: p.appearance_notes,
             description: p.description,
             created_at: p.created_at,
             event_time: p.event_time,
@@ -185,6 +189,7 @@ function App() {
             contact_phone: String(p.owner_id) === String(user?.id) ? user.phone : null,
             contact_email: String(p.owner_id) === String(user?.id) ? user.email : null,
             image_url: resolveImageUrl(p.primary_image),
+            primary_image: p.primary_image,
           }))
           setPublicReports(formatted.filter((item) => item.status === 'ACTIVE'))
           setUserReports((prev) => {
