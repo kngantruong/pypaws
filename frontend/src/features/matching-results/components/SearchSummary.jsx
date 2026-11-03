@@ -1,6 +1,6 @@
 import { resolveImageUrl } from '../../../services/api'
 
-function SearchSummary({ report }) {
+function SearchSummary({ report, currentUser }) {
   if (!report) return null
 
   const speciesLabel = {
@@ -27,6 +27,11 @@ function SearchSummary({ report }) {
         })
       : 'Chưa cập nhật'
   const provinceName = report.province || report.location_text || 'Chưa cập nhật tỉnh/thành'
+  const isOwnReport = currentUser?.id != null && report?.owner_id != null && String(currentUser.id) === String(report.owner_id)
+  const contactName = report.contact_name || (isOwnReport ? currentUser?.full_name : null) || report.owner_name
+  const contactPhone = report.contact_phone || (isOwnReport ? currentUser?.phone : null)
+  const contactEmail = report.contact_email || (isOwnReport ? currentUser?.email : null)
+  const descriptionParts = String(report.description || '').split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/).map((part) => part.trim()).filter(Boolean)
 
   return (
     <section className="matching-summary">
@@ -46,12 +51,12 @@ function SearchSummary({ report }) {
               <div><dt>Ngày đăng:</dt><dd>{report.created_at ? new Date(report.created_at).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}</dd></div>
               <div><dt>Trạng thái:</dt><dd>{{ ACTIVE: 'Đang hiển thị', RESOLVED: 'Đã tìm thấy chủ', CLOSED: 'Đã đóng' }[report.status] || report.status || 'Chưa cập nhật'}</dd></div>
               <div><dt>Địa chỉ:</dt><dd>{provinceName}</dd></div>
-              <div><dt>Đặc điểm:</dt><dd>{report.description || 'Chưa cung cấp'}</dd></div>
+              <div><dt>Đặc điểm:</dt><dd className="matching-summary-description">{descriptionParts.length ? descriptionParts.map((part, index) => <span key={`${part}-${index}`}>{part}</span>) : 'Chưa cung cấp'}</dd></div>
               {report.notes && <div><dt>Ghi chú:</dt><dd>{report.notes}</dd></div>}
               <div className="matching-summary-contact-heading"><dt>Thông tin liên hệ</dt><dd></dd></div>
-              <div><dt>Người liên hệ:</dt><dd>{report.contact_name || 'Chưa cập nhật'}</dd></div>
-              <div><dt>Số điện thoại:</dt><dd>{report.contact_phone || 'Chưa cập nhật'}</dd></div>
-              <div><dt>Email:</dt><dd>{report.contact_email || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Người liên hệ:</dt><dd>{contactName || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Số điện thoại:</dt><dd>{contactPhone || 'Chưa cập nhật'}</dd></div>
+              <div><dt>Email:</dt><dd>{contactEmail || 'Chưa cập nhật'}</dd></div>
             </dl>
           </section>
 
