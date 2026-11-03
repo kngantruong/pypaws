@@ -119,6 +119,8 @@ function MatchingResultsPage({
       ].filter((image, index, all) => image && all.indexOf(image) === index)
     : []
 
+  const formatDescription = (value) => String(value || '').split(/(?=(?:Màu lông, hoa văn|Độ dài lông|Đặc điểm tai, mắt, mõm, đuôi|Dấu hiệu nhận dạng đặc biệt):)/).map((part) => part.trim()).filter(Boolean)
+
   const formatDateTime = (value) => {
     if (!value) return 'Chưa cập nhật'
     const date = new Date(value)
@@ -228,7 +230,7 @@ function MatchingResultsPage({
               <div><dt>Giới tính:</dt><dd>{selectedMatch.gender === 'MALE' ? 'Đực' : selectedMatch.gender === 'FEMALE' ? 'Cái' : 'Chưa xác định'}</dd></div>
               <div><dt>Thời gian:</dt><dd>{formatDateTime(selectedMatch.event_time || selectedMatch.created_at)}</dd></div>
               <div><dt>Địa chỉ:</dt><dd>{[selectedMatch.address_detail, selectedMatch.ward, selectedMatch.province].filter(Boolean).join(', ') || selectedMatch.location_text || 'Chưa cập nhật'}</dd></div>
-              <div><dt>Đặc điểm:</dt><dd>{selectedMatch.description || 'Chưa cung cấp'}</dd></div>
+              <div><dt>Đặc điểm:</dt><dd className="matching-summary-description">{formatDescription(selectedMatch.description).length ? formatDescription(selectedMatch.description).map((part, index) => <span key={`${part}-${index}`}>{part}</span>) : 'Chưa cung cấp'}</dd></div>
               {selectedMatch.notes && <div><dt>Ghi chú:</dt><dd>{selectedMatch.notes}</dd></div>}
             </dl>
           </section>
@@ -244,9 +246,9 @@ function MatchingResultsPage({
               <p className="matching-modal-demo-note">{contactInfo.error}</p>
             ) : (
               <dl className="matching-detail-data matching-contact-data">
-                <div><dt>Họ và tên</dt><dd>{contactInfo?.contact_name || 'Chưa cập nhật'}</dd></div>
-                <div><dt>Số điện thoại</dt><dd>{contactInfo?.phone || 'Chưa cập nhật'}</dd></div>
-                <div><dt>Email</dt><dd>{contactInfo?.email || 'Chưa cập nhật'}</dd></div>
+                <div><dt>Họ và tên</dt><dd>{contactInfo?.contact_name || contactInfo?.name || 'Chưa cập nhật'}</dd></div>
+                <div><dt>Số điện thoại</dt><dd>{contactInfo?.contact_phone || contactInfo?.phone || 'Chưa cập nhật'}</dd></div>
+                <div><dt>Email</dt><dd>{contactInfo?.contact_email || contactInfo?.email || 'Chưa cập nhật'}</dd></div>
               </dl>
             )}
             <p className="matching-modal-demo-note">Bạn có thể chủ động trao đổi với người đăng để xác nhận đặc điểm thú cưng và địa điểm tìm thấy.</p>
