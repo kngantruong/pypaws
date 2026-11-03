@@ -165,71 +165,59 @@ function buildPetReportPayload(formData) {
 
 
 // ======================================================
-// 3. API PLACEHOLDER
+// 3. BACKEND SUBMISSION
 // ======================================================
 
-// Chế độ demo frontend trong lúc backend chưa có API.
-// Dữ liệu được chuyển về App để cập nhật giao diện trong phiên chạy.
-// Khi backend hoàn thành, thay phần callback này bằng API thật.
-
 async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
-  try {
-    const imagePaths = [];
-    for (const file of images) {
-      if (file instanceof File) {
-        try {
-          const uploadRes = await uploadImage(file);
-          imagePaths.push(uploadRes.file_path);
-        } catch (uploadErr) {
-          console.warn('Upload image failed, using fallback name:', uploadErr);
-          imagePaths.push(/uploads/);
-        }
-      } else if (typeof file === 'string') {
-        imagePaths.push(file);
-      }
+  const imagePaths = [];
+  for (const file of images) {
+    if (file instanceof File) {
+      const uploadRes = await uploadImage(file);
+      imagePaths.push(uploadRes.file_path);
+    } else if (typeof file === 'string' && file.trim()) {
+      imagePaths.push(file);
     }
-    if (imagePaths.length === 0) {
-      imagePaths.push('/uploads/cat_same_1.jpg');
-    }
-
-    const backendPayload = {
-      post_type: payload.post_type,
-      species: payload.species,
-      description: payload.description,
-      event_time: payload.event_time ? new Date(payload.event_time).toISOString() : new Date().toISOString(),
-      location_text: payload.location_text || [payload.address_detail, payload.ward, payload.province || 'TP. Hồ Chí Minh'].filter(Boolean).join(', '),
-      image_paths: imagePaths,
-      cover_index: coverIndex || 0,
-      latitude: payload.latitude || 10.7769,
-      longitude: payload.longitude || 106.7009,
-      gender: payload.gender || null,
-      breed: payload.breed || null,
-      coat_color: payload.coat_color || null,
-      appearance_notes: payload.appearance_notes || null,
-      data_source: 'USER',
-    };
-
-    const result = await createPost(backendPayload);
-    const reportData = {
-      ...payload,
-      post_id: result.post_id,
-      report_code: result.report_code,
-      image_url: imagePaths[coverIndex] || imagePaths[0],
-      images: imagePaths,
-      status: 'ACTIVE',
-    };
-
-    if (typeof onSubmitReport === 'function') {
-      await onSubmitReport(payload, images, coverIndex, reportData);
-    }
-    return reportData;
-  } catch (err) {
-    console.error('Backend submission failed, falling back to local handler:', err);
-    if (typeof onSubmitReport === 'function') {
-      return await onSubmitReport(payload, images, coverIndex);
-    }
-    throw err;
   }
+
+  if (imagePaths.length === 0) {
+    throw new Error('Vui lòng tải ít nhất một ảnh thú cưng lên.');
+  }
+
+  if (payload.latitude === null || payload.latitude === '' || payload.longitude === null || payload.longitude === '') {
+    throw new Error('Vui lòng xác nhận vị trí trên bản đồ trước khi đăng tin.');
+  }
+
+  const backendPayload = {
+    post_type: payload.post_type,
+    species: payload.species,
+    description: payload.description,
+    event_time: payload.event_time ? new Date(payload.event_time).toISOString() : new Date().toISOString(),
+    location_text: payload.location_text || [payload.address_detail, payload.ward, payload.province].filter(Boolean).join(', '),
+    image_paths: imagePaths,
+    cover_index: coverIndex || 0,
+    latitude: Number(payload.latitude),
+    longitude: Number(payload.longitude),
+    gender: payload.gender || null,
+    breed: payload.breed || null,
+    coat_color: payload.coat_color || null,
+    appearance_notes: payload.appearance_notes || null,
+    data_source: 'USER',
+  };
+
+  const result = await createPost(backendPayload);
+  const reportData = {
+    ...payload,
+    post_id: result.post_id,
+    report_code: result.report_code,
+    image_url: imagePaths[coverIndex] || imagePaths[0],
+    images: imagePaths,
+    status: 'ACTIVE',
+  };
+
+  if (typeof onSubmitReport === 'function') {
+    await onSubmitReport(payload, images, coverIndex, reportData);
+  }
+  return reportData;
 }
 
 function FieldError({ id, message }) {
