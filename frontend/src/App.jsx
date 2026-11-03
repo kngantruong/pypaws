@@ -35,6 +35,7 @@ function App() {
   const [initialPostType, setInitialPostType] = useState('LOST')
   const [reportNavSelection, setReportNavSelection] = useState('')
   const [authPage, setAuthPage] = useState('login')
+  const [selectedHomeReport, setSelectedHomeReport] = useState(null)
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -548,9 +549,9 @@ function App() {
           <div className="section-wrap">
             <div className="section-heading section-heading-row">
               <div>
-                <span className="eyebrow">CỘNG ĐỒNG PYPAWS</span>
-                <h2>Cùng nhau tìm bé về nhà</h2>
-                <p>Theo dõi báo cáo mới và chia sẻ thông tin để giúp các bé sớm trở về nhà.</p>
+                <span className="eyebrow">CẬP NHẬT MỚI NHẤT</span>
+                <h2>Báo cáo mới nhất</h2>
+                <p>Những tin LOST và FOUND mới nhất từ cộng đồng PyPaws.</p>
               </div>
               <button
                 type="button"
@@ -574,7 +575,7 @@ function App() {
                 return (
                   <article className="report-card" key={report.post_id}>
                     <div className="report-image-wrap">
-                      <img src={report.image_url || report.cover_image_url || mascot} alt={speciesLabel[report.species] || 'Thú cưng'} />
+                      <img src={resolveImageUrl(report.image_url || report.cover_image_url) || mascot} alt={speciesLabel[report.species] || 'Thú cưng'} />
                       <span className={`status-pill status-${(report.post_type || 'FOUND').toLowerCase()}`}>
                         {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
                       </span>
@@ -584,7 +585,7 @@ function App() {
                         <h3>{speciesLabel[report.species] || 'Thú cưng'}</h3>
                       </div>
                       <div className="report-quick-info">
-                        <span>📍 {report.province || report.location_text || 'Chưa cập nhật tỉnh/thành'}</span>
+                        <span>📍 {report.location_text || 'Chưa cập nhật địa điểm'}</span>
                         <span>🕒 {formattedTime}</span>
                         <span>⚧ {gender}</span>
                       </div>
@@ -592,12 +593,9 @@ function App() {
                       <button
                         type="button"
                         className="report-link"
-                        onClick={() => {
-                          setCurrentPage('all-reports')
-                          window.scrollTo({ top: 0, behavior: 'smooth' })
-                        }}
+                        onClick={() => setSelectedHomeReport(report)}
                       >
-                        Xem tất cả báo cáo <span>→</span>
+                        Xem chi tiết <span>→</span>
                       </button>
                     </div>
                   </article>
@@ -606,7 +604,6 @@ function App() {
             </div>
           </div>
         </section>
-
 
         {/* KÊU GỌI HÀNH ĐỘNG */}
         <section className="closing-cta" id="about">
@@ -634,6 +631,37 @@ function App() {
         </section>
       </main>
       )}
+      {selectedHomeReport && currentPage === 'home' && (
+        <div className="home-report-modal-backdrop" role="presentation" onClick={() => setSelectedHomeReport(null)}>
+          <section className="home-report-modal" role="dialog" aria-modal="true" aria-label="Chi tiết báo cáo" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="home-report-modal-close" onClick={() => setSelectedHomeReport(null)} aria-label="Đóng">×</button>
+            <div className="home-report-modal-image">
+              <img src={resolveImageUrl(selectedHomeReport.image_url || selectedHomeReport.cover_image_url) || mascot} alt={speciesLabel[selectedHomeReport.species] || 'Thú cưng'} />
+              <span className={`status-pill status-${(selectedHomeReport.post_type || 'FOUND').toLowerCase()}`}>
+                {selectedHomeReport.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
+              </span>
+            </div>
+            <div className="home-report-modal-content">
+              <span className="home-report-modal-eyebrow">{selectedHomeReport.post_type === 'LOST' ? 'BÁO CÁO THẤT LẠC' : 'BÁO CÁO TÌM THẤY'}</span>
+              <h2>{speciesLabel[selectedHomeReport.species] || 'Thú cưng'}</h2>
+              <div className="home-report-modal-meta">
+                <span>📍 {selectedHomeReport.location_text || 'Chưa cập nhật địa điểm'}</span>
+                <span>🕒 {new Date(selectedHomeReport.event_time || selectedHomeReport.created_at).toLocaleString('vi-VN')}</span>
+                <span>⚧ {{ MALE: 'Đực', FEMALE: 'Cái', UNKNOWN: 'Chưa xác định' }[selectedHomeReport.gender] || 'Chưa xác định'}</span>
+              </div>
+              <h3>Đặc điểm</h3>
+              <p>{selectedHomeReport.description || 'Chưa có mô tả.'}</p>
+              <div className="home-report-modal-actions">
+                <button type="button" className="home-report-modal-secondary" onClick={() => setSelectedHomeReport(null)}>Đóng</button>
+                <button type="button" className="home-report-modal-primary" onClick={() => { setSelectedHomeReport(null); setCurrentPage('all-reports'); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+                  Mở tất cả báo cáo <span>→</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      )}
+
       {currentPage !== 'auth' && (
       <footer className="footer">
         <div className="footer-main">
