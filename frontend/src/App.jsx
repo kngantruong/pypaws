@@ -36,6 +36,7 @@ function App() {
   const [reportNavSelection, setReportNavSelection] = useState('')
   const [authPage, setAuthPage] = useState('login')
   const [selectedHomeReport, setSelectedHomeReport] = useState(null)
+  const [homeReportSort, setHomeReportSort] = useState('newest')
 
   useEffect(() => {
     if (!getAuthToken()) {
@@ -212,6 +213,26 @@ function App() {
     setProfileInitialTab('reports')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  const truncateText = (value, maxLength) => {
+    const text = String(value || '').trim()
+    if (!text) return ''
+    return text.length > maxLength ? `${text.slice(0, maxLength).trimEnd()}…` : text
+  }
+
+  const homeReports = [...userReports]
+    .filter((report) => report.status === 'ACTIVE')
+    .sort((a, b) => {
+      const getTimestamp = (report) => {
+        const value = report.created_at || report.event_time
+        const timestamp = value ? new Date(value).getTime() : 0
+        return Number.isNaN(timestamp) ? 0 : timestamp
+      }
+      return homeReportSort === 'newest'
+        ? getTimestamp(b) - getTimestamp(a)
+        : getTimestamp(a) - getTimestamp(b)
+    })
+    .slice(0, 5)
 
   const handleReportNavigation = (e) => {
   const value = e.target.value
@@ -588,20 +609,29 @@ function App() {
                 <h2>Báo cáo mới nhất</h2>
                 <p>Những tin LOST và FOUND mới nhất từ cộng đồng PyPaws.</p>
               </div>
-              <button
-                type="button"
-                className="outline-link"
-                onClick={() => {
-                  setCurrentPage('all-reports')
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-              >
-                Xem tất cả <span>→</span>
-              </button>
+              <div className="reports-heading-actions">
+                <label className="report-sort">
+                  <span>Sắp xếp:</span>
+                  <select value={homeReportSort} onChange={(event) => setHomeReportSort(event.target.value)} aria-label="Sắp xếp báo cáo">
+                    <option value="newest">Mới nhất</option>
+                    <option value="oldest">Cũ nhất</option>
+                  </select>
+                </label>
+                <button
+                  type="button"
+                  className="outline-link"
+                  onClick={() => {
+                    setCurrentPage('all-reports')
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }}
+                >
+                  Xem tất cả <span>→</span>
+                </button>
+              </div>
             </div>
 
             <div className="report-grid">
-              {userReports.filter((report) => report.status === 'ACTIVE').slice(0, 3).map((report) => {
+              {homeReports.map((report) => {
                 const eventTime = report.event_time || report.lost_time || report.found_time
                 const formattedTime = eventTime && !Number.isNaN(new Date(eventTime).getTime())
                   ? new Date(eventTime).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
@@ -620,11 +650,11 @@ function App() {
                         <h3>{speciesLabel[report.species] || 'Thú cưng'}</h3>
                       </div>
                       <div className="report-quick-info">
-                        <span>📍 {report.location_text || 'Chưa cập nhật địa điểm'}</span>
+                        <span title={report.location_text || 'Chưa cập nhật địa điểm'}>📍 {truncateText(report.location_text || 'Chưa cập nhật địa điểm', 48)}</span>
                         <span>🕒 {formattedTime}</span>
                         <span>⚧ {gender}</span>
                       </div>
-                      <p className="report-description">{report.description || 'Chưa có mô tả.'}</p>
+                      <p className="report-description" title={report.description || 'Chưa có mô tả.'}>{truncateText(report.description || 'Chưa có mô tả.', 125)}</p>
                       <button
                         type="button"
                         className="report-link"
