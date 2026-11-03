@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { describePetWithAI, uploadImage, createPost } from '../../services/api.js';
+import { describePetWithAI, uploadImage, createPost, resolveImageUrl } from '../../services/api.js';
 
 import {
   MapContainer,
@@ -209,8 +209,8 @@ async function submitPetReport(payload, images, coverIndex, onSubmitReport) {
     ...payload,
     post_id: result.post_id,
     report_code: result.report_code,
-    image_url: imagePaths[coverIndex] || imagePaths[0],
-    images: imagePaths,
+    image_url: resolveImageUrl(imagePaths[coverIndex] || imagePaths[0]),
+    images: imagePaths.map(resolveImageUrl),
     status: 'ACTIVE',
   };
 
