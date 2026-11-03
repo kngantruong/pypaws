@@ -3,7 +3,7 @@
  * Connects React UI to FastAPI Backend & AI Services.
  */
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8003';
 
 let _token = localStorage.getItem('pypaws_token') || '';
 
@@ -191,6 +191,37 @@ export async function getPosts(params = {}) {
 
   const data = await res.json();
   return data.items || [];
+}
+
+/**
+ * Auth register.
+ */
+export async function register(fullName, email, phone, password) {
+  const res = await fetch(`${API_BASE}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ full_name: fullName, email, phone: phone || null, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Registration failed');
+  }
+  const data = await res.json();
+  setAuthToken(data.access_token);
+  return data;
+}
+
+/**
+ * Get the currently authenticated user.
+ */
+export async function getMe() {
+  const res = await fetch(`${API_BASE}/api/auth/me`, { headers: getHeaders(false) });
+  if (!res.ok) {
+    setAuthToken('');
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Authentication expired');
+  }
+  return await res.json();
 }
 
 /**
