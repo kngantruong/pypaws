@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import PersonalInfo from './components/PersonalInfo'
 import MyReports from './components/MyReports'
 import Notifications from './components/Notifications'
@@ -7,6 +7,10 @@ import './profile.css'
 
 function ProfilePage({ user, reports = [], notifications = [], initialTab = 'info', onOpenLostMatching, onOpenNotification }) {
   const [activeTab, setActiveTab] = useState(initialTab)
+
+  useEffect(() => {
+    setActiveTab(initialTab)
+  }, [initialTab])
 
   return (
     <main className="profile-page">
