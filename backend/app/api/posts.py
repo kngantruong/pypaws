@@ -40,7 +40,7 @@ def _raise_rpc_error(exc: Exception) -> None:
 
 
 @router.post("/upload-image")
-async def upload_image(image: UploadFile = File(...)):
+async def upload_image(image: UploadFile = File(...), user_id: int = Depends(get_current_user_id)):
     """Upload pet photo to Supabase Storage with local cache fallback."""
     if not (image.content_type and image.content_type.startswith("image/")):
         raise HTTPException(415, "Only image files (JPEG, PNG, WEBP) are allowed.")
