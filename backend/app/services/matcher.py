@@ -438,6 +438,13 @@ def match_post(supabase, post_id: int, radius_km: float | None = None) -> list[d
         results.append(item_result)
         saved_ram_items.append(item_result)
 
+        # Notify the LOST owner only after the candidate is persisted as PENDING.
+        # The database function is idempotent, so repeated matching does not spam notifications.
+        try:
+            supabase.rpc("notify_candidate", {"p_candidate_id": candidate_id}).execute()
+        except Exception:
+            logger.exception("Could not create notification for candidate %s", candidate_id)
+
     _RAM_CANDIDATES[post_id] = saved_ram_items
     return results
 
