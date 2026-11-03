@@ -49,10 +49,13 @@ function App() {
 
     Promise.all([
       getNotifications(false),
-      getPosts(),
-    ]).then(([notificationItems, postItems]) => {
+      getPosts({ status: 'ACTIVE', page_size: 100 }),
+      getPosts({ status: 'RESOLVED', page_size: 100 }),
+      getPosts({ status: 'CANCELLED', page_size: 100 }),
+    ]).then(([notificationItems, ...postLists]) => {
       setNotifications(notificationItems)
-      const ownPosts = (postItems || []).filter((post) => String(post.owner_id ?? post.user_id) === String(user.id))
+      const allPosts = postLists.flatMap((response) => response || [])
+      const ownPosts = allPosts.filter((post) => String(post.owner_id ?? post.user_id) === String(user.id))
       setMyReports(ownPosts)
     }).catch((error) => {
       console.warn('Could not load account data:', error)
@@ -79,7 +82,7 @@ function App() {
         console.warn('Could not mark notification as read:', error)
       }
     }
-    const relatedReport = userReports.find((item) => String(item.post_id) === String(notification.post_id)) || reports.find((item) => String(item.post_id) === String(notification.post_id))
+    const relatedReport = userReports.find((item) => String(item.post_id) === String(notification.post_id))
     if (relatedReport?.post_type === 'LOST') {
       setActiveLostReport(relatedReport)
       setCurrentPage('matching-results')
