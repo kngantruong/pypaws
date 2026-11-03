@@ -29,7 +29,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
 
   const filteredReports = useMemo(() => {
     let result = [...reports]
-    if (reportType !== 'ALL') result = result.filter((report) => report.post_type === reportType)
+    if (reportType !== 'ALL') result = result.filter((report) => String(report.post_type || '').toUpperCase() === reportType)
     if (species !== 'ALL') result = result.filter((report) => report.species === species)
 
     // get_posts returns the canonical location_text, not separate province/ward columns.
@@ -85,7 +85,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
   const imagesOf = (report) => {
     const images = report.images || report.image_urls || report.photos || []
     return [
-      resolveImageUrl(report.image_url || report.cover_image_url),
+      resolveImageUrl(report.image_url || report.cover_image_url || report.primary_image),
       ...images.map((image) => resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url)),
     ].filter((src, index, all) => src && all.indexOf(src) === index)
   }
@@ -174,7 +174,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
             {filteredReports.map((report) => (
               <article className="all-report-card" key={report.post_id} onClick={() => setSelectedReport(report)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedReport(report) }}>
                 <div className="all-report-image">
-                  <img src={resolveImageUrl(report.image_url || report.cover_image_url) || mascot} alt={speciesLabel(report.species)} />
+                  <img src={resolveImageUrl(report.image_url || report.cover_image_url || report.primary_image) || mascot} alt={speciesLabel(report.species)} />
                   <span className={`all-report-status ${report.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>
                     {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
                   </span>
