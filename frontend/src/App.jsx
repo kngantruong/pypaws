@@ -1,5 +1,5 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
-import { getPosts, resolveCandidate, getMe, getAuthToken, setAuthToken } from './services/api.js'
+import { getPosts, resolveCandidate, getMe, getAuthToken, setAuthToken, API_BASE } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
@@ -204,7 +204,7 @@ function App() {
             location_text: p.location_text,
             status: p.status,
             owner_name: p.owner_name,
-            image_url: p.primary_image ? (p.primary_image.startsWith('http') ? p.primary_image : `http://localhost:8000${p.primary_image.startsWith('/') ? '' : '/'}${p.primary_image}`) : null,
+            image_url: p.primary_image ? (p.primary_image.startsWith('http') ? p.primary_image : `${API_BASE}${p.primary_image.startsWith('/') ? '' : '/'}${p.primary_image}`) : null,
           }))
           setUserReports((prev) => {
             const ids = new Set(formatted.map(f => String(f.post_id)))
