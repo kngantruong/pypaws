@@ -25,6 +25,7 @@ const postTypeLabel = {
 function App() {
   const [user, setUser] = useState(() => getStoredUser())
   const [userReports, setUserReports] = useState([])
+  const [publicReports, setPublicReports] = useState([])
   const [myReports, setMyReports] = useState([])
   const [notifications, setNotifications] = useState([])
   const [activeLostReport, setActiveLostReport] = useState(null)
@@ -149,6 +150,7 @@ function App() {
       images: imageUrls,
     }
     setUserReports((previous) => [newReport, ...previous])
+    setPublicReports((previous) => [newReport, ...previous])
     setMyReports((previous) => [newReport, ...previous])
     if (payload.post_type === 'LOST') {
       setActiveLostReport(newReport)
@@ -184,6 +186,7 @@ function App() {
             contact_email: String(p.owner_id) === String(user?.id) ? user.email : null,
             image_url: resolveImageUrl(p.primary_image),
           }))
+          setPublicReports(formatted.filter((item) => item.status === 'ACTIVE'))
           setUserReports((prev) => {
             const ids = new Set(formatted.map(f => String(f.post_id)))
             return [...formatted, ...prev.filter(pr => !ids.has(String(pr.post_id)))]
@@ -426,7 +429,7 @@ function App() {
       )}
      {currentPage === 'all-reports' ? (
         <AllReportsPage
-            reports={userReports.filter((item) => item.status === 'ACTIVE')}
+            reports={publicReports}
             onCreateReport={handleCreateReport}
             onBackHome={() => {
           setCurrentPage('home')
