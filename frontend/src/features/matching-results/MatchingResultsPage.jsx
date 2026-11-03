@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getCandidates, runMatching, contactCandidate, rejectCandidate, resolveCandidate } from '../../services/api'
+import { getCandidates, runMatching, contactCandidate, rejectCandidate, resolveCandidate, resolveImageUrl } from '../../services/api'
 import SearchSummary from './components/SearchSummary'
 import MatchCard from './components/MatchCard'
 import './matching-results.css'
@@ -111,9 +111,9 @@ function MatchingResultsPage({
     : []
   const detailImages = selectedMatch
     ? [
-        selectedMatch.cover_image_url || selectedMatch.image_url,
+        resolveImageUrl(selectedMatch.cover_image_url || selectedMatch.image_url),
         ...rawDetailImages.map((image) =>
-          typeof image === 'string' ? image : image?.url || image?.image_url,
+          resolveImageUrl(typeof image === 'string' ? image : image?.url || image?.image_url),
         ),
       ].filter((image, index, all) => image && all.indexOf(image) === index)
     : []
