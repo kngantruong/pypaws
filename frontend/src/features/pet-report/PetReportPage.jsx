@@ -897,9 +897,8 @@ export default function PetReportPage({
             className="pet-report-notice"
             role="note"
           >
-            <strong>Chế độ demo:</strong> Sau khi xác nhận, tin sẽ được thêm vào
-            dữ liệu tạm trong phiên chạy ứng dụng để bạn kiểm tra luồng đăng tin
-            và matching. Tin chưa được lưu lên máy chủ.
+            Tin đăng sẽ được gửi lên máy chủ và xử lý matching bằng dữ liệu thật.
+            Nếu máy chủ hoặc AI gặp lỗi, tin sẽ không được giả lập thành công.
           </div>
 
 
@@ -1021,14 +1020,14 @@ export default function PetReportPage({
                   <h2 id="pet-report-success-title">Cảm ơn bạn đã đăng tin tìm thấy thú cưng!</h2>
                   <p>Mã báo cáo của bạn:</p>
                   <strong className="pet-report-success-code">{submittedReportCode || 'FOUND'}</strong>
-                  <p>Thông tin đã được lưu trong dữ liệu demo của PYPAWS.</p>
+                  <p>Thông tin đã được lưu thành công trên PyPaws.</p>
                   <button type="button" className="pet-report-button pet-report-button--primary" onClick={onBack}>Về trang chủ</button>
                 </section>
               </div>
             )}
 
             {submitStatus === 'success' && formData.post_type !== 'FOUND' && (
-              <div className="pet-report-notice">Tin đã được thêm vào dữ liệu demo của PYPAWS. Đang mở kết quả matching minh họa.</div>
+              <div className="pet-report-notice">Tin đã được lưu thành công. PyPaws đang tải kết quả matching thực tế.</div>
             )}
 
             {submitStatus === 'not-connected' && (
