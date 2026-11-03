@@ -137,7 +137,13 @@ export async function getCandidates(postId) {
   }
 
   const data = await res.json();
-  return data.items || [];
+  return (data.items || []).map((item) => ({
+    ...item,
+    post_id: item.post_id ?? item.found_post_id,
+    image_url: item.image_url ?? item.primary_image,
+    cover_image_url: item.cover_image_url ?? item.primary_image,
+    created_at: item.created_at ?? item.event_time,
+  }));
 }
 
 /**
