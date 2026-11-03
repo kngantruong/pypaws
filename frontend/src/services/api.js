@@ -186,6 +186,9 @@ export async function contactCandidate(candidateId) {
     phone: data.phone ?? data.contact_phone ?? null,
     email: data.email ?? data.contact_email ?? null,
     name: data.name ?? data.contact_name ?? null,
+    contact_name: data.contact_name ?? data.name ?? null,
+    contact_phone: data.contact_phone ?? data.phone ?? null,
+    contact_email: data.contact_email ?? data.email ?? null,
   };
 }
 
