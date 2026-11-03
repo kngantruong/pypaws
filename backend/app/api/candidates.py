@@ -56,49 +56,25 @@ def contact(candidate_id: int, user_id: int = Depends(get_current_user_id)):
     if not rows:
         raise HTTPException(404, "Contact information is not available.")
 
-    # The contact RPC also updates the candidate status. Read the owner's
-    # current profile directly afterwards so name/phone/email are not lost
-    # when an older database function only returns name and phone.
+    # The contact RPC keeps the existing authorization/status logic and returns name/phone.
+    # Fetch the email through the dedicated read-only contact function without requiring
+    # a Supabase service-role key or changing the existing contact RPC return type.
     contact = rows[0]
     try:
-        admin = get_supabase_admin()
-        candidate_row = (
-            admin.table("candidates")
-            .select("candidate_post_id")
-            .eq("candidate_id", candidate_id)
-            .limit(1)
-            .execute()
-        )
-        candidate_data = candidate_row.data or []
-        if candidate_data:
-            found_post_id = int(candidate_data[0]["candidate_post_id"])
-            post_row = (
-                admin.table("posts")
-                .select("user_id")
-                .eq("post_id", found_post_id)
-                .limit(1)
-                .execute()
-            )
-            post_data = post_row.data or []
-            if post_data:
-                owner_id = int(post_data[0]["user_id"])
-                user_row = (
-                    admin.table("users")
-                    .select("full_name, phone, email")
-                    .eq("user_id", owner_id)
-                    .limit(1)
-                    .execute()
-                )
-                user_data = user_row.data or []
-                if user_data:
-                    owner = user_data[0]
-                    contact = {
-                        "contact_name": owner.get("full_name"),
-                        "contact_phone": owner.get("phone"),
-                        "contact_email": owner.get("email"),
-                    }
+        email_rows = get_supabase().rpc(
+            "get_contact_info_with_email",
+            {"p_requester_id": user_id, "p_candidate_id": candidate_id},
+        ).execute().data or []
+        if email_rows:
+            enriched = email_rows[0]
+            contact = {
+                **contact,
+                "contact_name": enriched.get("contact_name") or contact.get("contact_name"),
+                "contact_phone": enriched.get("contact_phone") or contact.get("contact_phone"),
+                "contact_email": enriched.get("contact_email"),
+            }
     except Exception:
-        # Keep the existing RPC response if the profile lookup is unavailable.
+        # Keep the existing RPC response if the optional email lookup is unavailable.
         pass
 
     return contact
