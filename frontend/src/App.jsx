@@ -1,5 +1,5 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
-import { getPosts, getNotifications, markNotificationRead, getMe, getAuthToken, setAuthToken, API_BASE } from './services/api.js'
+import { getPosts, getNotifications, markNotificationRead, getMe, getAuthToken, getStoredUser, setAuthToken, resolveImageUrl } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
@@ -23,7 +23,7 @@ const postTypeLabel = {
 }
 
 function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => getStoredUser())
   const [userReports, setUserReports] = useState([])
   const [myReports, setMyReports] = useState([])
   const [notifications, setNotifications] = useState([])
@@ -37,8 +37,16 @@ function App() {
   const [authPage, setAuthPage] = useState('login')
 
   useEffect(() => {
-    if (!getAuthToken()) return
-    getMe().then(setUser).catch(() => setUser(null))
+    if (!getAuthToken()) {
+      setUser(null)
+      return
+    }
+    getMe()
+      .then((freshUser) => setUser(freshUser))
+      .catch((error) => {
+        if (error?.status === 401) setUser(null)
+        else console.warn('Không thể xác minh phiên đăng nhập lúc này:', error)
+      })
   }, [])
   useEffect(() => {
     if (!user?.id) {
@@ -93,7 +101,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   const handleLocalReportSubmit = (payload, images, coverIndex, reportData) => {
-    const imageUrls = images.map((file) => typeof file === 'string' ? file : URL.createObjectURL(file))
+    const imageUrls = images.map((file) => resolveImageUrl(typeof file === 'string' ? file : URL.createObjectURL(file)))
     const newReport = reportData ? {
       ...payload,
       ...reportData,
@@ -132,8 +140,12 @@ function App() {
             event_time: p.event_time,
             location_text: p.location_text,
             status: p.status,
+            owner_id: p.owner_id,
             owner_name: p.owner_name,
-            image_url: p.primary_image ? (p.primary_image.startsWith('http') ? p.primary_image : `${API_BASE}${p.primary_image.startsWith('/') ? '' : '/'}${p.primary_image}`) : null,
+            contact_name: String(p.owner_id) === String(user?.id) ? user.full_name : null,
+            contact_phone: String(p.owner_id) === String(user?.id) ? user.phone : null,
+            contact_email: String(p.owner_id) === String(user?.id) ? user.email : null,
+            image_url: resolveImageUrl(p.primary_image),
           }))
           setUserReports((prev) => {
             const ids = new Set(formatted.map(f => String(f.post_id)))
@@ -142,7 +154,7 @@ function App() {
         }
       })
       .catch((err) => console.warn('Could not fetch posts from backend:', err))
-  }, [])
+  }, [user?.id])
 
   const handleResolveLostReport = ({ source, foundPost, lostReport }) => {
     const lostId = String(lostReport?.post_id)
