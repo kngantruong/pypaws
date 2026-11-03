@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import get_current_user_id
-from app.core.database import get_supabase
+from app.core.database import get_supabase, get_supabase_admin
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"])
 post_candidates_router = APIRouter(prefix="/posts", tags=["Candidates"])
@@ -55,7 +55,53 @@ def contact(candidate_id: int, user_id: int = Depends(get_current_user_id)):
     ).data or []
     if not rows:
         raise HTTPException(404, "Contact information is not available.")
-    return rows[0]
+
+    # The contact RPC also updates the candidate status. Read the owner's
+    # current profile directly afterwards so name/phone/email are not lost
+    # when an older database function only returns name and phone.
+    contact = rows[0]
+    try:
+        admin = get_supabase_admin()
+        candidate_row = (
+            admin.table("candidates")
+            .select("candidate_post_id")
+            .eq("candidate_id", candidate_id)
+            .limit(1)
+            .execute()
+        )
+        candidate_data = candidate_row.data or []
+        if candidate_data:
+            found_post_id = int(candidate_data[0]["candidate_post_id"])
+            post_row = (
+                admin.table("posts")
+                .select("user_id")
+                .eq("post_id", found_post_id)
+                .limit(1)
+                .execute()
+            )
+            post_data = post_row.data or []
+            if post_data:
+                owner_id = int(post_data[0]["user_id"])
+                user_row = (
+                    admin.table("users")
+                    .select("full_name, phone, email")
+                    .eq("user_id", owner_id)
+                    .limit(1)
+                    .execute()
+                )
+                user_data = user_row.data or []
+                if user_data:
+                    owner = user_data[0]
+                    contact = {
+                        "contact_name": owner.get("full_name"),
+                        "contact_phone": owner.get("phone"),
+                        "contact_email": owner.get("email"),
+                    }
+    except Exception:
+        # Keep the existing RPC response if the profile lookup is unavailable.
+        pass
+
+    return contact
 
 
 @router.post("/{candidate_id}/reject")
