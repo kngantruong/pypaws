@@ -56,10 +56,14 @@ def contact(candidate_id: int, user_id: int = Depends(get_current_user_id)):
     if not rows:
         raise HTTPException(404, "Contact information is not available.")
 
-    # The contact RPC keeps the existing authorization/status logic and returns name/phone.
-    # Fetch the email through the dedicated read-only contact function without requiring
-    # a Supabase service-role key or changing the existing contact RPC return type.
+    # Keep the existing authorization/status flow, then enrich the same contact
+    # with email. Return both naming conventions so the current frontend can
+    # consume the response without changing any matching logic.
     contact = rows[0]
+    contact_name = contact.get("contact_name") or contact.get("name")
+    contact_phone = contact.get("contact_phone") or contact.get("phone")
+    contact_email = contact.get("contact_email") or contact.get("email")
+
     try:
         email_rows = get_supabase().rpc(
             "get_contact_info_with_email",
@@ -67,18 +71,21 @@ def contact(candidate_id: int, user_id: int = Depends(get_current_user_id)):
         ).execute().data or []
         if email_rows:
             enriched = email_rows[0]
-            contact = {
-                **contact,
-                "contact_name": enriched.get("contact_name") or contact.get("contact_name"),
-                "contact_phone": enriched.get("contact_phone") or contact.get("contact_phone"),
-                "contact_email": enriched.get("contact_email"),
-            }
+            contact_name = enriched.get("contact_name") or contact_name
+            contact_phone = enriched.get("contact_phone") or contact_phone
+            contact_email = enriched.get("contact_email") or contact_email
     except Exception:
-        # Keep the existing RPC response if the optional email lookup is unavailable.
+        # Email is optional; preserve the existing name/phone contact flow.
         pass
 
-    return contact
-
+    return {
+        "contact_name": contact_name,
+        "contact_phone": contact_phone,
+        "contact_email": contact_email,
+        "name": contact_name,
+        "phone": contact_phone,
+        "email": contact_email,
+    }
 
 @router.post("/{candidate_id}/reject")
 def reject(candidate_id: int, user_id: int = Depends(get_current_user_id)):
