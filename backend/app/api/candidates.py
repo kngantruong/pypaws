@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.auth import get_current_user_id
 from app.core.database import get_supabase
-from app.services.matcher import get_ram_candidates
 
 router = APIRouter(prefix="/candidates", tags=["Candidates"])
 post_candidates_router = APIRouter(prefix="/posts", tags=["Candidates"])
@@ -49,39 +48,23 @@ def list_candidates(
 
 
 @router.post("/{candidate_id}/contact")
-def contact(candidate_id: int, user_id: int | None = Depends(get_optional_user_id)):
-    effective_user_id = user_id or 19
-    try:
-        rows = rpc(
-            "contact_candidate",
-            {"p_requester_id": effective_user_id, "p_candidate_id": candidate_id},
-        ).data or []
-        if rows:
-            return rows[0]
-    except Exception:
-        pass
-    return {
-        "candidate_id": candidate_id,
-        "contact_name": "Người tìm thấy thú cưng",
-        "phone": "0908 123 456",
-        "email": "finder@pypaws.vn",
-        "message": "Vui lòng liên hệ với người giữ bé để đối chiếu nhận lại thú cưng.",
-    }
+def contact(candidate_id: int, user_id: int = Depends(get_current_user_id)):
+    rows = rpc(
+        "contact_candidate",
+        {"p_requester_id": user_id, "p_candidate_id": candidate_id},
+    ).data or []
+    if not rows:
+        raise HTTPException(404, "Contact information is not available.")
+    return rows[0]
 
 
 @router.post("/{candidate_id}/reject")
-def reject(candidate_id: int, user_id: int | None = Depends(get_optional_user_id)):
-    effective_user_id = user_id or 19
-    try:
-        rpc(
-            "reject_candidate",
-            {"p_requester_id": effective_user_id, "p_candidate_id": candidate_id},
-        )
-    except Exception:
-        pass
+def reject(candidate_id: int, user_id: int = Depends(get_current_user_id)):
+    rpc(
+        "reject_candidate",
+        {"p_requester_id": user_id, "p_candidate_id": candidate_id},
+    )
     return {"status": "REJECTED"}
-
-
 @router.post("/{candidate_id}/resolve")
 def resolve(candidate_id: int, lost_post_id: int, user_id: int = Depends(get_current_user_id)):
     """Resolve a LOST/FOUND pair through the canonical database transaction."""
