@@ -165,7 +165,7 @@ function AllReportsPage({ reports = [], onBackHome }) {
             {filteredReports.map((report) => (
               <article className="all-report-card" key={report.post_id} onClick={() => setSelectedReport(report)} tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') setSelectedReport(report) }}>
                 <div className="all-report-image">
-                  <img src={resolveImageUrl(report.image_url || report.cover_image_url) || mascot alt={speciesLabel(report.species)} />
+                  <img src={resolveImageUrl(report.image_url || report.cover_image_url) || mascot} alt={speciesLabel(report.species)} />
                   <span className={`all-report-status ${report.post_type === 'LOST' ? 'is-lost' : 'is-found'}`}>
                     {report.post_type === 'LOST' ? '🔴 LOST' : '🟢 FOUND'}
                   </span>
