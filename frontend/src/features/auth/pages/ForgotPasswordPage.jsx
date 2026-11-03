@@ -3,19 +3,6 @@ import AuthLayout from '../components/AuthLayout'
 import AuthInput from '../components/AuthInput'
 
 function ForgotPasswordPage({ onNavigate, onBackHome }) {
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
-  const [submitted, setSubmitted] = useState(false)
-
-  const handleSubmit = (event) => {
-    event.preventDefault()
-
-    setSubmitted(true)
-    setMessage(
-      'Yêu cầu đã được ghi nhận. Chức năng gửi email đặt lại mật khẩu cần kết nối backend.'
-    )
-  }
-
   return (
     <AuthLayout
       eyebrow="ACCOUNT RECOVERY"
@@ -23,27 +10,15 @@ function ForgotPasswordPage({ onNavigate, onBackHome }) {
       subtitle="Nhập email đã đăng ký để nhận hướng dẫn đặt lại mật khẩu."
       onBackHome={onBackHome}
     >
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <AuthInput
-          id="forgot-email"
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="example@email.com"
-          autoComplete="email"
-        />
-
-        <button type="submit" className="auth-submit-button">
-          Gửi yêu cầu
+      <div className="auth-form">
+        <p className="auth-recovery-note">
+          Tính năng đặt lại mật khẩu qua email hiện chưa được triển khai trên backend,
+          nên PyPaws không hiển thị biểu mẫu giả hoặc báo đã gửi email khi chưa gửi thật.
+        </p>
+        <button type="button" className="auth-submit-button" onClick={() => onNavigate('login')}>
+          Quay lại đăng nhập
         </button>
-
-        {message && (
-          <p className="auth-message" role="status">
-            {message}
-          </p>
-        )}
-      </form>
+      </div>
 
       {submitted && (
         <p className="auth-recovery-note">
