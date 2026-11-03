@@ -62,25 +62,26 @@ function MatchingResultsPage({
   const handleContactClick = async (match) => {
     setContactMatch(match)
     setContactInfo(null)
-    if (match.candidate_id) {
-      try {
-        const info = await contactCandidate(match.candidate_id)
-        setContactInfo(info)
-      } catch (err) {
-        console.warn('Contact API error:', err)
-      }
+    if (!match.candidate_id) {
+      setContactInfo({ error: 'Ứng viên này chưa có thông tin liên hệ hợp lệ.' })
+      return
+    }
+    try {
+      const info = await contactCandidate(match.candidate_id)
+      setContactInfo(info)
+    } catch (err) {
+      setContactInfo({ error: err.message || 'Không thể lấy thông tin liên hệ.' })
     }
   }
 
   const handleRejectClick = async (match) => {
     const id = match.candidate_id || match.post_id
-    setRejectedIds((prev) => [...prev, id])
-    if (match.candidate_id) {
-      try {
-        await rejectCandidate(match.candidate_id)
-      } catch (err) {
-        console.warn('Reject API error:', err)
-      }
+    if (!match.candidate_id) return
+    try {
+      await rejectCandidate(match.candidate_id)
+      setRejectedIds((prev) => [...prev, id])
+    } catch (err) {
+      console.warn('Reject API error:', err)
     }
   }
 
@@ -91,7 +92,7 @@ function MatchingResultsPage({
         (item) => !rejectedIds.includes(item.candidate_id || item.post_id),
       )
     },
-    [matches, lostReport?.species, rejectedIds],
+    [liveCandidates, matches, rejectedIds],
   )
 
   const eligibleFoundPosts = eligibleMatches.filter((item) => {
@@ -238,12 +239,15 @@ function MatchingResultsPage({
           <section className="matching-action-modal" role="dialog" aria-modal="true" aria-labelledby="matching-contact-title" onClick={(event) => event.stopPropagation()}>
             <button className="matching-detail-close" type="button" onClick={() => setContactMatch(null)} aria-label="Đóng">×</button>
             <h2 id="matching-contact-title">Thông tin người đăng tin FOUND</h2>
-            <p className="matching-modal-demo-note">Thông tin minh họa để kiểm thử giao diện, chưa phải dữ liệu người dùng thật.</p>
-            <dl className="matching-detail-data matching-contact-data">
-              <div><dt>Họ và tên</dt><dd>{contactInfo?.contact_name || contactMatch.contact_name || 'Người tìm thấy thú cưng'}</dd></div>
-              <div><dt>Số điện thoại</dt><dd>{contactInfo?.phone || contactMatch.contact_phone || '0908 123 456'}</dd></div>
-              <div><dt>Email</dt><dd>{contactInfo?.email || contactMatch.contact_email || 'finder@pypaws.vn'}</dd></div>
-            </dl>
+            {contactInfo?.error ? (
+              <p className="matching-modal-demo-note">{contactInfo.error}</p>
+            ) : (
+              <dl className="matching-detail-data matching-contact-data">
+                <div><dt>Họ và tên</dt><dd>{contactInfo?.contact_name || 'Chưa cập nhật'}</dd></div>
+                <div><dt>Số điện thoại</dt><dd>{contactInfo?.phone || 'Chưa cập nhật'}</dd></div>
+                <div><dt>Email</dt><dd>{contactInfo?.email || 'Chưa cập nhật'}</dd></div>
+              </dl>
+            )}
             <p className="matching-modal-demo-note">Bạn có thể chủ động trao đổi với người đăng để xác nhận đặc điểm thú cưng và địa điểm tìm thấy.</p>
           </section>
         </div>
@@ -291,13 +295,14 @@ function MatchingResultsPage({
             <button className="matching-detail-close" type="button" onClick={() => setRejectMatch(null)} aria-label="Đóng">×</button>
             <h2 id="matching-reject-title">Xác nhận từ chối kết quả?</h2>
             <p>Bạn xác nhận bé <strong>{rejectMatch.pet_name || 'thú cưng này'}</strong> không phải thú cưng bạn đang tìm?</p>
-            <p className="matching-modal-demo-note">Trong bản demo, kết quả sẽ được ẩn khỏi danh sách hiện tại.</p>
+            <p className="matching-modal-demo-note">Kết quả này sẽ được đánh dấu từ chối và ẩn khỏi danh sách của bạn.</p>
             <div className="matching-modal-actions">
               <button type="button" className="matching-modal-secondary" onClick={() => setRejectMatch(null)}>Hủy</button>
               <button type="button" className="matching-modal-primary" onClick={() => {
-                setRejectedIds((previous) => [...previous, rejectMatch.candidate_id || rejectMatch.post_id])
-                onReject?.(rejectMatch)
-                setRejectMatch(null)
+                handleRejectClick(rejectMatch).then(() => {
+                  onReject?.(rejectMatch)
+                  setRejectMatch(null)
+                })
               }}>Xác nhận</button>
             </div>
           </section>
