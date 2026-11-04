@@ -296,7 +296,14 @@ function MatchingResultsPage({
                 {resolutionSource === 'PYPAWS' ? <p>Bạn xác nhận đã tìm thấy bé nhờ bài đăng <strong>FOUND #{selectedFoundPost?.post_id}</strong> chứ?</p> : <p>Bạn xác nhận đã tự tìm lại được bé bằng cách khác?</p>}
                 <p className="matching-modal-demo-note">Sau khi xác nhận, tin tìm thú cưng (LOST) của bạn sẽ được chuyển thành <strong>Đã tìm thấy</strong> và không tiếp tục ghép kết quả nữa. Bài đăng tìm thấy của người khác không được thêm vào mục “Tin đăng của tôi”.</p>
                 <p className="matching-modal-demo-note"></p>
-                <div className="matching-modal-actions"><button type="button" className="matching-modal-secondary" onClick={() => setResolutionStep(resolutionSource === 'PYPAWS' ? 'found' : 'choice')}>Quay lại</button><button type="button" className="matching-modal-primary" onClick={() => { onResolve?.({ source: resolutionSource, foundPost: selectedFoundPost, lostReport }); setShowResolution(false) }}>Xác nhận hoàn tất</button></div>
+                <div className="matching-modal-actions"><button type="button" className="matching-modal-secondary" onClick={() => setResolutionStep(resolutionSource === 'PYPAWS' ? 'found' : 'choice')}>Quay lại</button><button type="button" className="matching-modal-primary" onClick={async () => {
+                  try {
+                    await onResolve?.({ source: resolutionSource, foundPost: selectedFoundPost, lostReport })
+                    setShowResolution(false)
+                  } catch (err) {
+                    window.alert(err?.message || 'Không thể cập nhật trạng thái bài đăng.')
+                  }
+                }}>Xác nhận hoàn tất</button></div>
               </>
             )}
           </section>
