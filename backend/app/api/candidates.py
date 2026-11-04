@@ -107,3 +107,17 @@ def resolve(candidate_id: int, lost_post_id: int, user_id: int = Depends(get_cur
         },
     )
     return {"status": "RESOLVED", "candidate_id": candidate_id, "lost_post_id": lost_post_id}
+
+@router.post("/resolve-report")
+def resolve_report(lost_post_id: int, source: str, user_id: int = Depends(get_current_user_id)):
+    """Resolve a LOST post when the owner found the pet outside PyPaws."""
+    rpc(
+        "resolve_lost_post",
+        {
+            "p_requester_id": user_id,
+            "p_lost_post_id": lost_post_id,
+            "p_source": source,
+            "p_candidate_id": None,
+        },
+    )
+    return {"status": "RESOLVED", "lost_post_id": lost_post_id, "source": source}
