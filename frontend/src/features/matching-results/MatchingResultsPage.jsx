@@ -97,9 +97,12 @@ function MatchingResultsPage({
   )
 
   const eligibleFoundPosts = eligibleMatches.filter((item) => {
-    const status = item.status || 'ACTIVE'
-    const matchingStatus = item.matching_status || item.candidate_status || 'PENDING'
-    return status === 'ACTIVE' && ['PENDING', 'CONTACTED'].includes(matchingStatus)
+    // get_candidates_for_post returns `status` for the candidate itself and
+    // `found_status` for the FOUND post. Do not treat candidate PENDING as
+    // the post status, otherwise every valid FOUND candidate is filtered out.
+    const postStatus = item.found_status || item.post_status || 'ACTIVE'
+    const matchingStatus = item.matching_status || item.candidate_status || item.status || 'PENDING'
+    return postStatus === 'ACTIVE' && ['PENDING', 'CONTACTED'].includes(matchingStatus)
   })
 
   const filteredMatches = useMemo(() => [...eligibleMatches].sort((a, b) => {
