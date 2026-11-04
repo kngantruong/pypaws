@@ -225,6 +225,24 @@ export async function resolveCandidate(candidateId, lostPostId) {
 }
 
 /**
+ * Resolve a LOST post when the owner found the pet outside PyPaws.
+ */
+export async function resolveLostPost(lostPostId, source) {
+  const url = API_BASE + '/api/candidates/resolve-report?lost_post_id='
+    + lostPostId + '&source=' + encodeURIComponent(source);
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(true),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to resolve report');
+  }
+
+  return await res.json();
+}
+
+/**
  * Fetch list of posts.
  */
 export async function getPosts(params = {}) {
