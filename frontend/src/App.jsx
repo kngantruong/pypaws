@@ -1,5 +1,5 @@
 import MatchingResultsPage from './features/matching-results/MatchingResultsPage.jsx'
-import { getPosts, getNotifications, markNotificationRead, getMe, getAuthToken, getStoredUser, setAuthToken, resolveImageUrl } from './services/api.js'
+import { getPosts, getNotifications, markNotificationRead, getMe, getAuthToken, getStoredUser, setAuthToken, resolveImageUrl, resolveCandidate, resolveLostPost } from './services/api.js'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import AllReportsPage from './features/all-reports/AllReportsPage.jsx'
 import LoginPage from './features/auth/pages/LoginPage.jsx'
@@ -201,22 +201,34 @@ function App() {
       .catch((err) => console.warn('Could not fetch posts from backend:', err))
   }, [user?.id])
 
-  const handleResolveLostReport = ({ source, foundPost, lostReport }) => {
-    const lostId = String(lostReport?.post_id)
+  const handleResolveLostReport = async ({ source, foundPost, lostReport }) => {
+    const lostId = Number(lostReport?.post_id)
+    if (!Number.isInteger(lostId)) throw new Error('Bài LOST không hợp lệ.')
+
+    if (source === 'PYPAWS') {
+      const candidateId = Number(foundPost?.candidate_id)
+      if (!Number.isInteger(candidateId)) {
+        throw new Error('Không xác định được kết quả ghép đã chọn.')
+      }
+      await resolveCandidate(candidateId, lostId)
+    } else {
+      await resolveLostPost(lostId, source)
+    }
+
     const foundId = foundPost ? String(foundPost.post_id) : null
     const updateReport = (report) => {
-      if (String(report.post_id) === lostId) return { ...report, status: 'RESOLVED' }
+      if (String(report.post_id) === String(lostId)) return { ...report, status: 'RESOLVED' }
       if (source === 'PYPAWS' && foundId && String(report.post_id) === foundId) return { ...report, status: 'RESOLVED' }
       return report
     }
     setUserReports((previous) => previous.map(updateReport))
     setMyReports((previous) => {
-      const hasLost = previous.some((item) => String(item.post_id) === lostId)
+      const hasLost = previous.some((item) => String(item.post_id) === String(lostId))
       const updated = previous.map(updateReport)
       if (!hasLost) updated.unshift({ ...lostReport, status: 'RESOLVED' })
       return updated
     })
-    setActiveLostReport((previous) => previous && String(previous.post_id) === lostId ? { ...previous, status: 'RESOLVED' } : previous)
+    setActiveLostReport((previous) => previous && String(previous.post_id) === String(lostId) ? { ...previous, status: 'RESOLVED' } : previous)
     setCurrentPage('profile')
     setProfileInitialTab('reports')
     window.scrollTo({ top: 0, behavior: 'smooth' })
