@@ -228,6 +228,15 @@ function App() {
       if (!hasLost) updated.unshift({ ...lostReport, status: 'RESOLVED' })
       return updated
     })
+    // A resolved report must disappear from the public report list immediately.
+    // publicReports is the source for both the homepage and All Reports, so
+    // update it here as well instead of waiting for a full reload.
+    setPublicReports((previous) => previous.filter((report) => {
+      const postId = String(report.post_id)
+      if (postId === String(lostId)) return false
+      if (source === 'PYPAWS' && foundId && postId === foundId) return false
+      return report.status === 'ACTIVE'
+    }))
     setActiveLostReport((previous) => previous && String(previous.post_id) === String(lostId) ? { ...previous, status: 'RESOLVED' } : previous)
     setCurrentPage('profile')
     setProfileInitialTab('reports')
